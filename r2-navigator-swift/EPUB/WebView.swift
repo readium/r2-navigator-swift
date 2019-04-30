@@ -30,6 +30,7 @@ class WebView: UIView, Loggable {
     
     weak var viewDelegate: WebViewDelegate?
     fileprivate let initialLocation: BinaryLocation
+    private let disableDragAndDrop: Bool
     
     let baseURL: URL
     let webView: WKWebView
@@ -82,6 +83,7 @@ class WebView: UIView, Loggable {
         self.readingProgression = readingProgression
         self.pageTransition = pageTransition
         self.editingActions = editingActions
+        self.disableDragAndDrop = disableDragAndDrop
         self.webView = WKWebView(frame: .zero, configuration: .init())
         self.contentInset = contentInset
       
@@ -91,7 +93,7 @@ class WebView: UIView, Loggable {
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(webView)
 
-        if disableDragAndDrop { disableDragAndDropInteraction() }
+        setupDragAndDrop()
         isOpaque = false
         backgroundColor = UIColor.clear
         
@@ -228,6 +230,7 @@ class WebView: UIView, Loggable {
         
         applyUserSettingsStyle()
         scrollToInitialPosition()
+        setupDragAndDrop()
     }
     
     // Scroll at position 0-1 (0%-100%)
@@ -485,7 +488,8 @@ private extension WebView {
         activityIndicatorView = view
     }
     
-    func disableDragAndDropInteraction() {
+    func setupDragAndDrop() {
+        guard disableDragAndDrop else { return }
         if #available(iOS 11.0, *) {
             guard let webScrollView = subviews.compactMap( { $0 as? UIScrollView }).first,
                 let contentView = webScrollView.subviews.first(where: { $0.interactions.count > 1 }),
