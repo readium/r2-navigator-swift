@@ -35,6 +35,7 @@ final class WebView: WKWebView {
 
     var pageTransition: PageTransition
     var editingActions: [EditingAction]
+    private let disableDragAndDrop: Bool
     
     weak var activityIndicatorView: UIActivityIndicatorView?
 
@@ -124,14 +125,13 @@ final class WebView: WKWebView {
     }
     
     var sizeObservation: NSKeyValueObservation?
-    
+
     init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.initialLocation = initialLocation
         self.pageTransition = pageTransition
         self.editingActions = editingActions
-      
+        self.disableDragAndDrop = disableDragAndDrop
         super.init(frame: frame, configuration: .init())
-        if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
         backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
@@ -142,6 +142,7 @@ final class WebView: WKWebView {
         scrollView.showsVerticalScrollIndicator = false
         navigationDelegate = self
         uiDelegate = self
+        setupDragAndDrop()
         
         sizeObservation = scrollView.observe(\.contentSize, options: .new) { (thisScrollView, thisValue) in
             // update total pages
@@ -183,7 +184,6 @@ final class WebView: WKWebView {
       }
       return false;
     }
-  
 }
 
 extension WebView {
@@ -242,6 +242,7 @@ extension WebView {
         
         applyUserSettingsStyle()
         scrollToInitialPosition()
+        setupDragAndDrop()
     }
 }
 
@@ -485,7 +486,8 @@ private extension WebView {
         activityIndicatorView = view
     }
     
-    func disableDragAndDropInteraction() {
+    func setupDragAndDrop() {
+        guard disableDragAndDrop else { return }
         if #available(iOS 11.0, *) {
             guard let webScrollView = subviews.compactMap( { $0 as? UIScrollView }).first,
                 let contentView = webScrollView.subviews.first(where: { $0.interactions.count > 1 }),
