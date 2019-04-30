@@ -70,7 +70,7 @@ open class NavigatorViewController: UIViewController {
         self.pageTransition = pageTransition
         self.disableDragAndDrop = disableDragAndDrop
         self.editingActions = editingActions
-        
+
         userSettings = UserSettings()
         publication.userProperties.properties = userSettings.userProperties.properties
         delegatee = Delegatee()

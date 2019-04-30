@@ -35,6 +35,7 @@ final class WebView: WKWebView {
 
     var pageTransition: PageTransition
     var editingActions: [EditingAction]
+    private let disableDragAndDrop: Bool
     
     weak var activityIndicatorView: UIActivityIndicatorView?
 
@@ -124,14 +125,13 @@ final class WebView: WKWebView {
     }
     
     var sizeObservation: NSKeyValueObservation?
-    
+
     init(frame: CGRect, initialLocation: BinaryLocation, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = []) {
         self.initialLocation = initialLocation
         self.pageTransition = pageTransition
         self.editingActions = editingActions
-      
+        self.disableDragAndDrop = disableDragAndDrop
         super.init(frame: frame, configuration: .init())
-        if disableDragAndDrop { disableDragAndDropInteraction() }
         isOpaque = false
         backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
@@ -184,6 +184,10 @@ final class WebView: WKWebView {
       return false;
     }
   
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        guard disableDragAndDrop else { return }
+        disableDragAndDropInteraction()
+    }
 }
 
 extension WebView {
