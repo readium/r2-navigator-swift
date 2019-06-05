@@ -1,5 +1,5 @@
 //
-//  SelectionableNavigator.swift
+//  SelectableNavigator.swift
 //  r2-navigator-swift
 //
 //  Created by Mickaël Menu on 28.05.19.
@@ -15,7 +15,7 @@ import R2Shared
 
 /// A navigator that allows the user to select content.
 /// FIXME: Editing actions, copy, etc. should be exposed through this protocol.
-public protocol SelectionableNavigator: Navigator {
+public protocol SelectableNavigator: Navigator {
     
     /// Locator to the currently selected content, if any.
     var currentSelection: Locator? { get }

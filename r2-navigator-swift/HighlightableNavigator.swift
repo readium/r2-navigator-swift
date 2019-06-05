@@ -14,7 +14,7 @@ import UIKit
 import R2Shared
 
 
-public protocol HighlightableNavigator: SelectionableNavigator, VisualNavigator {
+public protocol HighlightableNavigator: SelectableNavigator, VisualNavigator {
     
     /// Adds a highlight to be displayed by the navigator.
     /// If a highlight with the same ID is already displayed, then it is updated.
