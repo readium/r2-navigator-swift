@@ -132,8 +132,11 @@ var readium = (function() {
     // Snap the offset to the screen width (page width).
     function snapOffset(offset) {
         var value = offset + 1;
-
-        return value - (value % maxScreenX);
+        var diff = (value % maxScreenX)
+        if (diff <= 1)
+            return value;
+                                                                               
+        return value + (maxScreenX - diff);
     }
 
     function snapCurrentPosition() {
