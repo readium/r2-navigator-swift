@@ -74,7 +74,7 @@ var readium = (function() {
             var currentOffset = window.scrollX;
             var pageWidth = window.innerWidth;
             // Adds half a page to make sure we don't snap to the previous page.
-            document.scrollingElement.scrollLeft = snapOffset(currentOffset + (pageWidth / 2));
+            document.scrollingElement.scrollLeft = snapOffset(currentOffset);
         }
     }
 
@@ -132,7 +132,7 @@ var readium = (function() {
     // Snap the offset to the screen width (page width).
     function snapOffset(offset) {
         var value = offset + 1;
-        var diff = (value % maxScreenX)
+        var diff = (value % maxScreenX);
         if (diff <= 1)
             return value;
                                                                                
