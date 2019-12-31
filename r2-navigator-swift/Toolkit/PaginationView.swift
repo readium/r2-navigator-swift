@@ -154,7 +154,7 @@ final class PaginationView: UIView {
         // Locations in a page view.
         let beginning = Locator(href: "#", type: "", locations: Locations(progression: 0))
         let end = Locator(href: "#", type: "", locations: Locations(progression: 1))
-        let location = location ?? beginning
+        let location = location ?? ((currentIndex > index) ? end : beginning)
         
         // Automatically scrolls the previous document to the beginning or the end, to make sure that it's properly positioned to the consecutive page when going back to it.
         currentView?.go(to: (currentIndex < index) ? end : beginning)
@@ -190,6 +190,11 @@ final class PaginationView: UIView {
     /// - Returns: The loaded page view, if any.
     @discardableResult
     private func loadView(at index: Int, location: Locator) -> (UIView & PageView)? {
+        /// TODO: if the view already on the location do not change location
+        if let view = loadedViews[index] {
+            view.go(to: location)
+        }
+        
         if 0..<pageCount ~= index,
             loadedViews[index] == nil,
             let delegate = delegate,
