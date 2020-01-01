@@ -286,6 +286,11 @@ final class PaginationView: UIView {
             ),
             size: scrollView.frame.size
         ), animated: false)
+        
+        /// if the view already loaded it's location will be at the end/start of the resourse
+        if let location = location {
+            currentView?.go(to: location)
+        }
     }
     
 }
