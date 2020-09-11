@@ -285,6 +285,12 @@ class EPUBSpreadView: UIView, Loggable {
         return 0
     }
     
+    /// Current cfi in the resource .
+    func cfi() -> String? {
+        // To be overridden in subclasses if the resource supports a progression.
+        return nil
+    }
+    
     func go(to location: PageLocation, completion: (() -> Void)?) {
         // For fixed layout, there's only one page so location is not used. But this is overriden
         // for reflowable resources.
@@ -306,6 +312,7 @@ class EPUBSpreadView: UIView, Loggable {
     
     private static let gesturesScript = loadScript(named: "gestures")
     private static let utilsScript = loadScript(named: "utils")
+    private static let cfiScript = loadScript(named: "epub-cfi")
 
     class func loadScript(named name: String) -> String {
         return Bundle(for: EPUBSpreadView.self)
@@ -321,7 +328,8 @@ class EPUBSpreadView: UIView, Loggable {
     func makeScripts() -> [WKUserScript] {
         return [
             WKUserScript(source: EPUBSpreadView.gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBSpreadView.cfiScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         ]
     }
     

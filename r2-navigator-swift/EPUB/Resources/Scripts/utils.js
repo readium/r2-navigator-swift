@@ -28,9 +28,23 @@ var readium = (function() {
 
     // Position in range [0 - 1].
     function update(position) {
+        getPartialCfi();
         var positionString = position.toString()
         webkit.messageHandlers.progressionChanged.postMessage(positionString);
     }
+
+    function getFrameRect() {
+      return {
+         left: 0,
+         right: window.innerWidth,
+         top: 0,
+         bottom: window.innerHeight
+      };
+    }
+
+    var getPartialCfi = debounce(50, function() {
+        webkit.messageHandlers.cfiChanged.postMessage(getFirstVisiblePartialCfi(getFrameRect()));
+    });
 
     window.addEventListener('scroll', function(e) {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;

@@ -141,6 +141,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
         return progression
     }
+    
+    override func cfi() -> String? {
+        return partialCfi
+    }
 
     override func spreadDidLoad() {
         // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
@@ -264,6 +268,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var progression: Double?
     // To check if a progression change was cancelled or not.
     private var previousProgression: Double?
+    // Current partial cfi in the spine item.
+    private var partialCfi: String?
     
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
@@ -274,6 +280,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             previousProgression = progression
         }
         progression = newProgression
+    }
+    
+    private func cfiDidChange(_ body: Any) {
+        partialCfi = body as? String
     }
     
     @objc private func notifyPagesDidChange() {
@@ -290,6 +300,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func registerJSMessages() {
         super.registerJSMessages()
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
+        registerJSMessage(named: "cfiChanged") { [weak self] in self?.cfiDidChange($0) }
     }
     
     private static let reflowableScript = loadScript(named: "reflowable")
