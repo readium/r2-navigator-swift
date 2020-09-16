@@ -229,6 +229,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             go(toTagID: id, completion: completion)
         } else if let progression = locator.locations.progression {
             go(toProgression: progression, completion: completion)
+        } else if let partialCfi = locator.locations.otherLocations["partialCfi"] {
+            log(.info, "Should go to partialCfi \(partialCfi)")
+            go(toProgression: 0, completion: completion)
         } else {
             completion()
         }
