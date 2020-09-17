@@ -173,7 +173,61 @@ var readium = (function() {
         
         document.scrollingElement.scrollLeft = currentOffsetSnapped;
     }
+                                                                         
+    function scrollToPartialCfi(partialCfi) {
+       console.log("ScrollToPartialCfi " + partialCfi);
+       var epubCfi = new EpubCFI("epubcfi(/6/2!" + partialCfi + ")");
+       var element = document.querySelector(epubCfi.generateHtmlQuery());
+       if (element) {
+         var textPosition = parseInt(EpubCFI.getCharacterOffsetComponent(partialCfi), 10);
+         scrollToElement(element, textPosition);
+       }
+    }
+                                                                               
+    function scrollToElement(element, textPosition) {
+        console.log("ScrollToElement " + element.tagName + (textPosition ? (" (offset: " + textPosition + ")") : ""));
+        var windowWidth = window.innerWidth;
+        var elementScreenLeftOffset = element.getBoundingClientRect().left;
 
+        if (window.scrollX % windowWidth === 0 && (elementScreenLeftOffset >= 0 && elementScreenLeftOffset <= windowWidth)) {
+          return;
+        }
+
+        var page = getPageForElement(element, elementScreenLeftOffset, textPosition);
+        document.scrollingElement.scrollLeft = page * windowWidth;
+    }
+                                                                               
+    function getPageForElement(element, elementScreenLeftOffset, textOffset) {
+       if (!textOffset) {
+           return Math.ceil((window.scrollX + elementScreenLeftOffset) / window.innerWidth) - 1;
+       }
+
+       const position = textOffset / element.textContent.length;
+       const rects = Array.from(element.getClientRects()).map(function (rect) {
+           return {
+               rect,
+               offset: Math.floor(rect.left / window.innerWidth),
+               surface: rect.width * rect.height
+           }
+       });
+       const textTotalSurface = rects.reduce(function (total, current) { return total + current.surface; }, 0);
+
+       const rectToDisplay = rects.map(function(rect, index) {
+           if (index === 0) {
+               rect.start = 0;
+               rect.end = rect.surface / textTotalSurface;
+           } else {
+               rect.start = rects[index - 1].end;
+               rect.end = rect.start + (rect.surface / textTotalSurface);
+           }
+           return rect;
+       }).find(function (rect) {
+           return position >= rect.start && position < rect.end;
+       });
+
+       return rectToDisplay ? rectToDisplay.offset : 0;
+    }
+               
     /// User Settings.
 
     // For setting user setting.
@@ -215,6 +269,7 @@ var readium = (function() {
         'scrollToPosition': scrollToPosition,
         'scrollLeft': scrollLeft,
         'scrollRight': scrollRight,
+        'scrollToPartialCfi': scrollToPartialCfi,
         'setProperty': setProperty,
         'removeProperty': removeProperty
     };

@@ -230,8 +230,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         } else if let progression = locator.locations.progression {
             go(toProgression: progression, completion: completion)
         } else if let partialCfi = locator.locations.otherLocations["partialCfi"] {
-            log(.info, "Should go to partialCfi \(partialCfi)")
-            go(toProgression: 0, completion: completion)
+            go(toPartialCfi: partialCfi as! String, completion: completion)
         } else {
             completion()
         }
@@ -262,6 +261,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     /// Scrolls at the tag with ID `tagID`.
     private func go(toTagID tagID: String, completion: @escaping () -> Void) {
         evaluateScript("readium.scrollToId(\'\(tagID)\');") { _, _ in completion() }
+    }
+    
+    /// Scrolls at the partial CFI `partialCfi`.
+    private func go(toPartialCfi partialCfi: String, completion: @escaping () -> Void) {
+        evaluateScript("readium.scrollToPartialCfi(\'\(partialCfi)\');") { _, _ in completion() }
     }
     
     

@@ -404,7 +404,7 @@ class EpubCFI {
     return false;
   }
 
-  static getCharecterOffsetComponent(cfiStr) {
+  static getCharacterOffsetComponent(cfiStr) {
     const splitStr = cfiStr.split(':');
     return splitStr[1] || '';
   }
@@ -1181,7 +1181,25 @@ class EpubCFI {
       this.path.steps = this.path.steps.concat(this.end.steps);
       this.path.terminal = this.end.terminal;
     }
+  }
+    
+  generateHtmlQuery() {
+      const query = ['html'];
 
+      this.path.steps.forEach(function (step) {
+        const position = step.index + 1;
+
+        if (step.id) {
+          query.push("#" + step.id);
+        } else if (step.type === 'text') {
+          // unsupported in querySelector
+          //query.push("text()[" + position + ']');
+        } else {
+          query.push("*:nth-child(" + position + ")");
+        }
+      });
+
+      return query.join('>');
   }
 }
 
