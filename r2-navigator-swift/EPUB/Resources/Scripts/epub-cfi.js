@@ -1190,7 +1190,7 @@ class EpubCFI {
         const position = step.index + 1;
 
         if (step.id) {
-          query.push("#" + step.id);
+          query.push("#" + step.id.replaceAll(/\W/g, '\\$&'));
         } else if (step.type === 'text') {
           // unsupported in querySelector
           //query.push("text()[" + position + ']');

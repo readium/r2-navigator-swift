@@ -181,6 +181,8 @@ var readium = (function() {
        if (element) {
          var textPosition = parseInt(EpubCFI.getCharacterOffsetComponent(partialCfi), 10);
          scrollToElement(element, textPosition);
+       } else {
+         console.log("Partial CFI element not found");
        }
     }
                                                                                
