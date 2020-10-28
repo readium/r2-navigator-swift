@@ -55,7 +55,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         let link = spread.leading
-        guard let url = publication.url(to: link) else {
+        guard let url = link.url(relativeTo: publication.baseURL) else {
             log(.error, "Can't get URL for link \(link.href)")
             return
         }
@@ -178,13 +178,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return false
         }
         
-        let area = CGRect(origin: newOffset, size: bounds.size)
-        if animated {
-            delegate?.spreadViewWillAnimate(self)
-        }
-        scrollView.scrollRectToVisible(area, animated: animated)
-        // FIXME: completion needs to be implemented using scroll view delegate
-        DispatchQueue.main.async(execute: completion)
+        scrollView.setContentOffset(newOffset, animated: animated)
+        
+        // FIXME: completion should be implemented using scroll view delegates
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + (animated ? 0.3 : 0),
+            execute: completion
+        )
 
         return true
     }
@@ -353,11 +353,25 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
     
     
+    // MARK: - WKNavigationDelegate
+    
+    override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        super.webView(webView, didFinish: navigation)
+        
+        // Fixes https://github.com/readium/r2-navigator-swift/issues/141 by disabling the native
+        // double-tap gesture.
+        // It's an acceptable fix because reflowable resources are not supposed to handle double-tap
+        // since there's no zooming capabilities. This doesn't prevent JavaScript to handle
+        // double-tap manually.
+        webView.removeDoubleTapGestureRecognizer()
+    }
+    
+    
     // MARK: - UIScrollViewDelegate
     
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
-        
+
         // Makes sure we always receive the "ending scroll" event.
         // ie. https://stackoverflow.com/a/1857162/1474476
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)

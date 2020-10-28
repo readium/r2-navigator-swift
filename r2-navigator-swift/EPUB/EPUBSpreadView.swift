@@ -16,11 +16,6 @@ import SwiftSoup
 
 protocol EPUBSpreadViewDelegate: class {
     
-    /// Called before the spread view animates its content (eg. page change in reflowable).
-    func spreadViewWillAnimate(_ spreadView: EPUBSpreadView)
-    /// Called after the spread view animates its content (eg. page change in reflowable).
-    func spreadViewDidAnimate(_ spreadView: EPUBSpreadView)
-    
     /// Called when the user tapped on the spread contents.
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
     
@@ -297,9 +292,16 @@ class EPUBSpreadView: UIView, Loggable {
         completion?()
     }
     
-    enum Direction {
+    enum Direction: CustomStringConvertible {
         case left
         case right
+        
+        var description: String {
+            switch self {
+            case .left: return "left"
+            case .right: return "right"
+            }
+        }
     }
     
     func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
@@ -405,7 +407,13 @@ extension EPUBSpreadView: PageView {
     var positionCount: Int {
         // Sum of the number of positions in all the resources of the spread.
         return spread.links
-            .map { publication.positionsByResource[$0.href]?.count ?? 0 }
+            .map {
+                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
+                    return publication.positionsByReadingOrder[index].count
+                } else {
+                    return 0
+                }
+            }
             .reduce(0, +)
     }
 
@@ -455,21 +463,12 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
-        delegate?.spreadViewDidAnimate(self)
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         webView.dismissUserSelection()
     }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        delegate?.spreadViewDidAnimate(self)
-    }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        delegate?.spreadViewDidAnimate(self)
-    }
-    
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // Do not remove, overriden in subclasses.
     }
