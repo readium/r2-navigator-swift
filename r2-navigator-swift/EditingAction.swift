@@ -16,7 +16,7 @@ import R2Shared
 
 public enum EditingAction: String {
     case copy = "copy:"
-    case share = "shareSelection:"
+    case share = "_share:"
     case lookup = "_lookup:"
     
     public static var defaultActions: [EditingAction] {
