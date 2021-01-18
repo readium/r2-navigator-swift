@@ -1,12 +1,7 @@
 //
-//  WebView.swift
-//  r2-navigator-swift
-//
-//  Created by Mickaël Menu on 20.05.19.
-//
 //  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -20,7 +15,14 @@ final class WebView: WKWebView {
 
     init(editingActions: EditingActionsController) {
         self.editingActions = editingActions
-        super.init(frame: .zero, configuration: .init())
+
+        let config = WKWebViewConfiguration()
+
+        // This is equivalent to a private browsing session. We need this to prevent caching publication resources,
+        // which could pose a security threat for protected content.
+        config.websiteDataStore = .nonPersistent()
+
+        super.init(frame: .zero, configuration: config)
     }
     
     required init?(coder: NSCoder) {
