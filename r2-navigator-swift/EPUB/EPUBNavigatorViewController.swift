@@ -156,7 +156,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     private var state: State = .loading {
         didSet {
             if (config.debugState) {
-                log(.debug, "* \(state)")
+                log(.debug, "* transitioned to \(state)")
             }
             
             // Disable user interaction while transitioning, to avoid UX issues.
