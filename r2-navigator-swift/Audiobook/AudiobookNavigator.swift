@@ -1,12 +1,7 @@
 //
-//  AudiobookNavigator.swift
-//  r2-navigator-swift
-//
-//  Created by Mickaël Menu on 12/03/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import AVFoundation
@@ -73,6 +68,8 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
 
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
+
+    private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
     private lazy var player: AVPlayer = {
         let player = AVPlayer()
@@ -181,33 +178,39 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
 
     @discardableResult
     public func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard let newResourceIndex = publication.readingOrder.firstIndex(withHref: locator.href),
-            let url = publication.url(to: locator.href) else
-        {
+        guard let newResourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
-        
-        pause()
+        let link = publication.readingOrder[newResourceIndex]
 
-        // Loads resource
-        if player.currentItem == nil || resourceIndex != newResourceIndex {
-            log(.info, "Starts playing \(url.absoluteString)")
-            player.replaceCurrentItem(with: AVPlayerItem(url: url))
-            resourceIndex = newResourceIndex
-            currentLocation = locator
-            loadedTimeRangesTimer.fire()
-            delegate?.navigator(self, loadedTimeRangesDidChange: [])
+        do {
+            let asset = try mediaLoader.makeAsset(for: link)
+            pause()
+
+            // Loads resource
+            if player.currentItem == nil || resourceIndex != newResourceIndex {
+                log(.info, "Starts playing \(link.href)")
+                player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
+                resourceIndex = newResourceIndex
+                currentLocation = locator
+                loadedTimeRangesTimer.fire()
+                delegate?.navigator(self, loadedTimeRangesDidChange: [])
+            }
+
+            // Seeks to time
+            let time = locator.time(forDuration: resourceDuration) ?? 0
+            if time > 0 {
+                player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+            }
+
+            play()
+
+            return true
+
+        } catch {
+            log(.error, error)
+            return false
         }
-
-        // Seeks to time
-        let time = locator.time(forDuration: resourceDuration) ?? 0
-        if time > 0 {
-            player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
-        }
-        
-        play()
-
-        return true
     }
 
 
