@@ -18,6 +18,8 @@
 		CA4CF4DE25CDAC50005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */; };
 		CA4CF4DF25CDAC50005DD935 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */; };
 		CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */; };
+		CA62EFC525EFE8520016828A /* AudiobookNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFC425EFE8520016828A /* AudiobookNavigator.swift */; };
+		CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFC725EFE8590016828A /* MediaNavigator.swift */; };
 		CA90372122D8C94C00D4C86F /* fxl-spread-one.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */; };
 		CA90372222D8C94C00D4C86F /* fxl-spread-two.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90372022D8C94C00D4C86F /* fxl-spread-two.html */; };
 		CA94292122BCF97700305CDB /* Static in Resources */ = {isa = PBXBuildFile; fileRef = CA94292022BCF97700305CDB /* Static */; };
@@ -56,6 +58,8 @@
 		CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
 		CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
+		CA62EFC425EFE8520016828A /* AudiobookNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudiobookNavigator.swift; sourceTree = "<group>"; };
+		CA62EFC725EFE8590016828A /* MediaNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaNavigator.swift; sourceTree = "<group>"; };
 		CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-one.html"; sourceTree = "<group>"; };
 		CA90372022D8C94C00D4C86F /* fxl-spread-two.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-two.html"; sourceTree = "<group>"; };
 		CA94292022BCF97700305CDB /* Static */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Static; sourceTree = "<group>"; };
@@ -133,6 +137,14 @@
 			path = Toolkit;
 			sourceTree = "<group>";
 		};
+		CA62EFC325EFE8520016828A /* Audiobook */ = {
+			isa = PBXGroup;
+			children = (
+				CA62EFC425EFE8520016828A /* AudiobookNavigator.swift */,
+			);
+			path = Audiobook;
+			sourceTree = "<group>";
+		};
 		CAA9A38A226F406300BE1D6A /* EPUB */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,7 +212,9 @@
 				F3E7D3C71F4D83B000DF166D /* Info.plist */,
 				CAB9086A22492D4C00711C3F /* Navigator.swift */,
 				CA26EF7D22803FE90011653E /* VisualNavigator.swift */,
+				CA62EFC725EFE8590016828A /* MediaNavigator.swift */,
 				CACE84FA2254BFEE00E19E8B /* EditingAction.swift */,
+				CA62EFC325EFE8520016828A /* Audiobook */,
 				CAFC2F672278957A007DBB02 /* CBZ */,
 				CAA9A38A226F406300BE1D6A /* EPUB */,
 				CA0B3AC1222EE530006D9363 /* PDF */,
@@ -330,6 +344,8 @@
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
+				CA62EFC525EFE8520016828A /* AudiobookNavigator.swift in Sources */,
+				CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */,
 				CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,
 				CACE84FB2254BFEE00E19E8B /* EditingAction.swift in Sources */,
