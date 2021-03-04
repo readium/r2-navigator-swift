@@ -11,7 +11,7 @@ import R2Shared
 /// Serves `Publication`'s `Resource`s as an `AVURLAsset`.
 ///
 /// Useful for local resources or when you need to customize the way HTTP requests are sent.
-final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Loggable {
+final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     private typealias HREF = String
 
     public enum AssetError: LocalizedError {
@@ -71,14 +71,17 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
 
     private typealias CancellableRequest = (request: AVAssetResourceLoadingRequest, cancellable: Cancellable)
 
+    /// List of on-going loading requests.
     private var requests: [HREF: [CancellableRequest]] = [:]
 
+    /// Adds a new loading request.
     private func registerRequest(_ request: AVAssetResourceLoadingRequest, cancellable: Cancellable, for href: HREF) {
         var reqs: [CancellableRequest] = requests[href] ?? []
         reqs.append((request, cancellable))
         requests[href] = reqs
     }
 
+    /// Terminates and removes the given loading request, cancelling it if necessary.
     private func finishRequest(_ request: AVAssetResourceLoadingRequest) {
         guard
             let href = request.href,
@@ -87,7 +90,17 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         else {
             return
         }
-        reqs.remove(at: index).cancellable.cancel()
+
+        let req = reqs.remove(at: index)
+        req.cancellable.cancel()
+
+        if reqs.isEmpty {
+            let res = resources.removeValue(forKey: href)
+            res?.close()
+            requests.removeValue(forKey: href)
+        } else {
+            requests[href] = reqs
+        }
     }
 
     // MARK: - AVAssetResourceLoaderDelegate
