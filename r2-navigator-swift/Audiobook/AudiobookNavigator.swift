@@ -92,11 +92,16 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
         }
 
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
-            if let self = self,
-                (self.delegate?.navigator(self, shouldPlayNextResource: self.makePlaybackInfo()) ?? true),
+            guard
+                let self = self,
                 let currentItem = player.currentItem,
-                currentItem == (notification.object as? AVPlayerItem) {
-                if self.goToNextResource() {
+                currentItem == (notification.object as? AVPlayerItem)
+            else {
+                return
+            }
+
+            self.shouldPlayNextResource { playNext in
+                if playNext && self.goToNextResource() {
                     self.play()
                 }
             }
@@ -104,23 +109,45 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
         
         return player
     }()
-    
+
+    private func shouldPlayNextResource(completion: @escaping (Bool) -> Void) {
+        guard let delegate = delegate else {
+            completion(true)
+            return
+        }
+
+        makePlaybackInfo { info in
+            completion(delegate.navigator(self, shouldPlayNextResource: info))
+        }
+    }
+
     private func playbackDidChange(_ time: Double? = nil) {
         if let time = time {
             let locator = makeLocator(forTime: time)
             currentLocation = locator
             self.delegate?.navigator(self, locationDidChange: locator)
         }
-        delegate?.navigator(self, playbackDidChange: makePlaybackInfo(forTime: time))
+
+        makePlaybackInfo(forTime: time) { info in
+            self.delegate?.navigator(self, playbackDidChange: info)
+        }
     }
-    
-    private func makePlaybackInfo(forTime time: Double? = nil) -> MediaPlaybackInfo {
-        return MediaPlaybackInfo(
-            resourceIndex: resourceIndex,
-            state: state,
-            time: time ?? currentTime,
-            duration: resourceDuration
-        )
+
+    // A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
+    // To fix this, this is an asynchronous operation.
+    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping (MediaPlaybackInfo) -> Void) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let info = MediaPlaybackInfo(
+                resourceIndex: self.resourceIndex,
+                state: self.state,
+                time: time ?? self.currentTime,
+                duration: self.resourceDuration
+            )
+
+            DispatchQueue.main.async {
+                completion(info)
+            }
+        }
     }
 
     private func makeLocator(forTime time: Double) -> Locator {
