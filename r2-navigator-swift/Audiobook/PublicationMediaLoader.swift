@@ -35,10 +35,8 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
     /// Creates a new `AVURLAsset` to serve the given `link`.
     func makeAsset(for link: Link) throws -> AVURLAsset {
-        guard
-            let originalURL = link.url(relativeTo: publication.baseURL),
-            var components = URLComponents(url: originalURL, resolvingAgainstBaseURL: true)
-        else {
+        let originalURL = link.url(relativeTo: publication.baseURL) ?? URL(fileURLWithPath: link.href)
+        guard var components = URLComponents(url: originalURL, resolvingAgainstBaseURL: true) else {
             throw AssetError.invalidHREF(link.href)
         }
 
@@ -167,17 +165,21 @@ private let schemePrefix = "r2"
 private extension AVAssetResourceLoadingRequest {
 
     var href: String? {
-        guard
-            let href = request.url?.absoluteString,
-            href.hasPrefix(schemePrefix)
-        else {
+        guard let url = request.url, url.scheme?.hasPrefix(schemePrefix) == true else {
             return nil
         }
 
-        // HREF can be either:
-        // * r2:directory/local-file.mp3
+        // The URL can be either:
+        // * r2file://directory/local-file.mp3
         // * r2http(s)://domain.com/external-file.mp3
-        return href.removingPrefix(schemePrefix).replacingPrefix(":", by: "/")
+        switch url.scheme?.lowercased().removingPrefix(schemePrefix) {
+        case "file":
+            return url.path
+        case "http", "https":
+            return url.absoluteString.removingPrefix(schemePrefix)
+        default:
+            return nil
+        }
     }
 
 }
