@@ -680,6 +680,18 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
 }
 
 
+// MARK: - Customization
+
+extension EPUBNavigatorViewController {
+
+    public var webView: WKWebView? {
+        let spreadView = paginationView.currentView as? EPUBSpreadView
+        return spreadView?.webView
+    }
+    
+}
+
+
 // MARK: - Deprecated
 
 @available(*, deprecated, renamed: "EPUBNavigatorViewController")
