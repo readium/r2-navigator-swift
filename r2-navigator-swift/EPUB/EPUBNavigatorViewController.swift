@@ -17,7 +17,12 @@ import SwiftSoup
 
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
-    
+
+    // MARK: - WebView Customization
+
+    func setupCustomUserScripts(_ userContentController: WKUserContentController)
+    func resource(link: Link, didReceiveMessage message: WKScriptMessage)
+
     // MARK: - Deprecated
     
     // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
@@ -40,6 +45,8 @@ public extension EPUBNavigatorDelegate {
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
     func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
     func presentError(_ error: NavigatorError) {}
+    func setupCustomUserScripts(_ userContentController: WKUserContentController) {}
+    func resource(link: Link, didReceiveMessage message: WKScriptMessage) {}
 
 }
 
@@ -635,6 +642,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         present(viewController, animated: true)
     }
 
+    func spreadView(_ spreadView: EPUBSpreadView, didReceiveMessage message: WKScriptMessage) {
+        delegate?.resource(link: spreadView.spread.leading, didReceiveMessage: message)
+    }
+
 }
 
 extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
@@ -663,6 +674,10 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             contentInset: config.contentInset
         )
         spreadView.delegate = self
+
+        let userContentController = spreadView.webView.configuration.userContentController
+        delegate?.setupCustomUserScripts(userContentController)
+
         return spreadView
     }
     
