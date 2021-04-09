@@ -15,14 +15,21 @@ import WebKit
 /// A custom web view which:
 ///  - Forwards copy: menu action to an EditingActionsController.
 final class WebView: WKWebView {
-    
+
     private let editingActions: EditingActionsController
 
-    init(editingActions: EditingActionsController) {
+    init(editingActions: EditingActionsController, configuration: WKWebViewConfiguration = .init()) {
         self.editingActions = editingActions
-        super.init(frame: .zero, configuration: .init())
+        super.init(frame: .zero, configuration: configuration)
     }
-    
+
+    @available(iOS 11.0, *)
+    convenience init(editingActions: EditingActionsController, schemeHandler: (scheme: String, handler: WKURLSchemeHandler)) {
+        let configuration = WKWebViewConfiguration()
+        configuration.setURLSchemeHandler(schemeHandler.handler, forURLScheme: schemeHandler.scheme)
+        self.init(editingActions: editingActions, configuration: configuration)
+    }
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
