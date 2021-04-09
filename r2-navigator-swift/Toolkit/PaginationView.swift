@@ -280,11 +280,11 @@ final class PaginationView: UIView {
     ///   - index: The index to move to.
     ///   - location: The location to move the future current page view to.
     /// - Returns: Whether the move is possible.
-    func goToIndex(_ index: Int, location: PageLocation, animated: Bool = false, completion: @escaping () -> ()) -> Bool {
+    func goToIndex(_ index: Int, location: PageLocation, animated: Bool = false, completion: @escaping () -> Void) -> Bool {
         guard 0..<pageCount ~= index else {
             return false
         }
-        
+
         func fade(to alpha: CGFloat, completion: @escaping () -> ()) {
             if animated {
                 UIView.animate(withDuration: 0.15, animations: {
@@ -295,29 +295,28 @@ final class PaginationView: UIView {
                 completion()
             }
         }
-        
+
         fade(to: 0) {
-            self.scrollToView(at: index, location: location)
-            
-            // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a generous delay before showing the view again.
-            // FIXME: this should be handled in the PageView directly
-            let delayed = !location.isStart
-            DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.5 : 0)) {
+            self.scrollToView(at: index, location: location) {
                 fade(to: 1, completion: completion)
             }
         }
-        
+
         return true
     }
-    
-    private func scrollToView(at index: Int, location: PageLocation) {
+
+    private func scrollToView(at index: Int, location: PageLocation, completion: @escaping () -> Void) {
         guard currentIndex != index else {
-            currentView?.go(to: location)
+            if let view = currentView {
+                view.go(to: location, completion: completion)
+            } else {
+                completion()
+            }
             return
         }
-        
+
         scrollView.isScrollEnabled = true
-        setCurrentIndex(index, location: location)
+        setCurrentIndex(index, location: location, completion: completion)
 
         scrollView.scrollRectToVisible(CGRect(
             origin: CGPoint(

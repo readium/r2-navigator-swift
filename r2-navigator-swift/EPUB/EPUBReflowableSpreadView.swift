@@ -203,13 +203,22 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
 
+        // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add a
+        // generous delay before showing the view again.
+        func complete() {
+            let delayed = !location.isStart
+            DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
+                completion()
+            }
+        }
+
         switch location {
         case .locator(let locator):
-            go(to: locator, completion: completion)
+            go(to: locator, completion: complete)
         case .start:
-            go(toProgression: 0, completion: completion)
+            go(toProgression: 0, completion: complete)
         case .end:
-            go(toProgression: 1, completion: completion)
+            go(toProgression: 1, completion: complete)
         }
     }
 

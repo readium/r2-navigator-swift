@@ -279,7 +279,7 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func go(to location: PageLocation, completion: (() -> Void)?) {
-        // For fixed layout, there's only one page so location is not used. But this is overriden
+        // For fixed layout, there's only one page so location is not used. But this is overridden
         // for reflowable resources.
         completion?()
     }
@@ -297,7 +297,7 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        // The default implementation of a spread view consider that its content is entirely visible on screen.
+        // The default implementation of a spread view considers that its content is entirely visible on screen.
         return false
     }
 
