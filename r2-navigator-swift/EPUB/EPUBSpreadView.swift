@@ -33,7 +33,7 @@ protocol EPUBSpreadViewDelegate: class {
     
 }
 
-class EPUBSpreadView: UIView, Loggable {
+class EPUBSpreadView: UIView, Loggable, PageView {
 
     weak var delegate: EPUBSpreadViewDelegate?
     let publication: Publication
@@ -277,7 +277,7 @@ class EPUBSpreadView: UIView, Loggable {
         // To be overridden in subclasses if the resource supports a progression.
         return 0
     }
-    
+
     func go(to location: PageLocation, completion: (() -> Void)?) {
         // For fixed layout, there's only one page so location is not used. But this is overridden
         // for reflowable resources.
@@ -388,23 +388,6 @@ class EPUBSpreadView: UIView, Loggable {
         isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
         // Scroll mode will be activated if VoiceOver is on
         applyUserSettingsStyle()
-    }
-
-}
-
-extension EPUBSpreadView: PageView {
-    
-    var positionCount: Int {
-        // Sum of the number of positions in all the resources of the spread.
-        return spread.links
-            .map {
-                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
-                    return publication.positionsByReadingOrder[index].count
-                } else {
-                    return 0
-                }
-            }
-            .reduce(0, +)
     }
 
 }
