@@ -279,9 +279,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     func go(to location: PageLocation, completion: (() -> Void)?) {
-        // For fixed layout, there's only one page so location is not used. But this is overridden
-        // for reflowable resources.
-        completion?()
+        fatalError("go(to:completion:) must be implemented in subclasses")
     }
     
     enum Direction: CustomStringConvertible {
