@@ -20,8 +20,8 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 
     // MARK: - WebView Customization
 
-    func setupCustomUserScripts(_ userContentController: WKUserContentController)
-    func resource(link: Link, didReceiveMessage message: WKScriptMessage)
+    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+    func navigator(_ navigator: EPUBNavigatorViewController, userContentController: WKUserContentController, didReceive message: WKScriptMessage)
 
     // MARK: - Deprecated
     
@@ -39,14 +39,15 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 }
 
 public extension EPUBNavigatorDelegate {
-    
+
+    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
+    func navigator(_ navigator: EPUBNavigatorViewController, userContentController: WKUserContentController, didReceive message: WKScriptMessage) {}
+
     func middleTapHandler() {}
     func willExitPublication(documentIndex: Int, progression: Double?) {}
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
     func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
     func presentError(_ error: NavigatorError) {}
-    func setupCustomUserScripts(_ userContentController: WKUserContentController) {}
-    func resource(link: Link, didReceiveMessage message: WKScriptMessage) {}
 
 }
 
@@ -642,8 +643,8 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         present(viewController, animated: true)
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didReceiveMessage message: WKScriptMessage) {
-        delegate?.resource(link: spreadView.spread.leading, didReceiveMessage: message)
+    func spreadView(_ spreadView: EPUBSpreadView, userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.navigator(self, userContentController: userContentController, didReceive: message)
     }
 
 }
@@ -676,7 +677,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         spreadView.delegate = self
 
         let userContentController = spreadView.webView.configuration.userContentController
-        delegate?.setupCustomUserScripts(userContentController)
+        delegate?.navigator(self, setupUserScripts: userContentController)
 
         return spreadView
     }
@@ -695,18 +696,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
         return spreads[index].positionCount(in: publication)
     }
-}
-
-
-// MARK: - Customization
-
-extension EPUBNavigatorViewController {
-
-    public var webView: WKWebView? {
-        let spreadView = paginationView.currentView as? EPUBSpreadView
-        return spreadView?.webView
-    }
-    
 }
 
 

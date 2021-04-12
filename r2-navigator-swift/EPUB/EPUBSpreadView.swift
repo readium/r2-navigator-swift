@@ -32,7 +32,7 @@ protocol EPUBSpreadViewDelegate: class {
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
 
     /// Called when the spread view receives an unknown JavaScript message.
-    func spreadView(_ spreadView: EPUBSpreadView, didReceiveMessage: WKScriptMessage)
+    func spreadView(_ spreadView: EPUBSpreadView, userContentController: WKUserContentController, didReceive message: WKScriptMessage)
     
 }
 
@@ -401,10 +401,8 @@ extension EPUBSpreadView: WKScriptMessageHandler {
         if let handler = JSMessages[message.name]  {
             handler(message.body)
         } else {
-            delegate?.spreadView(self, didReceiveMessage: message)
+            delegate?.spreadView(self, userContentController: userContentController, didReceive: message)
         }
-
-
     }
 
 }
