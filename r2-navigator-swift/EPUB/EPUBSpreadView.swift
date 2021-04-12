@@ -406,7 +406,7 @@ extension EPUBSpreadView: WKScriptMessageHandler {
 extension EPUBSpreadView: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Do not remove: overriden in subclasses.
+        // Do not remove: overridden in subclasses.
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -441,7 +441,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // Do not remove, overriden in subclasses.
+        // Do not remove, overridden in subclasses.
     }
 
 }

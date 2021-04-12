@@ -211,10 +211,19 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
-        loadNextPage {
+        var isCompleted = false
+        let complete = {
+            guard !isCompleted else { return }
+            isCompleted = true
             completion()
             self.delegate?.paginationViewDidUpdateViews(self)
         }
+
+        if loadedViews[index] != nil {  // Already loaded.
+            complete()
+        }
+
+        loadNextPage(completion: complete)
     }
 
     private func loadNextPage(completion: @escaping () -> Void = {}) {
@@ -277,10 +286,8 @@ final class PaginationView: UIView, Loggable {
             return false
         }
 
-        let item = (index: index, location: location)
-        if loadedViews[index] == nil && !loadingIndexQueue.contains(where: { $0.index == index }) {
-            loadingIndexQueue.append(item)
-        }
+        loadingIndexQueue.removeAll { $0.index == index }
+        loadingIndexQueue.append((index: index, location: location))
         return true
     }
 
