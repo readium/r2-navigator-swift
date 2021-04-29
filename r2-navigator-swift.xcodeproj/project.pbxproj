@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,10 +14,8 @@
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
-		CA4CF4DD25CDAC50005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */; };
-		CA4CF4DE25CDAC50005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */; };
-		CA4CF4DF25CDAC50005DD935 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */; };
-		CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */; };
+		CA7B7791263AB7F600260838 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7790263AB7F600260838 /* SwiftSoup.framework */; };
+		CA7B7795263AB7FD00260838 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7794263AB7FD00260838 /* R2Shared.framework */; };
 		CA90372122D8C94C00D4C86F /* fxl-spread-one.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */; };
 		CA90372222D8C94C00D4C86F /* fxl-spread-two.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90372022D8C94C00D4C86F /* fxl-spread-two.html */; };
 		CA94292122BCF97700305CDB /* Static in Resources */ = {isa = PBXBuildFile; fileRef = CA94292022BCF97700305CDB /* Static */; };
@@ -56,6 +54,10 @@
 		CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
 		CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
+		CA7B7788263AB46F00260838 /* Fuzi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Fuzi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B778C263AB51000260838 /* Minizip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Minizip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B7790263AB7F600260838 /* SwiftSoup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftSoup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7B7794263AB7FD00260838 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-one.html"; sourceTree = "<group>"; };
 		CA90372022D8C94C00D4C86F /* fxl-spread-two.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-two.html"; sourceTree = "<group>"; };
 		CA94292022BCF97700305CDB /* Static */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Static; sourceTree = "<group>"; };
@@ -89,10 +91,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA4CF4DD25CDAC50005DD935 /* Fuzi.xcframework in Frameworks */,
-				CA4CF4DE25CDAC50005DD935 /* Minizip.xcframework in Frameworks */,
-				CA4CF4DF25CDAC50005DD935 /* SwiftSoup.xcframework in Frameworks */,
-				CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */,
+				CA7B7791263AB7F600260838 /* SwiftSoup.framework in Frameworks */,
+				CA7B7795263AB7FD00260838 /* R2Shared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,6 +222,10 @@
 		F3E7D3E71F4DC40800DF166D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CA7B7794263AB7FD00260838 /* R2Shared.framework */,
+				CA7B7790263AB7F600260838 /* SwiftSoup.framework */,
+				CA7B778C263AB51000260838 /* Minizip.framework */,
+				CA7B7788263AB46F00260838 /* Fuzi.framework */,
 				CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */,
 				CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */,
 				CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */,
@@ -475,8 +479,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "";
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -504,10 +507,7 @@
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
 				PRODUCT_NAME = R2Navigator;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -537,10 +537,7 @@
 				INFOPLIST_FILE = "r2-navigator-swift/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.readium.r2-navigator-swift";
 				PRODUCT_NAME = R2Navigator;
 				PROVISIONING_PROFILE_SPECIFIER = "";
