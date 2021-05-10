@@ -137,7 +137,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
         let range: Range<UInt64> = UInt64(dataRequest.currentOffset)..<(UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
 
-        let cancellable = resource.read(
+        let cancellable = resource.stream(
             range: range,
             consume: { dataRequest.respond(with: $0) },
             completion: { result in
