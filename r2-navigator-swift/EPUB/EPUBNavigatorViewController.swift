@@ -77,6 +77,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         
         public init() {}
     }
+
+    public enum EPUBError: Error {
+        /// Returned when calling evaluateJavaScript() before a resource is loaded.
+        case spreadNotLoaded
+    }
     
     public weak var delegate: EPUBNavigatorDelegate? {
         didSet { notifyCurrentLocation() }
@@ -525,6 +530,30 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             }
         }()
         return go(to: direction, animated: animated, completion: completion)
+    }
+
+    // MARK: – EPUB-specific extensions
+
+    /// Evaluates the given JavaScript on the currently visible HTML resource.
+    public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {
+        guard let webView = (paginationView.currentView as? EPUBSpreadView)?.webView else {
+            DispatchQueue.main.async {
+                completion?(.failure(EPUBError.spreadNotLoaded))
+            }
+            return
+        }
+
+        webView.evaluateJavaScript(script) { result, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion?(.failure(error))
+                } else if let result = result {
+                    completion?(.success(result))
+                } else {
+                    self.log(.error, "Did not get any result or error from WKWebView.evaluateJavaScript()")
+                }
+            }
+        }
     }
     
 }
