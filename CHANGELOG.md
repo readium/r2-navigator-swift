@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 **Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with
 *caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+* The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
+
 
 ## [2.0.0-beta.2]
 
