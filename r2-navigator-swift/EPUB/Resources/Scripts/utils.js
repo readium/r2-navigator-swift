@@ -165,6 +165,10 @@ var readium = (function() {
             return this.selection.isCollapsed
         }
 
+        Selection.prototype.getFirstRange = function() {
+            return this.selection.getRangeAt(0);
+        }
+
         function removeWhitespaces(s) {
             return s.replace(/\s+/g, "");
         }
@@ -201,11 +205,28 @@ var readium = (function() {
             }
         }
 
+        if (!found || selection.isEmpty()) {
+            return false;
+        }
+
+        // WKWebView doesn't seem to scroll to the selection created by window.find().
+        // See https://bugs.webkit.org/show_bug.cgi?id=163911
+        scrollToRange(selection.getFirstRange())
+
         // Resets the selection otherwise the last found occurrence will be highlighted.
         selection.clear();
 
-        snapCurrentPosition();
-        return found;
+        return true;
+    }
+
+    function scrollToRange(range) {
+        var rect = range.getBoundingClientRect();
+        if (isScrollModeEnabled()) {
+            document.scrollingElement.scrollTop = rect.top + window.scrollY - (window.innerHeight / 2);
+        } else {
+            document.scrollingElement.scrollLeft = rect.left + window.scrollX;
+            snapCurrentPosition();
+        }
     }
 
     // Returns false if the page is already at the left-most scroll offset.
