@@ -17,7 +17,7 @@ cache:
 before_install:
   - brew update
   - brew outdated carthage || brew upgrade carthage
-  - carthage bootstrap --verbose --no-use-binaries --use-xcframeworks --platform iOS --cache-builds
+  - carthage bootstrap --verbose --use-xcframeworks --platform iOS
   # The project expects .framework but we can only build XCFrameworks with Carthage on Xcode 12+.
   # As a workaround, this will extract the .framework generated from the .xcframework files.
   # See https://github.com/readium/r2-testapp-swift/issues/351#issuecomment-829250100
