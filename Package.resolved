@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "R2Shared",
+        "repositoryURL": "https://github.com/stevenzeck/r2-shared-swift.git",
+        "state": {
+          "branch": "use-spm",
+          "revision": "977ca70807d27ff31d939f64da4d63089aa9827a",
+          "version": null
+        }
+      },
+      {
         "package": "SwiftSoup",
         "repositoryURL": "https://github.com/scinfu/SwiftSoup.git",
         "state": {

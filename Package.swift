@@ -15,7 +15,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/scinfu/SwiftSoup.git", .exact("2.3.2")),
-        .package(name: "R2Shared", path: "../r2-shared-swift")
+        .package(name: "R2Shared", url: "https://github.com/stevenzeck/r2-shared-swift.git", .branch("use-spm"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
