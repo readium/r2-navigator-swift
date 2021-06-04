@@ -14,28 +14,42 @@ import UIKit
 import R2Shared
 
 
-public enum EditingAction: String {
-    case copy = "copy:"
-    case share = "shareSelection:"
-    case lookup = "_lookup:"
+public struct EditingAction: RawRepresentable, Comparable {
+
+    public let rawValue: String
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public static func < (lhs: EditingAction, rhs: EditingAction) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
+}
+
+extension EditingAction {
+
+    static let copy: EditingAction = EditingAction(rawValue: "copy:")
+    static let share = EditingAction(rawValue: "shareSelection:")
+    static let lookup = EditingAction(rawValue: "_lookup:")
     
     public static var defaultActions: [EditingAction] {
         return [copy, share, lookup]
     }
+
 }
 
 
 protocol EditingActionsControllerDelegate: AnyObject {
-    
+
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController)
     
 }
 
 
 /// Handles the authorization and check of editing actions.
-final class EditingActionsController {
-    
-    public weak var delegate: EditingActionsControllerDelegate?
+public final class EditingActionsController {
+
+    internal weak var delegate: EditingActionsControllerDelegate?
 
     private let actions: [EditingAction]
     private let rights: UserRights
