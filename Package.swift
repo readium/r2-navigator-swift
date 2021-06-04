@@ -26,7 +26,7 @@ let package = Package(
             path: "./r2-navigator-swift/",
             exclude: ["Info.plist"],
             resources: [
-                .copy("EPUB/Resources")
+                .copy("EPUB/Assets")
             ]
         ),
         .testTarget(
