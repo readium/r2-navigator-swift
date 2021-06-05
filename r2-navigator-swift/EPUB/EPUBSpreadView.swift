@@ -95,11 +95,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
 
 
-        let items = editingActions.actions.map { action -> UIMenuItem in
-            return action.menuItem()
+        var items: [UIMenuItem] = []
+        for action in editingActions.actions {
+            items.append(action.menuItem())
         }
 
         UIMenuController.shared.menuItems = items
+        UIMenuController.shared.update()
         
         updateActivityIndicator()
         loadSpread()

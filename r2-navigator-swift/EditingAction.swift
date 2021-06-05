@@ -72,6 +72,7 @@ public final class EditingActionsController {
     }
 
     func canPerformAction(_ action: Selector) -> Bool {
+        print("Checking for action: \(action)")
         for editingAction in self.actions {
             if action == Selector(editingAction.rawValue) {
                 return true
