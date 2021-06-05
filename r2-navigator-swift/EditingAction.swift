@@ -17,19 +17,31 @@ import R2Shared
 public struct EditingAction: RawRepresentable, Comparable {
 
     public let rawValue: String
+    public var name: String?
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
 
+    public init(rawValue: String, name: String? = nil) {
+        self.rawValue = rawValue
+        self.name = name
+    }
+
     public static func < (lhs: EditingAction, rhs: EditingAction) -> Bool {
         return lhs.rawValue == rhs.rawValue
+    }
+
+    public func menuItem() -> UIMenuItem {
+        let title: String = name ?? rawValue.replacingOccurrences(of: "(_:)", with: "").capitalized(with: .current)
+        
+        return UIMenuItem(title: title, action: Selector(rawValue))
     }
 }
 
 extension EditingAction {
 
     static let copy: EditingAction = EditingAction(rawValue: "copy:")
-    static let share = EditingAction(rawValue: "shareSelection:")
+    static let share = EditingAction(rawValue: "shareSelection:", name: R2NavigatorLocalizedString("EditingAction.share"))
     static let lookup = EditingAction(rawValue: "_lookup:")
     
     public static var defaultActions: [EditingAction] {
@@ -51,7 +63,7 @@ public final class EditingActionsController {
 
     internal weak var delegate: EditingActionsControllerDelegate?
 
-    private let actions: [EditingAction]
+    internal let actions: [EditingAction]
     private let rights: UserRights
 
     init(actions: [EditingAction], rights: UserRights) {
