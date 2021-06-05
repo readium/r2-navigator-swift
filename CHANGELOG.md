@@ -10,6 +10,22 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 * The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
+* New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
+
+### Deprecated
+
+* Removed `navigator(_:userContentController:didReceive:)` which is actually not needed since you can provide your own `WKScriptMessageHandler` to `WKUserContentController`.
+
+### Fixed
+
+* Fixed receiving `EPUBNavigatorDelegate.navigator(_:setupUserScripts:)` for the first web view.
+
+
+## [2.0.0]
+
+### Deprecated
+
+* All APIs deprecated in previous versions are now unavailable.
 
 
 ## [2.0.0-beta.2]
@@ -79,3 +95,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.0.0-alpha.2]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-beta.1]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
 [2.0.0-beta.2]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-beta.1...2.0.0-beta.2
+[2.0.0]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-beta.2...2.0.0
