@@ -1,25 +1,26 @@
 // swift-tools-version:5.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
 
 import PackageDescription
 
 let package = Package(
     name: "R2Navigator",
     defaultLocalization: "en",
-    platforms: [.iOS(.v10), .macOS("10.11"), .tvOS(.v9)],
+    platforms: [.iOS(.v10)],
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "R2Navigator",
             targets: ["R2Navigator"]),
     ],
     dependencies: [
         .package(url: "https://github.com/scinfu/SwiftSoup.git", .exact("2.3.2")),
-        .package(name: "R2Shared", url: "https://github.com/stevenzeck/r2-shared-swift.git", .branch("use-spm"))
+        .package(name: "R2Shared", url: "https://github.com/readium/r2-shared-swift.git", .branch("develop")),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "R2Navigator",
             dependencies: ["SwiftSoup", "R2Shared"],
