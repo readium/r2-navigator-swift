@@ -20,7 +20,7 @@
 		CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */; };
 		CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFC725EFE8590016828A /* MediaNavigator.swift */; };
 		CA62EFD025EFE9F30016828A /* PublicationMediaLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */; };
-		CA62EFD125EFE9F30016828A /* AudiobookNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCF25EFE9F30016828A /* AudiobookNavigator.swift */; };
+		CA62EFD125EFE9F30016828A /* AudioNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */; };
 		CA7B7791263AB7F600260838 /* SwiftSoup.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7790263AB7F600260838 /* SwiftSoup.framework */; };
 		CA7B7795263AB7FD00260838 /* R2Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA7B7794263AB7FD00260838 /* R2Shared.framework */; };
 		CA90372122D8C94C00D4C86F /* fxl-spread-one.html in Resources */ = {isa = PBXBuildFile; fileRef = CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */; };
@@ -61,7 +61,7 @@
 		CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
 		CA62EFC725EFE8590016828A /* MediaNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaNavigator.swift; sourceTree = "<group>"; };
 		CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMediaLoader.swift; sourceTree = "<group>"; };
-		CA62EFCF25EFE9F30016828A /* AudiobookNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudiobookNavigator.swift; sourceTree = "<group>"; };
+		CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioNavigator.swift; sourceTree = "<group>"; };
 		CA7B7790263AB7F600260838 /* SwiftSoup.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftSoup.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA7B7794263AB7FD00260838 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA90371F22D8C94C00D4C86F /* fxl-spread-one.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "fxl-spread-one.html"; sourceTree = "<group>"; };
@@ -142,7 +142,7 @@
 		CA62EFCD25EFE9F30016828A /* Audiobook */ = {
 			isa = PBXGroup;
 			children = (
-				CA62EFCF25EFE9F30016828A /* AudiobookNavigator.swift */,
+				CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */,
 				CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */,
 			);
 			path = Audiobook;
@@ -343,7 +343,7 @@
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
-				CA62EFD125EFE9F30016828A /* AudiobookNavigator.swift in Sources */,
+				CA62EFD125EFE9F30016828A /* AudioNavigator.swift in Sources */,
 				CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */,
 				CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */,
 				CAEACA222272EFBD00476340 /* ImageViewController.swift in Sources */,

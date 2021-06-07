@@ -8,12 +8,18 @@ import AVFoundation
 import Foundation
 import R2Shared
 
-public protocol AudiobookNavigatorDelegate: MediaNavigatorDelegate { }
+public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate { }
 
-@available(iOS 10.0, *)
-open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
+/// Navigator for audio-based publications such as:
+///
+/// * Readium Audiobook
+/// * ZAB (Zipped Audio Book)
+///
+/// **WARNING:** This API is experimental and may change or be removed in a future release without
+/// notice. Use with caution.
+open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     
-    public weak var delegate: AudiobookNavigatorDelegate?
+    public weak var delegate: _AudioNavigatorDelegate?
     
     private let publication: Publication
     private let initialLocation: Locator?
@@ -33,7 +39,7 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
         _AudioSession.shared.end(for: self)
     }
     
-    // Current playback info.
+    /// Current playback info.
     public var playbackInfo: MediaPlaybackInfo {
         MediaPlaybackInfo(
             resourceIndex: resourceIndex,
@@ -43,7 +49,7 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
         )
     }
 
-    // Index of the current resource in the reading order.
+    /// Index of the current resource in the reading order.
     private var resourceIndex: Int = 0
     
     /// Starting time of the current resource, in the reading order.
@@ -133,8 +139,8 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
         }
     }
 
-    // A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
-    // To fix this, this is an asynchronous operation.
+    /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
+    /// To fix this, this is an asynchronous operation.
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping (MediaPlaybackInfo) -> Void) {
         DispatchQueue.global(qos: .userInteractive).async {
             let info = MediaPlaybackInfo(
@@ -273,7 +279,8 @@ open class AudiobookNavigator: MediaNavigator, _AudioSessionUser, Loggable {
         }
         return go(to: publication.readingOrder[index], animated: animated, completion: completion)
     }
-    
+
+
     // MARK: – MediaNavigator
     
     public var currentTime: Double {
@@ -350,7 +357,6 @@ private extension Locator {
     
 }
 
-@available(iOS 10.0, *)
 private extension MediaPlaybackState {
     
     init(_ timeControlStatus: AVPlayer.TimeControlStatus) {
