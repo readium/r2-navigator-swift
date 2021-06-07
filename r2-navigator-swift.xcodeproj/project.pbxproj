@@ -14,10 +14,6 @@
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
 		CA479DC3226493570053445E /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC2226493570053445E /* UIView.swift */; };
 		CA479DC52264AEA20053445E /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA479DC42264AEA20053445E /* UIColor.swift */; };
-		CA4CF4DD25CDAC50005DD935 /* Fuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */; };
-		CA4CF4DE25CDAC50005DD935 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */; };
-		CA4CF4DF25CDAC50005DD935 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */; };
-		CA4CF4E025CDAC50005DD935 /* R2Shared.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */; };
 		CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFC725EFE8590016828A /* MediaNavigator.swift */; };
 		CA62EFD025EFE9F30016828A /* PublicationMediaLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */; };
 		CA62EFD125EFE9F30016828A /* AudioNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */; };
@@ -55,10 +51,6 @@
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
-		CA4CF4D925CDAC50005DD935 /* Fuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Fuzi.xcframework; path = Carthage/Build/Fuzi.xcframework; sourceTree = "<group>"; };
-		CA4CF4DA25CDAC50005DD935 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
-		CA4CF4DB25CDAC50005DD935 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
-		CA4CF4DC25CDAC50005DD935 /* R2Shared.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = R2Shared.xcframework; path = Carthage/Build/R2Shared.xcframework; sourceTree = "<group>"; };
 		CA62EFC725EFE8590016828A /* MediaNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaNavigator.swift; sourceTree = "<group>"; };
 		CA62EFCE25EFE9F30016828A /* PublicationMediaLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicationMediaLoader.swift; sourceTree = "<group>"; };
 		CA62EFCF25EFE9F30016828A /* AudioNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioNavigator.swift; sourceTree = "<group>"; };
