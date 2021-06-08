@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 * New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-navigator-swift/pull/176)).
 
 ### Deprecated
 
