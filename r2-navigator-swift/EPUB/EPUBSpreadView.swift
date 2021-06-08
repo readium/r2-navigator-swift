@@ -14,7 +14,7 @@ import R2Shared
 import SwiftSoup
 
 
-protocol EPUBSpreadViewDelegate: class {
+protocol EPUBSpreadViewDelegate: AnyObject {
     
     /// Called when the user tapped on the spread contents.
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
@@ -30,10 +30,10 @@ protocol EPUBSpreadViewDelegate: class {
     
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
-    
+
 }
 
-class EPUBSpreadView: UIView, Loggable {
+class EPUBSpreadView: UIView, Loggable, PageView {
 
     weak var delegate: EPUBSpreadViewDelegate?
     let publication: Publication
@@ -294,11 +294,9 @@ class EPUBSpreadView: UIView, Loggable {
         // To be overridden in subclasses if the resource supports a progression.
         return 0
     }
-    
+
     func go(to location: PageLocation, completion: (() -> Void)?) {
-        // For fixed layout, there's only one page so location is not used. But this is overriden
-        // for reflowable resources.
-        completion?()
+        fatalError("go(to:completion:) must be implemented in subclasses")
     }
     
     enum Direction: CustomStringConvertible {
@@ -314,7 +312,7 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        // The default implementation of a spread view consider that its content is entirely visible on screen.
+        // The default implementation of a spread view considers that its content is entirely visible on screen.
         return false
     }
 
@@ -325,8 +323,7 @@ class EPUBSpreadView: UIView, Loggable {
     private static let utilsScript = loadScript(named: "utils")
 
     class func loadScript(named name: String) -> String {
-        return Bundle(for: EPUBSpreadView.self)
-            .url(forResource: "Scripts/\(name)", withExtension: "js")
+        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Scripts")
             .flatMap { try? String(contentsOf: $0) }!
     }
     
@@ -409,23 +406,6 @@ class EPUBSpreadView: UIView, Loggable {
 
 }
 
-extension EPUBSpreadView: PageView {
-    
-    var positionCount: Int {
-        // Sum of the number of positions in all the resources of the spread.
-        return spread.links
-            .map {
-                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
-                    return publication.positionsByReadingOrder[index].count
-                } else {
-                    return 0
-                }
-            }
-            .reduce(0, +)
-    }
-
-}
-
 // MARK: - WKScriptMessageHandler for handling incoming message from the javascript layer.
 extension EPUBSpreadView: WKScriptMessageHandler {
 
@@ -442,7 +422,7 @@ extension EPUBSpreadView: WKScriptMessageHandler {
 extension EPUBSpreadView: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Do not remove: overriden in subclasses.
+        // Do not remove: overridden in subclasses.
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -477,7 +457,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // Do not remove, overriden in subclasses.
+        // Do not remove, overridden in subclasses.
     }
 
 }

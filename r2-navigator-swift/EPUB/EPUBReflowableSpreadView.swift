@@ -1,12 +1,7 @@
 //
-//  EPUBReflowableSpreadView.swift
-//  r2-navigator-swift
-//
-//  Created by Mickaël Menu on 09.04.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -147,10 +142,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func spreadDidLoad() {
         // FIXME: Better solution for delaying scrolling to pending location
-        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot. 0.2 seconds seems like a good value for it to work on an iPhone 5s.
+        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
+        // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
+        // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.pendingLocation) {
-                self.showSpread()
+            let location = self.pendingLocation
+            self.go(to: location) {
+                // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
+                // a generous delay before showing the spread again.
+                let delayed = !location.isStart
+                DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
+                    self.showSpread()
+                }
             }
         }
     }
@@ -206,40 +209,37 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         switch location {
         case .locator(let locator):
-            go(to: locator, completion: completion)
+            go(to: locator) { _ in completion() }
         case .start:
-            go(toProgression: 0, completion: completion)
+            go(toProgression: 0) { _ in completion() }
         case .end:
-            go(toProgression: 1, completion: completion)
+            go(toProgression: 1) { _ in completion() }
         }
     }
 
-    private func go(to locator: Locator, completion: @escaping () -> Void) {
+    private func go(to locator: Locator, completion: @escaping (Bool) -> Void) {
         guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
             log(.warning, "The locator's href is not in the spread")
-            completion()
+            completion(false)
             return
         }
-        guard !locator.locations.isEmpty else {
-            completion()
-            return
-        }
-        
+
+        if locator.text.highlight != nil {
+            go(toText: locator.text, completion: completion)
         // FIXME: find the first fragment matching a tag ID (need a regex)
-        if let id = locator.locations.fragments.first, !id.isEmpty {
+        } else if let id = locator.locations.fragments.first, !id.isEmpty {
             go(toTagID: id, completion: completion)
-        } else if let progression = locator.locations.progression {
-            go(toProgression: progression, completion: completion)
         } else {
-            completion()
+            let progression = locator.locations.progression ?? 0
+            go(toProgression: progression, completion: completion)
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
-    private func go(toProgression progression: Double, completion: @escaping () -> Void) {
+    private func go(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
         guard progression >= 0 && progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
-            completion()
+            completion(false)
             return
         }
         
@@ -250,19 +250,32 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
                 ? -scrollView.contentInset.top
                 : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
             scrollView.contentOffset = contentOffset
-            completion()
+            completion(true)
         } else {
             let dir = readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion () }
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion (true) }
         }
     }
     
     /// Scrolls at the tag with ID `tagID`.
-    private func go(toTagID tagID: String, completion: @escaping () -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');") { _, _ in completion() }
+    private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
+        evaluateScript("readium.scrollToId(\'\(tagID)\');") { res, _ in
+            completion((res as? Bool) ?? false)
+        }
     }
-    
-    
+
+    /// Scrolls at the snippet matching the given text context.
+    private func go(toText text: Locator.Text, completion: @escaping (Bool) -> Void) {
+        guard let json = text.jsonString else {
+            completion(false)
+            return
+        }
+        evaluateScript("readium.scrollToText(\(json));") { res, _ in
+            completion((res as? Bool) ?? false)
+        }
+    }
+
+
     // MARK: - Progression
     
     // Current progression in the page.

@@ -17,7 +17,11 @@ import SwiftSoup
 
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
-    
+
+    // MARK: - WebView Customization
+
+    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+
     // MARK: - Deprecated
     
     // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
@@ -34,7 +38,9 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 }
 
 public extension EPUBNavigatorDelegate {
-    
+
+    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
+
     func middleTapHandler() {}
     func willExitPublication(documentIndex: Int, progression: Double?) {}
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
@@ -70,6 +76,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         public var debugState = false
         
         public init() {}
+    }
+
+    public enum EPUBError: Error {
+        /// Returned when calling evaluateJavaScript() before a resource is loaded.
+        case spreadNotLoaded
     }
     
     public weak var delegate: EPUBNavigatorDelegate? {
@@ -171,6 +182,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
     private let config: Configuration
     private let publication: Publication
+    private let initialLocation: Locator?
     private let editingActions: EditingActionsController
 
     /// Base URL on the resources server to the files in Static/
@@ -181,6 +193,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
+        self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.userSettings = UserSettings()
         publication.userProperties.properties = self.userSettings.userProperties.properties
@@ -190,11 +203,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
         self.resourcesURL = {
             do {
-                guard let baseURL = Bundle(for: EPUBNavigatorViewController.self).resourceURL else {
+                guard let baseURL = Bundle.module.resourceURL else {
                     return nil
                 }
                 return try resourcesServer.serve(
-                   baseURL.appendingPathComponent("Static"),
+                   baseURL.appendingPathComponent("Assets/Static"),
                     at: "/r2-navigator/epub"
                 )
             } catch {
@@ -207,7 +220,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         
         self.editingActions.delegate = self
         self.paginationView.delegate = self
-        reloadSpreads(at: initialLocation)
     }
 
     @available(*, unavailable)
@@ -224,6 +236,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         view.addSubview(paginationView)
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+
+        reloadSpreads(at: initialLocation)
     }
     
     /// Intercepts tap gesture when the web views are not loaded.
@@ -517,6 +531,28 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         }()
         return go(to: direction, animated: animated, completion: completion)
     }
+
+    // MARK: – EPUB-specific extensions
+
+    /// Evaluates the given JavaScript on the currently visible HTML resource.
+    public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {
+        guard let webView = (paginationView.currentView as? EPUBSpreadView)?.webView else {
+            DispatchQueue.main.async {
+                completion?(.failure(EPUBError.spreadNotLoaded))
+            }
+            return
+        }
+
+        webView.evaluateJavaScript(script) { result, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion?(.failure(error))
+                } else {
+                    completion?(.success(result ?? ()))
+                }
+            }
+        }
+    }
     
 }
 
@@ -663,6 +699,10 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             contentInset: config.contentInset
         )
         spreadView.delegate = self
+
+        let userContentController = spreadView.webView.configuration.userContentController
+        delegate?.navigator(self, setupUserScripts: userContentController)
+
         return spreadView
     }
     
@@ -676,13 +716,16 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             delegate?.didChangedDocumentPage(currentDocumentIndex: currentResourceIndex)
         }
     }
-    
+
+    func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
+        return spreads[index].positionCount(in: publication)
+    }
 }
 
 
 // MARK: - Deprecated
 
-@available(*, deprecated, renamed: "EPUBNavigatorViewController")
+@available(*, unavailable, renamed: "EPUBNavigatorViewController")
 public typealias NavigatorViewController = EPUBNavigatorViewController
 
 @available(*, unavailable, message: "Use the `animated` parameter of `goTo` functions instead")
@@ -727,25 +770,13 @@ extension EPUBNavigatorViewController {
         set {}
     }
     
-    @available(*, deprecated, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
-    public var currentPosition: Bookmark? {
-        guard let publicationID = publication.metadata.identifier,
-            let locator = currentLocation,
-            let currentResourceIndex = currentResourceIndex else
-        {
-            return nil
-        }
-        return Bookmark(
-            publicationID: publicationID,
-            resourceIndex: currentResourceIndex,
-            locator: locator
-        )
-    }
+    @available(*, unavailable, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
+    public var currentPosition: Bookmark? { nil }
 
-    @available(*, deprecated, message: "Use `publication.readingOrder` instead")
+    @available(*, unavailable, message: "Use `publication.readingOrder` instead")
     public func getReadingOrder() -> [Link] { return publication.readingOrder }
     
-    @available(*, deprecated, message: "Use `publication.tableOfContents` instead")
+    @available(*, unavailable, message: "Use `publication.tableOfContents` instead")
     public func getTableOfContents() -> [Link] { return publication.tableOfContents }
 
     @available(*, unavailable, renamed: "go(to:)")
@@ -754,11 +785,7 @@ extension EPUBNavigatorViewController {
     @available(*, unavailable, renamed: "go(to:)")
     public func displayReadingOrderItem(at index: Int, progression: Double) {}
     
-    @available(*, deprecated, renamed: "go(to:)")
-    public func displayReadingOrderItem(with href: String) -> Int? {
-        let index = publication.readingOrder.firstIndex(withHref: href)
-        let moved = go(to: Link(href: href))
-        return moved ? index : nil
-    }
+    @available(*, unavailable, renamed: "go(to:)")
+    public func displayReadingOrderItem(with href: String) -> Int? { nil }
     
 }
