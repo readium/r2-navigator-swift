@@ -14,11 +14,12 @@ let package = Package(
     products: [
         .library(
             name: "R2Navigator",
-            targets: ["R2Navigator"]),
+            targets: ["R2Navigator"]
+        ),
     ],
     dependencies: [
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.3.2"),
         .package(url: "https://github.com/readium/r2-shared-swift.git", .branch("develop")),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.3.2"),
     ],
     targets: [
         .target(
@@ -30,7 +31,8 @@ let package = Package(
             path: "./r2-navigator-swift/",
             exclude: ["Info.plist"],
             resources: [
-                .copy("EPUB/Assets")
+                .copy("EPUB/Assets"),
+                .process("Resources"),
             ]
         ),
         .testTarget(
@@ -38,6 +40,6 @@ let package = Package(
             dependencies: ["R2Navigator"],
             path: "./r2-navigator-swiftTests/",
             exclude: ["Info.plist"]
-        )
+        ),
     ]
 )
