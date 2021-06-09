@@ -94,17 +94,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
         
-        UIMenuController.shared.menuItems = [
+        UIMenuController.shared.menuItems = menuItems
+
+        updateActivityIndicator()
+        loadSpread()
+    }
+
+    var menuItems: [UIMenuItem] {
+        [
             UIMenuItem(
                 title: R2NavigatorLocalizedString("EditingAction.share"),
                 action: #selector(shareSelection)
             )
         ]
-        
-        updateActivityIndicator()
-        loadSpread()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
         disableJSMessages()
@@ -159,6 +163,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// Evaluates the given JavaScript into the resource's HTML page.
     func evaluateScript(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
+        log(.debug, "Evaluate script: \(script)")
         webView.evaluateJavaScript(script, completionHandler: completion)
     }
     
@@ -318,7 +323,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func makeScripts() -> [WKUserScript] {
         return [
             WKUserScript(source: EPUBSpreadView.gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
         ]
     }
     

@@ -35,6 +35,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         ])
     }
 
+    override var menuItems: [UIMenuItem] {
+        [
+            UIMenuItem(
+                title: "Highlight",
+                action: #selector(highlightSelection)
+            )
+        ]
+    }
+
     @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
@@ -312,11 +321,17 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private static let reflowableScript = loadScript(named: "reflowable")
     private static let cssScript = loadScript(named: "css")
     private static let cssInlineScript = loadScript(named: "css-inline")
-    
+    private static let highlightScript = loadScript(named: "highlight")
+    private static let cryptoScript = loadScript(named: "crypto-sha256")
+
     override func makeScripts() -> [WKUserScript] {
         var scripts = super.makeScripts()
-        
-        scripts.append(WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+
+        scripts.append(contentsOf: [
+            WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true),
+            WKUserScript(source: EPUBReflowableSpreadView.highlightScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBReflowableSpreadView.cryptoScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+        ])
 
         // Injects Readium CSS's stylesheets.
         if let resourcesURL = resourcesURL {
@@ -350,7 +365,47 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         
         return scripts
     }
-    
+
+
+    // MARK: – Decorations
+
+    private func locatorForCurrentSelection(completion: @escaping (Locator?) -> Void) {
+        evaluateScript("getCurrentSelectionInfo();") { res, _ in
+            guard let json = res as? [String: Any] else {
+                completion(nil)
+                return
+            }
+
+            let link = self.spread.leading
+            let locator = Locator(
+                href: link.href,
+                type: link.type ?? "",
+                title: link.title,
+                locations: try! Locator.Locations(json: json["locations"]),
+                text: try! Locator.Text(json: json["text"])
+            )
+            completion(locator)
+        }
+    }
+
+    private func createHighlight(at locator: Locator, color: UIColor) {
+        guard let json = locator.jsonString else {
+            return
+        }
+        evaluateScript("createHighlight(\(json), null, true);") { _, _ in
+        }
+    }
+
+    @objc private func highlightSelection() {
+        print("HIGHLIGHT")
+        locatorForCurrentSelection { locator in
+            guard let locator = locator else {
+                return
+            }
+            print("SELECT \(locator.json)")
+            self.createHighlight(at: locator, color: .yellow)
+        }
+    }
     
     // MARK: - WKNavigationDelegate
     
