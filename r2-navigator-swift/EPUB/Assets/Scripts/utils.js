@@ -78,6 +78,7 @@ var readium = (function() {
 
     // Scroll to the given TagId in document and snap.
     function scrollToId(id) {
+        
         var element = document.getElementById(id);
         if (!element) {
             return false;
@@ -85,14 +86,52 @@ var readium = (function() {
         element.scrollIntoView();
         
         if (!isScrollModeEnabled()) {
-            var currentOffset = window.scrollX;
-            var pageWidth = window.innerWidth;
-            // Adds half a page to make sure we don't snap to the previous page.
-            document.scrollingElement.scrollLeft = snapOffset(currentOffset + (pageWidth / 2));
+            snapToElement(element)
+        } else {
+            element.scrollIntoView();
         }
         return true;
     }
 
+    // Scroll to the given element or section in the document and snap
+    function snapToElement(element) {
+        function offset(el) {
+            var rect = el.getBoundingClientRect(),
+            scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+            scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+        }
+        
+        var pageWidth = window.innerWidth;
+        var scrollXBefore = Math.floor(window.scrollX);
+        
+        element.scrollIntoView();
+        
+        var currentOffset = Math.floor(window.scrollX);
+        var elementOffset = Math.floor(offset(element).left);
+        var rect = element.getBoundingClientRect();
+        var elementWidth = rect.right - rect.left;
+        
+         if (currentOffset < elementOffset) { // element is on the right
+             if (scrollXBefore < currentOffset) {
+                 document.scrollingElement.scrollLeft += pageWidth - (element.offsetLeft + elementWidth);
+             } else {
+                 var snap = document.scrollingElement.scrollLeft == 0; // check if this is a new section
+                 document.scrollingElement.scrollLeft += pageWidth - (element.offsetLeft);
+                 if (snap) { // snap when switch sections
+                     snapCurrentPosition();
+                 }
+
+             }
+         } else {
+             if (scrollXBefore < currentOffset) { // element is on the left
+                 document.scrollingElement.scrollLeft += pageWidth - (element.offsetLeft + elementWidth);
+             } else {
+                 document.scrollingElement.scrollLeft -= (element.offsetLeft);
+             }
+         }
+    }
+    
     // Position must be in the range [0 - 1], 0-100%.
     function scrollToPosition(position, dir) {
         console.log("ScrollToPosition");
