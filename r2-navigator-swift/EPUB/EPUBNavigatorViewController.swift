@@ -20,7 +20,6 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 
     // MARK: - WebView Customization
 
-    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
     var myWebViewConfiguration: WKWebViewConfiguration? { get }
 
     // MARK: - Deprecated
@@ -40,8 +39,7 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 
 public extension EPUBNavigatorDelegate {
 
-    func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
-
+    var myWebViewConfiguration: WKWebViewConfiguration? { return .init() }
     func middleTapHandler() {}
     func willExitPublication(documentIndex: Int, progression: Double?) {}
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
@@ -702,9 +700,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             webViewConfiguration: webViewConfiguration
         )
         spreadView.delegate = self
-
-        let userContentController = spreadView.webView.configuration.userContentController
-        delegate?.navigator(self, setupUserScripts: userContentController)
 
         return spreadView
     }
