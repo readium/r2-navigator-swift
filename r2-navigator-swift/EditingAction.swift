@@ -32,7 +32,7 @@ public struct EditingAction: RawRepresentable, Comparable {
     }
 
     public func menuItem() -> UIMenuItem {
-        let title: String = name ?? rawValue.replacingOccurrences(of: "(_:)", with: "").capitalized(with: .current)
+        let title: String = name ?? rawValue.replacingOccurrences(of: "(_ :)", with: "", options: .regularExpression).capitalized(with: .current)
         
         return UIMenuItem(title: title, action: Selector(rawValue))
     }
@@ -72,7 +72,6 @@ public final class EditingActionsController {
     }
 
     func canPerformAction(_ action: Selector) -> Bool {
-        print("Checking for action: \(action)")
         for editingAction in self.actions {
             if action == Selector(editingAction.rawValue) {
                 return true
