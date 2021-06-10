@@ -18,9 +18,9 @@ final class WebView: WKWebView {
     
     private let editingActions: EditingActionsController
 
-    init(editingActions: EditingActionsController) {
+    init(editingActions: EditingActionsController, configuration: WKWebViewConfiguration? = nil) {
         self.editingActions = editingActions
-        super.init(frame: .zero, configuration: .init())
+        super.init(frame: .zero, configuration: configuration ?? .init())
     }
     
     required init?(coder: NSCoder) {

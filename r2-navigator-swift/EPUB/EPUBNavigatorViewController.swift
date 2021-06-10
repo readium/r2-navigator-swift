@@ -21,6 +21,7 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+    var myWebViewConfiguration: WKWebViewConfiguration? { get }
 
     // MARK: - Deprecated
     
@@ -688,6 +689,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
         let spread = spreads[index]
         let spreadViewType = (spread.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
+        let webViewConfiguration = delegate?.myWebViewConfiguration
         let spreadView = spreadViewType.init(
             publication: publication,
             spread: spread,
@@ -696,7 +698,8 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             userSettings: userSettings,
             animatedLoad: false,  // FIXME: custom animated
             editingActions: editingActions,
-            contentInset: config.contentInset
+            contentInset: config.contentInset,
+            webViewConfiguration: webViewConfiguration
         )
         spreadView.delegate = self
 
