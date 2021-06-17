@@ -105,7 +105,11 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             UIMenuItem(
                 title: R2NavigatorLocalizedString("EditingAction.share"),
                 action: #selector(shareSelection)
-            )
+            ),
+            UIMenuItem(
+                title: "Highlight",
+                action: #selector(highlightSelection)
+            ),
         ]
     }
 
@@ -309,6 +313,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     
     private static let gesturesScript = loadScript(named: "gestures")
     private static let utilsScript = loadScript(named: "utils")
+    private static let rectScript = loadScript(named: "rect")
+    private static let selectionScript = loadScript(named: "selection")
+    private static let highlightScript = loadScript(named: "highlight")
 
     class func loadScript(named name: String) -> String {
         return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Scripts")
@@ -324,6 +331,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         return [
             WKUserScript(source: EPUBSpreadView.gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
             WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBReflowableSpreadView.rectScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBReflowableSpreadView.selectionScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBReflowableSpreadView.highlightScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
         ]
     }
     
@@ -376,7 +386,47 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             webView.configuration.userContentController.removeScriptMessageHandler(forName: name)
         }
     }
-    
+
+
+    // MARK: – Decorator
+
+    private func locatorForCurrentSelection(completion: @escaping (Locator?) -> Void) {
+        evaluateScript("readium.getCurrentSelectionInfo();") { res, _ in
+            guard let json = res as? [String: Any] else {
+                completion(nil)
+                return
+            }
+
+            let link = self.spread.leading
+            let locator = Locator(
+                href: link.href,
+                type: link.type ?? "",
+                title: link.title,
+                locations: try! Locator.Locations(json: json["locations"]),
+                text: try! Locator.Text(json: json["text"])
+            )
+            completion(locator)
+        }
+    }
+
+    private func createHighlight(at locator: Locator, color: UIColor) {
+        guard let json = locator.jsonString else {
+            return
+        }
+        evaluateScript("readium.createHighlight(\(json), null, true);") { _, _ in
+        }
+    }
+
+    @objc private func highlightSelection() {
+        locatorForCurrentSelection { locator in
+            guard let locator = locator else {
+                return
+            }
+            print("SELECT \(locator.json)")
+            self.createHighlight(at: locator, color: .yellow)
+        }
+    }
+
     
     // MARK: - Accessibility
     
