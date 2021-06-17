@@ -322,7 +322,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private static let cssScript = loadScript(named: "css")
     private static let cssInlineScript = loadScript(named: "css-inline")
     private static let highlightScript = loadScript(named: "highlight")
-    private static let cryptoScript = loadScript(named: "crypto-sha256")
 
     override func makeScripts() -> [WKUserScript] {
         var scripts = super.makeScripts()
@@ -330,7 +329,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         scripts.append(contentsOf: [
             WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true),
             WKUserScript(source: EPUBReflowableSpreadView.highlightScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBReflowableSpreadView.cryptoScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         ])
 
         // Injects Readium CSS's stylesheets.

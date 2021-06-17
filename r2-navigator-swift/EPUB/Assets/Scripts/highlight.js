@@ -1,43 +1,13 @@
-//
-//  highlight.js
-//  r2-navigator-kotlin
-//
-//  Organized by Taehyun Kim on 6/27/19 from r2-navigator-js.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
-//
-
-
-const ROOT_CLASS_REDUCE_MOTION = "r2-reduce-motion";
-const ROOT_CLASS_NO_FOOTNOTES = "r2-no-popup-foonotes";
 const POPUP_DIALOG_CLASS = "r2-popup-dialog";
-const FOOTNOTES_CONTAINER_CLASS = "r2-footnote-container";
-const FOOTNOTES_CLOSE_BUTTON_CLASS = "r2-footnote-close";
-const FOOTNOTE_FORCE_SHOW = "r2-footnote-force-show";
-const TTS_ID_PREVIOUS = "r2-tts-previous";
-const TTS_ID_NEXT = "r2-tts-next";
-const TTS_ID_SLIDER = "r2-tts-slider";
-const TTS_ID_ACTIVE_WORD = "r2-tts-active-word";
-const TTS_ID_CONTAINER = "r2-tts-txt";
-const TTS_ID_INFO = "r2-tts-info";
-const TTS_NAV_BUTTON_CLASS = "r2-tts-button";
-const TTS_ID_SPEAKING_DOC_ELEMENT = "r2-tts-speaking-el";
 const TTS_CLASS_INJECTED_SPAN = "r2-tts-speaking-txt";
 const TTS_CLASS_INJECTED_SUBSPAN = "r2-tts-speaking-word";
-const TTS_ID_INJECTED_PARENT = "r2-tts-speaking-txt-parent";
 const ID_HIGHLIGHTS_CONTAINER = "R2_ID_HIGHLIGHTS_CONTAINER";
 const ID_ANNOTATION_CONTAINER = "R2_ID_ANNOTATION_CONTAINER";
 const CLASS_HIGHLIGHT_CONTAINER = "R2_CLASS_HIGHLIGHT_CONTAINER";
 const CLASS_ANNOTATION_CONTAINER = "R2_CLASS_ANNOTATION_CONTAINER";
 const CLASS_HIGHLIGHT_AREA = "R2_CLASS_HIGHLIGHT_AREA";
-const CLASS_ANNOTATION_AREA = "R2_CLASS_ANNOTATION_AREA";
 const CLASS_HIGHLIGHT_BOUNDING_AREA = "R2_CLASS_HIGHLIGHT_BOUNDING_AREA";
 const CLASS_ANNOTATION_BOUNDING_AREA = "R2_CLASS_ANNOTATION_BOUNDING_AREA";
-// tslint:disable-next-line:max-line-length
-const _blacklistIdClassForCFI = [POPUP_DIALOG_CLASS, TTS_CLASS_INJECTED_SPAN, TTS_CLASS_INJECTED_SUBSPAN, ID_HIGHLIGHTS_CONTAINER, CLASS_HIGHLIGHT_CONTAINER, CLASS_HIGHLIGHT_AREA, CLASS_HIGHLIGHT_BOUNDING_AREA, "resize-sensor"];
-const CLASS_PAGINATED = "r2-css-paginated";
 
 const IS_DEV = false;
 const _highlights = [];
@@ -59,298 +29,6 @@ const DEFAULT_BACKGROUND_COLOR = {
 };
 
 const ANNOTATION_WIDTH = 15;
-
-function resetHighlightBoundingStyle(_win, highlightBounding) {
-
-    if (highlightBounding.getAttribute("class") == CLASS_ANNOTATION_BOUNDING_AREA ) {
-        return;
-    }
-    highlightBounding.style.outline = "none";
-    highlightBounding.style.setProperty("background-color", "transparent", "important");
-}
-
-function setHighlightAreaStyle(win, highlightAreas, highlight) {
-    for (const highlightArea of highlightAreas) {
-        const opacity = ALT_BACKGROUND_COLOR_OPACITY;
-        highlightArea.style.setProperty("background-color", `rgba(${highlight.color.red}, ${highlight.color.green}, ${highlight.color.blue}, ${opacity})`, "important");
-    }
-}
-
-function resetHighlightAreaStyle(win, highlightArea) {
-    const id = ((highlightArea.parentNode && highlightArea.parentNode.nodeType === Node.ELEMENT_NODE && highlightArea.parentNode.getAttribute) ? highlightArea.parentNode.getAttribute("id") : undefined);
-    if (id) {
-        const highlight = _highlights.find((h) => {
-            return h.id === id;
-        });
-        if (highlight) {
-            const opacity = DEFAULT_BACKGROUND_COLOR_OPACITY;
-            highlightArea.style.setProperty("background-color", `rgba(${highlight.color.red}, ${highlight.color.green}, ${highlight.color.blue}, ${opacity})`, "important");
-        }
-    }
-}
-function processTouchEvent(win, ev) {
-
-    const document = win.document;
-    const scrollElement = getScrollingElement(document);
-    const x = ev.changedTouches[0].clientX;
-    const y = ev.changedTouches[0].clientY;
-    if (!_highlightsContainer) {
-        return;
-    }
-    const paginated = isPaginated(document);
-    const bodyRect = document.body.getBoundingClientRect();
-    let xOffset;
-    let yOffset;
-    if (navigator.userAgent.match(/Android/i)) {
-        xOffset = paginated ? (-scrollElement.scrollLeft) : bodyRect.left;
-        yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-        xOffset = paginated ? 0 : (-scrollElement.scrollLeft);
-        yOffset = paginated ? 0 : (bodyRect.top);
-    }
-    let foundHighlight;
-    let foundElement;
-    let foundRect;
-    //    _highlights.sort(function(a, b) {
-    //        console.log(JSON.stringify(a.selectionInfo))
-    //        return a.selectionInfo.cleanText.length < b.selectionInfo.cleanText.length
-    //    })
-    for (let i = _highlights.length - 1; i >= 0; i--) {
-        const highlight = _highlights[i];
-        let highlightParent = document.getElementById(`${highlight.id}`);
-        if (!highlightParent) {
-            highlightParent = _highlightsContainer.querySelector(`#${highlight.id}`);
-        }
-        if (!highlightParent) {
-            continue;
-        }
-        let hit = false;
-        const highlightFragments = highlightParent.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`);
-        for (const highlightFragment of highlightFragments) {
-            const withRect = highlightFragment;
-            const left = withRect.rect.left + xOffset;
-            const top = withRect.rect.top + yOffset;
-            foundRect = withRect.rect
-            if (x >= left &&
-                x < (left + withRect.rect.width) &&
-                y >= top &&
-                y < (top + withRect.rect.height)) {
-
-
-                hit = true;
-                break;
-            }
-        }
-        if (hit) {
-            foundHighlight = highlight;
-            foundElement = highlightParent;
-            break;
-        }
-    }
-    if (!foundHighlight || !foundElement) {
-        const highlightBoundings = _highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_BOUNDING_AREA}`);
-        for (const highlightBounding of highlightBoundings) {
-            resetHighlightBoundingStyle(win, highlightBounding);
-        }
-        const allHighlightAreas = Array.from(_highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`));
-        for (const highlightArea of allHighlightAreas) {
-            resetHighlightAreaStyle(win, highlightArea);
-        }
-        return;
-    }
-
-    if (foundElement.getAttribute("data-click")) {
-        if (ev.type === "mousemove") {
-            const foundElementHighlightAreas = Array.from(foundElement.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`));
-            const allHighlightAreas = _highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`);
-            for (const highlightArea of allHighlightAreas) {
-                if (foundElementHighlightAreas.indexOf(highlightArea) < 0) {
-                    resetHighlightAreaStyle(win, highlightArea);
-                }
-            }
-            setHighlightAreaStyle(win, foundElementHighlightAreas, foundHighlight);
-            const foundElementHighlightBounding = foundElement.querySelector(`.${CLASS_HIGHLIGHT_BOUNDING_AREA}`);
-            const allHighlightBoundings = _highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_BOUNDING_AREA}`);
-            for (const highlightBounding of allHighlightBoundings) {
-                if (!foundElementHighlightBounding || highlightBounding !== foundElementHighlightBounding) {
-                    resetHighlightBoundingStyle(win, highlightBounding);
-                }
-            }
-            if (foundElementHighlightBounding) {
-                if (DEBUG_VISUALS) {
-                    setHighlightBoundingStyle(win, foundElementHighlightBounding, foundHighlight);
-                }
-            }
-        }
-        else if (ev.type === "touchstart" || ev.type === "touchend") {
-
-            const size = {
-                screenWidth: window.outerWidth,
-                screenHeight: window.outerHeight,
-                left: foundRect.left,
-                width: foundRect.width,
-                top: foundRect.top,
-                height: foundRect.height
-            };
-            const payload = {
-                highlight: foundHighlight.id,
-                size: size
-            };
-
-            if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
-                electron_1.ipcRenderer.sendToHost(R2_EVENT_HIGHLIGHT_CLICK, payload);
-            } else if (window.webkitURL) {
-                console.log(foundHighlight.id.includes("R2_ANNOTATION_"))
-                if ( foundHighlight.id.search("R2_ANNOTATION_") >= 0 ) {
-                    if (navigator.userAgent.match(/Android/i)) {
-                        Android.highlightAnnotationMarkActivated(foundHighlight.id);
-                    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                        webkit.messageHandlers.highlightAnnotationMarkActivated.postMessage(foundHighlight.id);
-                    }
-                } else if ( foundHighlight.id.search("R2_HIGHLIGHT_") >= 0 ) {
-                    if (navigator.userAgent.match(/Android/i)) {
-                        Android.highlightActivated(foundHighlight.id);
-                    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                        webkit.messageHandlers.highlightActivated.postMessage(foundHighlight.id);
-                    }
-                }
-            }
-
-            ev.stopPropagation();
-            ev.preventDefault()
-        }
-    }
-}
-
-function processMouseEvent(win, ev) {
-    const document = win.document;
-    const scrollElement = getScrollingElement(document);
-    const x = ev.clientX;
-    const y = ev.clientY;
-    if (!_highlightsContainer) {
-        return;
-    }
-
-    const paginated = isPaginated(document);
-    const bodyRect = document.body.getBoundingClientRect();
-    let xOffset;
-    let yOffset;
-    if (navigator.userAgent.match(/Android/i)) {
-        xOffset = paginated ? (-scrollElement.scrollLeft) : bodyRect.left;
-        yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-        xOffset = paginated ? 0 : (-scrollElement.scrollLeft);
-        yOffset = paginated ? 0 : (bodyRect.top);
-    }
-    let foundHighlight;
-    let foundElement;
-    let foundRect;
-    for (let i = _highlights.length - 1; i >= 0; i--) {
-        const highlight = _highlights[i];
-        let highlightParent = document.getElementById(`${highlight.id}`);
-        if (!highlightParent) {
-            highlightParent = _highlightsContainer.querySelector(`#${highlight.id}`);
-        }
-        if (!highlightParent) {
-            continue;
-        }
-        let hit = false;
-        const highlightFragments = highlightParent.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`);
-        for (const highlightFragment of highlightFragments) {
-            const withRect = highlightFragment;
-            const left = withRect.rect.left + xOffset;
-            const top = withRect.rect.top + yOffset;
-            foundRect = withRect.rect
-            if (x >= left &&
-                x < (left + withRect.rect.width) &&
-                y >= top &&
-                y < (top + withRect.rect.height)) {
-
-
-                hit = true;
-                break;
-            }
-        }
-        if (hit) {
-            foundHighlight = highlight;
-            foundElement = highlightParent;
-            break;
-        }
-    }
-
-    if (!foundHighlight || !foundElement) {
-        const highlightBoundings = _highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_BOUNDING_AREA}`);
-        for (const highlightBounding of highlightBoundings) {
-            resetHighlightBoundingStyle(win, highlightBounding);
-        }
-        const allHighlightAreas = Array.from(_highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`));
-        for (const highlightArea of allHighlightAreas) {
-            resetHighlightAreaStyle(win, highlightArea);
-        }
-        return;
-    }
-
-    if (foundElement.getAttribute("data-click")) {
-        if (ev.type === "mousemove") {
-            const foundElementHighlightAreas = Array.from(foundElement.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`));
-            const allHighlightAreas = _highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_AREA}`);
-            for (const highlightArea of allHighlightAreas) {
-                if (foundElementHighlightAreas.indexOf(highlightArea) < 0) {
-                    resetHighlightAreaStyle(win, highlightArea);
-                }
-            }
-            setHighlightAreaStyle(win, foundElementHighlightAreas, foundHighlight);
-            const foundElementHighlightBounding = foundElement.querySelector(`.${CLASS_HIGHLIGHT_BOUNDING_AREA}`);
-            const allHighlightBoundings = _highlightsContainer.querySelectorAll(`.${CLASS_HIGHLIGHT_BOUNDING_AREA}`);
-            for (const highlightBounding of allHighlightBoundings) {
-                if (!foundElementHighlightBounding || highlightBounding !== foundElementHighlightBounding) {
-                    resetHighlightBoundingStyle(win, highlightBounding);
-                }
-            }
-            if (foundElementHighlightBounding) {
-                if (DEBUG_VISUALS) {
-                    setHighlightBoundingStyle(win, foundElementHighlightBounding, foundHighlight);
-                }
-            }
-        }
-        else if (ev.type === "mouseup" || ev.type === "touchend") {
-            const touchedPosition = {
-                screenWidth: window.outerWidth,
-                screenHeight: window.innerHeight,
-                left: foundRect.left,
-                width: foundRect.width,
-                top: foundRect.top,
-                height: foundRect.height
-            };
-
-            const payload = {
-                highlight: foundHighlight,
-                position: touchedPosition
-            };
-
-            if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
-                electron_1.ipcRenderer.sendToHost(R2_EVENT_HIGHLIGHT_CLICK, payload);
-            } else if (window.webkitURL) {
-                if ( foundHighlight.id.search("R2_ANNOTATION_") >= 0 ) {
-                    if (navigator.userAgent.match(/Android/i)) {
-                        Android.highlightAnnotationMarkActivated(foundHighlight.id);
-                    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                        webkit.messageHandlers.highlightAnnotationMarkActivated.postMessage(foundHighlight.id);
-                    }
-                } else if ( foundHighlight.id.search("R2_HIGHLIGHT_") >= 0 ) {
-                    if (navigator.userAgent.match(/Android/i)) {
-                        Android.highlightActivated(foundHighlight.id);
-                    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                        webkit.messageHandlers.highlightActivated.postMessage(foundHighlight.id);
-                    }
-                }
-            }
-
-            ev.stopPropagation();
-
-        }
-    }
-}
 
 function rectsTouchOrOverlap(rect1, rect2, tolerance) {
     return ((rect1.left < rect2.right || (tolerance >= 0 && almostEqual(rect1.left, rect2.right, tolerance))) &&
@@ -444,21 +122,6 @@ function checkOverlaps(rects) {
     if (stillOverlapingRects.length) {
         console.log(`CLIENT RECT: overlaps ${stillOverlapingRects.length}`);
     }
-}
-
-
-function rectContainsPoint(rect, x, y, tolerance) {
-    return (rect.left < x || almostEqual(rect.left, x, tolerance)) &&
-        (rect.right > x || almostEqual(rect.right, x, tolerance)) &&
-        (rect.top < y || almostEqual(rect.top, y, tolerance)) &&
-        (rect.bottom > y || almostEqual(rect.bottom, y, tolerance));
-}
-
-function rectContains(rect1, rect2, tolerance) {
-    return (rectContainsPoint(rect1, rect2.left, rect2.top, tolerance) &&
-        rectContainsPoint(rect1, rect2.right, rect2.top, tolerance) &&
-        rectContainsPoint(rect1, rect2.left, rect2.bottom, tolerance) &&
-        rectContainsPoint(rect1, rect2.right, rect2.bottom, tolerance));
 }
 
 function removeContainedRects(rects, tolerance) {
@@ -692,19 +355,9 @@ function getClientRectsNoOverlap_(clientRects, doNotMergeHorizontallyAlignedRect
     return newRects;
 }
 
-function isPaginated(document) {
-    return true;
-    return document && document.documentElement &&
-        document.documentElement.classList.contains(CLASS_PAGINATED);
+function isScrollModeEnabled() {
+    return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() === 'readium-scroll-on';
 }
-
-function getScrollingElement(document){
-    if (document.scrollingElement) {
-        return document.scrollingElement;
-    }
-    return document.body;
-};
-
 
 function ensureContainer(win, annotationFlag) {
     const document = win.document;
@@ -764,31 +417,6 @@ function destroyHighlight(id) {
     if (highlightContainer) {
         highlightContainer.remove();
     }
-}
-
-function isCfiTextNode(node) {
-    return node.nodeType !== Node.ELEMENT_NODE;
-}
-
-function getChildTextNodeCfiIndex(element, child) {
-    let found = -1;
-    let textNodeIndex = -1;
-    let previousWasElement = false;
-    for (let i = 0; i < element.childNodes.length; i++) {
-        const childNode = element.childNodes[i];
-        const isText = isCfiTextNode(childNode);
-        if (isText || previousWasElement) {
-            textNodeIndex += 2;
-        }
-        if (isText) {
-            if (childNode === child) {
-                found = textNodeIndex;
-                break;
-            }
-        }
-        previousWasElement = childNode.nodeType === Node.ELEMENT_NODE;
-    }
-    return found;
 }
 
 function getCommonAncestorElement(node1, node2) {
@@ -858,7 +486,7 @@ function getCurrentSelectionInfo() {
         console.log("$$$$$$$$$$$$$$$$$ CANNOT GET NON-COLLAPSED SELECTION RANGE?!");
         return undefined;
     }
-    const rangeInfo = convertRange(range, fullQualifiedSelector, computeCFI);
+    const rangeInfo = convertRange(range, fullQualifiedSelector);
     if (!rangeInfo) {
         console.log("^^^ SELECTION RANGE INFO FAIL?!");
         return undefined;
@@ -894,29 +522,6 @@ function getCurrentSelectionInfo() {
         }
     };
 }
-
-function checkBlacklisted(el) {
-
-    let blacklistedId;
-    const id = el.getAttribute("id");
-    if (id && _blacklistIdClassForCFI.indexOf(id) >= 0) {
-        console.log("checkBlacklisted ID: " + id);
-        blacklistedId = id;
-    }
-    let blacklistedClass;
-    for (const item of _blacklistIdClassForCFI) {
-        if (el.classList.contains(item)) {
-            console.log("checkBlacklisted CLASS: " + item);
-            blacklistedClass = item;
-            break;
-        }
-    }
-    if (blacklistedId || blacklistedClass) {
-        return true;
-    }
-
-    return false;
-};
 
 function cssPath (node, optimized){
     if (node.nodeType !== Node.ELEMENT_NODE) {
@@ -1128,51 +733,15 @@ function _cssPathStep(node, optimized, isTargetNode) {
     };
 };
 
-function computeCFI (node) {
-
-    // TODO: handle character position inside text node
-    if (node.nodeType !== Node.ELEMENT_NODE) {
-        return undefined;
-    }
-
-    let cfi = "";
-
-    let currentElement = node;
-    while (currentElement.parentNode && currentElement.parentNode.nodeType === Node.ELEMENT_NODE) {
-        const blacklisted = checkBlacklisted(currentElement);
-        if (!blacklisted) {
-            const currentElementParentChildren = currentElement.parentNode.children;
-            let currentElementIndex = -1;
-            for (let i = 0; i < currentElementParentChildren.length; i++) {
-                if (currentElement === currentElementParentChildren[i]) {
-                    currentElementIndex = i;
-                    break;
-                }
-            }
-            if (currentElementIndex >= 0) {
-                const cfiIndex = (currentElementIndex + 1) * 2;
-                cfi = cfiIndex +
-                    (currentElement.id ? ("[" + currentElement.id + "]") : "") +
-                    (cfi.length ? ("/" + cfi) : "");
-            }
-        }
-        currentElement = currentElement.parentNode;
-    }
-
-    return "/" + cfi;
-};
-
 function _createHighlight(locations, color, pointerInteraction, type) {
     const rangeInfo = location2RangeInfo(locations)
-    const uniqueStr = `${rangeInfo.cfi}${rangeInfo.startContainerElementCssSelector}${rangeInfo.startContainerChildTextNodeIndex}${rangeInfo.startOffset}${rangeInfo.endContainerElementCssSelector}${rangeInfo.endContainerChildTextNodeIndex}${rangeInfo.endOffset}`;
 
-    const sha256Hex = CryptoJS.SHA256(uniqueStr).toString(CryptoJS.enc.Hex)
-
-    var id;
+    // FIXME: Use user-provided ID.
+    var id = Date.now();
     if ( type == ID_HIGHLIGHTS_CONTAINER ) {
-        id = "R2_HIGHLIGHT_" + sha256Hex;
+        id = "R2_HIGHLIGHT_" + id;
     } else {
-        id = "R2_ANNOTATION_" + sha256Hex;
+        id = "R2_ANNOTATION_" + id;
     }
 
     destroyHighlight(id);
@@ -1193,49 +762,26 @@ function createHighlight(selectionInfo, color, pointerInteraction) {
     return _createHighlight(selectionInfo, color, pointerInteraction, ID_HIGHLIGHTS_CONTAINER)
 }
 
-function createAnnotation(selectionInfo, color, pointerInteraction) {
-    return _createHighlight(selectionInfo, color, pointerInteraction, ID_ANNOTATION_CONTAINER)
-}
-
-function createAnnotation(id) {
-    let i = -1;
-
-    const highlight = _highlights.find((h, j) => {
-        i = j;
-        return h.id === id;
-    });
-    if ( i == _highlights.length )
-        return
-
-    var locations = {
-        locations: rangeInfo2Location(highlight.rangeInfo)
-    }
-
-    return _createHighlight(locations, highlight.color, true, ID_ANNOTATION_CONTAINER)
-}
-
-
 function createHighlightDom(win, highlight, annotationFlag) {
 
     const document = win.document;
 
     const scale = 1 / ((win.READIUM2 && win.READIUM2.isFixedLayout) ? win.READIUM2.fxlViewportScale : 1);
 
-    const scrollElement = getScrollingElement(document);
+    const scrollElement = document.scrollingElement;
 
     const range = convertRangeInfo(document, highlight.rangeInfo);
     if (!range) {
         return undefined;
     }
 
-    const paginated = isPaginated(document);
+    const paginated = !isScrollModeEnabled()
     const highlightsContainer = ensureContainer(win, annotationFlag);
     const highlightParent = document.createElement("div");
 
     highlightParent.setAttribute("id", highlight.id);
     highlightParent.setAttribute("class", CLASS_HIGHLIGHT_CONTAINER);
 
-    document.body.style.position = "relative";
     highlightParent.style.setProperty("pointer-events", "none");
     if (highlight.pointerInteraction) {
         highlightParent.setAttribute("data-click", "1");
@@ -1430,7 +976,7 @@ function createOrderedRange(startNode, startOffset, endNode, endOffset) {
     return undefined;
 }
 
-function convertRange(range, getCssSelector, computeElementCFI) {
+function convertRange(range, getCssSelector) {
     const startIsElement = range.startContainer.nodeType === Node.ELEMENT_NODE;
     const startContainerElement = startIsElement ?
         range.startContainer :
@@ -1475,73 +1021,7 @@ function convertRange(range, getCssSelector, computeElementCFI) {
             }
         }
     }
-    const rootElementCfi = computeElementCFI(commonElementAncestor);
-    const startElementCfi = computeElementCFI(startContainerElement);
-    const endElementCfi = computeElementCFI(endContainerElement);
-    let cfi;
-    if (rootElementCfi && startElementCfi && endElementCfi) {
-        let startElementOrTextCfi = startElementCfi;
-        if (!startIsElement) {
-            const startContainerChildTextNodeIndexForCfi = getChildTextNodeCfiIndex(startContainerElement, range.startContainer);
-            startElementOrTextCfi = startElementCfi + "/" +
-                startContainerChildTextNodeIndexForCfi + ":" + range.startOffset;
-        }
-        else {
-            if (range.startOffset >= 0 && range.startOffset < startContainerElement.childNodes.length) {
-                const childNode = startContainerElement.childNodes[range.startOffset];
-                if (childNode.nodeType === Node.ELEMENT_NODE) {
-                    startElementOrTextCfi = startElementCfi + "/" + ((range.startOffset + 1) * 2);
-                }
-                else {
-                    const cfiTextNodeIndex = getChildTextNodeCfiIndex(startContainerElement, childNode);
-                    startElementOrTextCfi = startElementCfi + "/" + cfiTextNodeIndex;
-                }
-            }
-            else {
-                const cfiIndexOfLastElement = ((startContainerElement.childElementCount) * 2);
-                const lastChildNode = startContainerElement.childNodes[startContainerElement.childNodes.length - 1];
-                if (lastChildNode.nodeType === Node.ELEMENT_NODE) {
-                    startElementOrTextCfi = startElementCfi + "/" + (cfiIndexOfLastElement + 1);
-                }
-                else {
-                    startElementOrTextCfi = startElementCfi + "/" + (cfiIndexOfLastElement + 2);
-                }
-            }
-        }
-        let endElementOrTextCfi = endElementCfi;
-        if (!endIsElement) {
-            const endContainerChildTextNodeIndexForCfi = getChildTextNodeCfiIndex(endContainerElement, range.endContainer);
-            endElementOrTextCfi = endElementCfi + "/" +
-                endContainerChildTextNodeIndexForCfi + ":" + range.endOffset;
-        }
-        else {
-            if (range.endOffset >= 0 && range.endOffset < endContainerElement.childNodes.length) {
-                const childNode = endContainerElement.childNodes[range.endOffset];
-                if (childNode.nodeType === Node.ELEMENT_NODE) {
-                    endElementOrTextCfi = endElementCfi + "/" + ((range.endOffset + 1) * 2);
-                }
-                else {
-                    const cfiTextNodeIndex = getChildTextNodeCfiIndex(endContainerElement, childNode);
-                    endElementOrTextCfi = endElementCfi + "/" + cfiTextNodeIndex;
-                }
-            }
-            else {
-                const cfiIndexOfLastElement = ((endContainerElement.childElementCount) * 2);
-                const lastChildNode = endContainerElement.childNodes[endContainerElement.childNodes.length - 1];
-                if (lastChildNode.nodeType === Node.ELEMENT_NODE) {
-                    endElementOrTextCfi = endElementCfi + "/" + (cfiIndexOfLastElement + 1);
-                }
-                else {
-                    endElementOrTextCfi = endElementCfi + "/" + (cfiIndexOfLastElement + 2);
-                }
-            }
-        }
-        cfi = rootElementCfi + "," +
-            startElementOrTextCfi.replace(rootElementCfi, "") + "," +
-            endElementOrTextCfi.replace(rootElementCfi, "");
-    }
     return {
-        cfi,
         endContainerChildTextNodeIndex,
         endContainerElementCssSelector,
         endOffset: range.endOffset,
@@ -1606,15 +1086,15 @@ function frameForHighlightAnnotationMarkWithID(win, id) {
 
     const document = win.document;
 
-    const scrollElement = getScrollingElement(document);
-    const paginated = isPaginated(document);
+    const scrollElement = document.scrollingElement;
+    const paginated = !isScrollModeEnabled();
     const bodyRect = document.body.getBoundingClientRect();
     let yOffset;
-    if (navigator.userAgent.match(/Android/i)) {
+    // if (navigator.userAgent.match(/Android/i)) {
         yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-    } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-        yOffset = paginated ? 0 : (bodyRect.top);
-    }
+    // } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+    //     yOffset = paginated ? 0 : (bodyRect.top);
+    // }
     var newTop = topClientRect.top;
 
     if (_highlightsContainer) {
@@ -1658,7 +1138,7 @@ function frameForHighlightWithID(id) {
         return;
 
     const document = window.document;
-    const scrollElement = getScrollingElement(document);
+    const scrollElement = document.scrollingElement;
     const range = convertRangeInfo(document, highlight.rangeInfo);
     if (!range) {
         return undefined;
@@ -1678,7 +1158,6 @@ function frameForHighlightWithID(id) {
 function rangeInfo2Location(rangeInfo) {
     return {
         cssSelector: rangeInfo.startContainerElementCssSelector,
-        partialCfi: rangeInfo.cfi,
         domRange: {
             start: {
                 cssSelector: rangeInfo.startContainerElementCssSelector,
@@ -1701,7 +1180,6 @@ function location2RangeInfo(location) {
     const end = domRange.end
 
     return {
-        cfi: location.partialCfi,
         endContainerChildTextNodeIndex: end.textNodeIndex,
         endContainerElementCssSelector: end.cssSelector,
         endOffset: end.offset,
@@ -1717,7 +1195,7 @@ function rectangleForHighlightWithID(id) {
         return;
 
     const document = window.document;
-    const scrollElement = getScrollingElement(document);
+    const scrollElement = document.scrollingElement;
     const range = convertRangeInfo(document, highlight.rangeInfo);
     if (!range) {
         return undefined;
@@ -1764,13 +1242,5 @@ function getSelectionRect() {
     }
     catch (e) {
         return null;
-    }
-};
-
-function setScrollMode(flag) {
-    if (!flag) {
-        document.documentElement.classList.add(CLASS_PAGINATED);
-    } else {
-        document.documentElement.classList.remove(CLASS_PAGINATED);
     }
 }

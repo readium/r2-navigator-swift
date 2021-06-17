@@ -73,7 +73,7 @@ var readium = (function() {
     }
 
     function isScrollModeEnabled() {
-        return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() == 'readium-scroll-on';
+        return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() === 'readium-scroll-on';
     }
 
     // Scroll to the given TagId in document and snap.
