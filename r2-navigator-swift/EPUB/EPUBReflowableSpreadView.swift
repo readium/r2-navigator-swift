@@ -321,6 +321,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private static let reflowableScript = loadScript(named: "reflowable")
     private static let cssScript = loadScript(named: "css")
     private static let cssInlineScript = loadScript(named: "css-inline")
+    private static let rectScript = loadScript(named: "rect")
+    private static let selectionScript = loadScript(named: "selection")
     private static let highlightScript = loadScript(named: "highlight")
 
     override func makeScripts() -> [WKUserScript] {
@@ -328,6 +330,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         scripts.append(contentsOf: [
             WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true),
+            WKUserScript(source: EPUBReflowableSpreadView.rectScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            WKUserScript(source: EPUBReflowableSpreadView.selectionScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
             WKUserScript(source: EPUBReflowableSpreadView.highlightScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
         ])
 
