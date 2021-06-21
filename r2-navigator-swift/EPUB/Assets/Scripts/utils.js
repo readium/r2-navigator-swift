@@ -310,6 +310,10 @@ var readium = (function() {
         };
     }
 
+    function log() {
+        var message = Array.prototype.slice.call(arguments).join(" ");
+        webkit.messageHandlers.log.postMessage(message);
+    }
 
     // Public API used by the navigator.
 
@@ -320,7 +324,8 @@ var readium = (function() {
         'scrollLeft': scrollLeft,
         'scrollRight': scrollRight,
         'setProperty': setProperty,
-        'removeProperty': removeProperty
+        'removeProperty': removeProperty,
+        'log': log,
     };
 
 })();

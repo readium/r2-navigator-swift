@@ -1,4 +1,9 @@
 (function() {
+    // Exports
+    readium.createHighlight = createHighlight;
+    readium.destroyAllHighlights = destroyAllHighlights;
+    readium.rectForHighlightWithID = rectForHighlightWithID;
+
     const ID_HIGHLIGHTS_CONTAINER = "R2_ID_HIGHLIGHTS_CONTAINER";
     const ID_ANNOTATION_CONTAINER = "R2_ID_ANNOTATION_CONTAINER";
     const CLASS_HIGHLIGHT_CONTAINER = "R2_CLASS_HIGHLIGHT_CONTAINER";
@@ -20,35 +25,58 @@
 
     const ANNOTATION_WIDTH = 15;
 
+    function rectForHighlightWithID(id) {
+        const clientRects = frameForHighlightWithID(id);
 
-    function isScrollModeEnabled() {
-        return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() === 'readium-scroll-on';
+        return {
+            screenWidth: window.outerWidth,
+            screenHeight: window.outerHeight,
+            left: clientRects[0].left,
+            width: clientRects[0].width,
+            top: clientRects[0].top,
+            height: clientRects[0].height
+        };
     }
 
-    function ensureContainer(win, annotationFlag) {
-        const document = win.document;
-
-        if (!_highlightsContainer) {
-            _highlightsContainer = document.createElement("div");
-            _highlightsContainer.setAttribute("id", ID_HIGHLIGHTS_CONTAINER);
-
-            _highlightsContainer.style.setProperty("pointer-events", "none");
-            document.body.append(_highlightsContainer);
-        }
-
-        return _highlightsContainer;
+    function destroyAllHighlights() {
+        hideAllHighlights();
+        _highlights.splice(0, _highlights.length);
     }
 
-    function hideAllhighlights() {
+    function hideAllHighlights() {
         if (_highlightsContainer) {
             _highlightsContainer.remove();
             _highlightsContainer = null;
         }
     }
 
-    function destroyAllhighlights() {
-        hideAllhighlights();
-        _highlights.splice(0, _highlights.length);
+    function createHighlight(selectionInfo, color, pointerInteraction) {
+        return _createHighlight(selectionInfo, color, pointerInteraction, ID_HIGHLIGHTS_CONTAINER)
+    }
+
+    function _createHighlight(locations, color, pointerInteraction, type) {
+        const rangeInfo = readium._location2RangeInfo(locations)
+
+        // FIXME: Use user-provided ID.
+        let id = Date.now();
+        if (type === ID_HIGHLIGHTS_CONTAINER) {
+            id = "R2_HIGHLIGHT_" + id;
+        } else {
+            id = "R2_ANNOTATION_" + id;
+        }
+
+        destroyHighlight(id);
+
+        const highlight = {
+            color: color ? color : DEFAULT_BACKGROUND_COLOR,
+            id,
+            pointerInteraction,
+            rangeInfo
+        };
+        _highlights.push(highlight);
+        createHighlightDom(window, highlight, (type === ID_ANNOTATION_CONTAINER));
+
+        return highlight;
     }
 
     function destroyHighlight(id) {
@@ -65,35 +93,6 @@
         if (highlightContainer) {
             highlightContainer.remove();
         }
-    }
-
-    function _createHighlight(locations, color, pointerInteraction, type) {
-        const rangeInfo = readium._location2RangeInfo(locations)
-
-        // FIXME: Use user-provided ID.
-        var id = Date.now();
-        if (type == ID_HIGHLIGHTS_CONTAINER) {
-            id = "R2_HIGHLIGHT_" + id;
-        } else {
-            id = "R2_ANNOTATION_" + id;
-        }
-
-        destroyHighlight(id);
-
-        const highlight = {
-            color: color ? color : DEFAULT_BACKGROUND_COLOR,
-            id,
-            pointerInteraction,
-            rangeInfo
-        };
-        _highlights.push(highlight);
-        createHighlightDom(window, highlight, (type == ID_ANNOTATION_CONTAINER) ? true : false);
-
-        return highlight;
-    }
-
-    function createHighlight(selectionInfo, color, pointerInteraction) {
-        return _createHighlight(selectionInfo, color, pointerInteraction, ID_HIGHLIGHTS_CONTAINER)
     }
 
     function createHighlightDom(win, highlight, annotationFlag) {
@@ -141,7 +140,7 @@
         // if (navigator.userAgent.match(/Android/i)) {
         xOffset = paginated ? (-scrollElement.scrollLeft) : bodyRect.left;
         yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-        annotationOffset = parseInt((rangeAnnotationBoundingClientRect.right - xOffset) / window.innerWidth) + 1;
+        annotationOffset = ((rangeAnnotationBoundingClientRect.right - xOffset) / window.innerWidth) + 1;
         // } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
         //     xOffset = paginated ? 0 : (-scrollElement.scrollLeft);
         //     yOffset = paginated ? 0 : (bodyRect.top);
@@ -289,13 +288,32 @@
         return highlightParent;
     }
 
+    function isScrollModeEnabled() {
+        return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() === 'readium-scroll-on';
+    }
+
+    function ensureContainer(win) {
+        const document = win.document;
+
+        if (!_highlightsContainer) {
+            _highlightsContainer = document.createElement("div");
+            _highlightsContainer.setAttribute("id", ID_HIGHLIGHTS_CONTAINER);
+
+            _highlightsContainer.style.setProperty("pointer-events", "none");
+            document.body.append(_highlightsContainer);
+        }
+
+        return _highlightsContainer;
+    }
+
     function frameForHighlightAnnotationMarkWithID(win, id) {
+        let found;
         let clientRects = frameForHighlightWithID(id);
         if (!clientRects)
             return;
 
-        var topClientRect = clientRects[0];
-        var maxHeight = topClientRect.height;
+        let topClientRect = clientRects[0];
+        let maxHeight = topClientRect.height;
         for (const clientRect of clientRects) {
             if (clientRect.top < topClientRect.top)
                 topClientRect = clientRect
@@ -314,15 +332,15 @@
         // } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
         //     yOffset = paginated ? 0 : (bodyRect.top);
         // }
-        var newTop = topClientRect.top;
+        let newTop = topClientRect.top;
 
         if (_highlightsContainer) {
             do {
-                var boundingAreas = document.getElementsByClassName(CLASS_ANNOTATION_BOUNDING_AREA);
-                var found = false;
+                let boundingAreas = document.getElementsByClassName(CLASS_ANNOTATION_BOUNDING_AREA);
+                found = false;
                 //for (let i = 0, length = boundingAreas.snapshotLength; i < length; ++i) {
-                for (var i = 0, len = boundingAreas.length | 0; i < len; i = i + 1 | 0) {
-                    var boundingArea = boundingAreas[i];
+                for (let i = 0, len = boundingAreas.length | 0; i < len; i = i + 1 | 0) {
+                    let boundingArea = boundingAreas[i];
                     if (Math.abs(boundingArea.rect.top - (newTop - yOffset)) < 3) {
                         newTop += boundingArea.rect.height;
                         found = true;
@@ -339,71 +357,31 @@
 
     }
 
-    function highlightWithID(id) {
+    function frameForHighlightWithID(id) {
+        const highlight = highlightWithID(id);
+        if (!highlight)
+            return;
 
+        const document = window.document;
+        const range = readium._convertRangeInfo(document, highlight.rangeInfo);
+        if (!range) {
+            return undefined;
+        }
+
+
+        const drawUnderline = false;
+        const drawStrikeThrough = false;
+        const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
+        //const clientRects = DEBUG_VISUALS ? range.getClientRects() :
+        return readium._getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
+    }
+
+    function highlightWithID(id) {
         let i = -1;
-        const highlight = _highlights.find((h, j) => {
+        return _highlights.find((h, j) => {
             i = j;
             return h.id === id;
-        });
-        return highlight
-
+        })
     }
 
-    function frameForHighlightWithID(id) {
-
-        const highlight = highlightWithID(id);
-        if (!highlight)
-            return;
-
-        const document = window.document;
-        const scrollElement = document.scrollingElement;
-        const range = readium._convertRangeInfo(document, highlight.rangeInfo);
-        if (!range) {
-            return undefined;
-        }
-
-
-        const drawUnderline = false;
-        const drawStrikeThrough = false;
-        const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
-        //const clientRects = DEBUG_VISUALS ? range.getClientRects() :
-        const clientRects = readium._getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
-
-        return clientRects;
-
-    }
-
-    function rectangleForHighlightWithID(id) {
-        const highlight = highlightWithID(id);
-        if (!highlight)
-            return;
-
-        const document = window.document;
-        const scrollElement = document.scrollingElement;
-        const range = readium._convertRangeInfo(document, highlight.rangeInfo);
-        if (!range) {
-            return undefined;
-        }
-
-
-        const drawUnderline = false;
-        const drawStrikeThrough = false;
-        const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
-        //const clientRects = DEBUG_VISUALS ? range.getClientRects() :
-        const clientRects = readium._getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
-        var size = {
-            screenWidth: window.outerWidth,
-            screenHeight: window.outerHeight,
-            left: clientRects[0].left,
-            width: clientRects[0].width,
-            top: clientRects[0].top,
-            height: clientRects[0].height
-        }
-
-        return size;
-
-    }
-
-    readium.createHighlight = createHighlight;
 })();
