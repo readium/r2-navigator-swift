@@ -1,29 +1,26 @@
 (function() {
+    const debug = false;
+
     // Exports
     readium.createHighlight = createHighlight;
     readium.destroyAllHighlights = destroyAllHighlights;
     readium.rectForHighlightWithID = rectForHighlightWithID;
 
     const ID_HIGHLIGHTS_CONTAINER = "R2_ID_HIGHLIGHTS_CONTAINER";
-    const ID_ANNOTATION_CONTAINER = "R2_ID_ANNOTATION_CONTAINER";
     const CLASS_HIGHLIGHT_CONTAINER = "R2_CLASS_HIGHLIGHT_CONTAINER";
     const CLASS_HIGHLIGHT_AREA = "R2_CLASS_HIGHLIGHT_AREA";
     const CLASS_HIGHLIGHT_BOUNDING_AREA = "R2_CLASS_HIGHLIGHT_BOUNDING_AREA";
-    const CLASS_ANNOTATION_BOUNDING_AREA = "R2_CLASS_ANNOTATION_BOUNDING_AREA";
 
     const _highlights = [];
     let _highlightsContainer;
 
-    const DEFAULT_BACKGROUND_COLOR_OPACITY = 0.3;
+    const defaultBackgroundOpacity = 0.3;
 
-    const DEBUG_VISUALS = false;
-    const DEFAULT_BACKGROUND_COLOR = {
+    const defaultBackgroundColor = {
         blue: 100,
         green: 50,
         red: 230,
     };
-
-    const ANNOTATION_WIDTH = 15;
 
     function rectForHighlightWithID(id) {
         const clientRects = frameForHighlightWithID(id);
@@ -68,13 +65,13 @@
         destroyHighlight(id);
 
         const highlight = {
-            color: color ? color : DEFAULT_BACKGROUND_COLOR,
+            color: color ? color : defaultBackgroundColor,
             id,
             pointerInteraction,
             rangeInfo
         };
         _highlights.push(highlight);
-        createHighlightDom(window, highlight, (type === ID_ANNOTATION_CONTAINER));
+        createHighlightDom(window, highlight);
 
         return highlight;
     }
@@ -95,7 +92,7 @@
         }
     }
 
-    function createHighlightDom(win, highlight, annotationFlag) {
+    function createHighlightDom(win, highlight) {
 
         const document = win.document;
 
@@ -109,7 +106,7 @@
         }
 
         const paginated = !isScrollModeEnabled()
-        const highlightsContainer = ensureContainer(win, annotationFlag);
+        const highlightsContainer = ensureContainer(win);
         const highlightParent = document.createElement("div");
 
         highlightParent.setAttribute("id", highlight.id);
@@ -124,23 +121,19 @@
         const drawUnderline = false;
         const drawStrikeThrough = false;
         const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
-        //const clientRects = DEBUG_VISUALS ? range.getClientRects() :
         const clientRects = readium._getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
         const roundedCorner = 3;
         const underlineThickness = 2;
         const strikeThroughLineThickness = 3;
-        const opacity = DEFAULT_BACKGROUND_COLOR_OPACITY;
+        const opacity = defaultBackgroundOpacity;
         let extra = "";
-        const rangeAnnotationBoundingClientRect = frameForHighlightAnnotationMarkWithID(win, highlight.id);
 
         let xOffset;
         let yOffset;
-        let annotationOffset;
 
         // if (navigator.userAgent.match(/Android/i)) {
         xOffset = paginated ? (-scrollElement.scrollLeft) : bodyRect.left;
         yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-        annotationOffset = ((rangeAnnotationBoundingClientRect.right - xOffset) / window.innerWidth) + 1;
         // } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
         //     xOffset = paginated ? 0 : (-scrollElement.scrollLeft);
         //     yOffset = paginated ? 0 : (bodyRect.top);
@@ -152,14 +145,13 @@
 
             highlightArea.setAttribute("class", CLASS_HIGHLIGHT_AREA);
 
-            if (DEBUG_VISUALS) {
+            if (debug) {
                 const rgb = Math.round(0xffffff * Math.random());
                 const r = rgb >> 16;
                 const g = rgb >> 8 & 255;
                 const b = rgb & 255;
                 extra = `outline-color: rgb(${r}, ${g}, ${b}); outline-style: solid; outline-width: 1px; outline-offset: -1px;`;
             } else {
-
                 if (drawUnderline) {
                     extra += `border-bottom: ${underlineThickness * scale}px solid rgba(${highlight.color.red}, ${highlight.color.green}, ${highlight.color.blue}, ${opacity}) !important`;
                 }
@@ -176,28 +168,19 @@
              width: clientRect.width,
              };
              */
-            if (annotationFlag) {
-                highlightArea.rect = {
-                    height: ANNOTATION_WIDTH, //rangeAnnotationBoundingClientRect.height - rangeAnnotationBoundingClientRect.height/4,
-                    left: window.innerWidth * annotationOffset - ANNOTATION_WIDTH,
-                    top: rangeAnnotationBoundingClientRect.top - yOffset,
-                    width: ANNOTATION_WIDTH
-                };
-            } else {
-                highlightArea.rect = {
-                    height: clientRect.height,
-                    left: clientRect.left - xOffset,
-                    top: clientRect.top - yOffset,
-                    width: clientRect.width
-                };
-            }
+            highlightArea.rect = {
+                height: clientRect.height,
+                left: clientRect.left - xOffset,
+                top: clientRect.top - yOffset,
+                width: clientRect.width
+            };
 
             highlightArea.style.width = `${highlightArea.rect.width * scale}px`;
             highlightArea.style.height = `${highlightArea.rect.height * scale}px`;
             highlightArea.style.left = `${highlightArea.rect.left * scale}px`;
             highlightArea.style.top = `${highlightArea.rect.top * scale}px`;
             highlightParent.append(highlightArea);
-            if (!DEBUG_VISUALS && drawStrikeThrough) {
+            if (!debug && drawStrikeThrough) {
                 //if (drawStrikeThrough) {
                 const highlightAreaLine = document.createElement("div");
                 highlightAreaLine.setAttribute("class", CLASS_HIGHLIGHT_AREA);
@@ -215,21 +198,12 @@
                  };
                  */
 
-                if (annotationFlag) {
-                    highlightAreaLine.rect = {
-                        height: ANNOTATION_WIDTH, //rangeAnnotationBoundingClientRect.height - rangeAnnotationBoundingClientRect.height/4,
-                        left: window.innerWidth * annotationOffset - ANNOTATION_WIDTH,
-                        top: rangeAnnotationBoundingClientRect.top - yOffset,
-                        width: ANNOTATION_WIDTH
-                    };
-                } else {
-                    highlightAreaLine.rect = {
-                        height: clientRect.height,
-                        left: clientRect.left - xOffset,
-                        top: clientRect.top - yOffset,
-                        width: clientRect.width
-                    };
-                }
+                highlightAreaLine.rect = {
+                    height: clientRect.height,
+                    left: clientRect.left - xOffset,
+                    top: clientRect.top - yOffset,
+                    width: clientRect.width
+                };
 
                 highlightAreaLine.style.width = `${highlightAreaLine.rect.width * scale}px`;
                 highlightAreaLine.style.height = `${strikeThroughLineThickness * scale}px`;
@@ -237,45 +211,26 @@
                 highlightAreaLine.style.top = `${(highlightAreaLine.rect.top + (highlightAreaLine.rect.height / 2) - (strikeThroughLineThickness / 2)) * scale}px`;
                 highlightParent.append(highlightAreaLine);
             }
-
-            if (annotationFlag) {
-                break;
-            }
         }
 
         const highlightBounding = document.createElement("div");
-
-        if (annotationFlag) {
-            highlightBounding.setAttribute("class", CLASS_ANNOTATION_BOUNDING_AREA);
-            highlightBounding.setAttribute("style", `border-radius: ${roundedCorner}px !important; background-color: rgba(${highlight.color.red}, ${highlight.color.green}, ${highlight.color.blue}, ${opacity}) !important; ${extra}`);
-        } else {
-            highlightBounding.setAttribute("class", CLASS_HIGHLIGHT_BOUNDING_AREA);
-        }
+        highlightBounding.setAttribute("class", CLASS_HIGHLIGHT_BOUNDING_AREA);
 
         highlightBounding.style.setProperty("pointer-events", "none");
         highlightBounding.style.position = paginated ? "fixed" : "absolute";
         highlightBounding.scale = scale;
 
-        if (DEBUG_VISUALS) {
+        if (debug) {
             highlightBounding.setAttribute("style", `outline-color: magenta; outline-style: solid; outline-width: 1px; outline-offset: -1px;`);
         }
 
-        if (annotationFlag) {
-            highlightBounding.rect = {
-                height: ANNOTATION_WIDTH, //rangeAnnotationBoundingClientRect.height - rangeAnnotationBoundingClientRect.height/4,
-                left: window.innerWidth * annotationOffset - ANNOTATION_WIDTH,
-                top: rangeAnnotationBoundingClientRect.top - yOffset,
-                width: ANNOTATION_WIDTH
-            };
-        } else {
-            const rangeBoundingClientRect = range.getBoundingClientRect();
-            highlightBounding.rect = {
-                height: rangeBoundingClientRect.height,
-                left: rangeBoundingClientRect.left - xOffset,
-                top: rangeBoundingClientRect.top - yOffset,
-                width: rangeBoundingClientRect.width
-            };
-        }
+        const rangeBoundingClientRect = range.getBoundingClientRect();
+        highlightBounding.rect = {
+            height: rangeBoundingClientRect.height,
+            left: rangeBoundingClientRect.left - xOffset,
+            top: rangeBoundingClientRect.top - yOffset,
+            width: rangeBoundingClientRect.width
+        };
 
         highlightBounding.style.width = `${highlightBounding.rect.width * scale}px`;
         highlightBounding.style.height = `${highlightBounding.rect.height * scale}px`;
@@ -306,57 +261,6 @@
         return _highlightsContainer;
     }
 
-    function frameForHighlightAnnotationMarkWithID(win, id) {
-        let found;
-        let clientRects = frameForHighlightWithID(id);
-        if (!clientRects)
-            return;
-
-        let topClientRect = clientRects[0];
-        let maxHeight = topClientRect.height;
-        for (const clientRect of clientRects) {
-            if (clientRect.top < topClientRect.top)
-                topClientRect = clientRect
-            if (clientRect.height > maxHeight)
-                maxHeight = clientRect.height
-        }
-
-        const document = win.document;
-
-        const scrollElement = document.scrollingElement;
-        const paginated = !isScrollModeEnabled();
-        const bodyRect = document.body.getBoundingClientRect();
-        let yOffset;
-        // if (navigator.userAgent.match(/Android/i)) {
-        yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-        // } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-        //     yOffset = paginated ? 0 : (bodyRect.top);
-        // }
-        let newTop = topClientRect.top;
-
-        if (_highlightsContainer) {
-            do {
-                let boundingAreas = document.getElementsByClassName(CLASS_ANNOTATION_BOUNDING_AREA);
-                found = false;
-                //for (let i = 0, length = boundingAreas.snapshotLength; i < length; ++i) {
-                for (let i = 0, len = boundingAreas.length | 0; i < len; i = i + 1 | 0) {
-                    let boundingArea = boundingAreas[i];
-                    if (Math.abs(boundingArea.rect.top - (newTop - yOffset)) < 3) {
-                        newTop += boundingArea.rect.height;
-                        found = true;
-                        break;
-                    }
-                }
-            } while (found)
-        }
-
-        topClientRect.top = newTop;
-        topClientRect.height = maxHeight;
-
-        return topClientRect;
-
-    }
-
     function frameForHighlightWithID(id) {
         const highlight = highlightWithID(id);
         if (!highlight)
@@ -372,7 +276,6 @@
         const drawUnderline = false;
         const drawStrikeThrough = false;
         const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
-        //const clientRects = DEBUG_VISUALS ? range.getClientRects() :
         return readium._getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
     }
 
