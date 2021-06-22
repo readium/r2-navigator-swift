@@ -309,47 +309,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
     }
     
-    private static let reflowableScript = loadScript(named: "reflowable")
-    private static let cssScript = loadScript(named: "css")
-    private static let cssInlineScript = loadScript(named: "css-inline")
+    private static let reflowableScript = loadScript(named: "readium-reflowable")
 
     override func makeScripts() -> [WKUserScript] {
         var scripts = super.makeScripts()
 
-        scripts.append(contentsOf: [
-            WKUserScript(source: EPUBReflowableSpreadView.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: true),
-        ])
+        scripts.append(WKUserScript(
+            source: EPUBReflowableSpreadView.reflowableScript
+                .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(layout.readiumCSSBasePath).absoluteString),
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        ))
 
-        // Injects Readium CSS's stylesheets.
-        if let resourcesURL = resourcesURL {
-            // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
-            if publication.baseURL?.scheme?.lowercased() == "https" {
-                func loadCSS(_ name: String) -> String {
-                    return loadResource(at: layout.readiumCSSPath(for: name))
-                        .replacingOccurrences(of: "\\", with: "\\\\")
-                        .replacingOccurrences(of: "`", with: "\\`")
-                }
-                
-                let beforeCSS = loadCSS("before")
-                let afterCSS = loadCSS("after")
-                scripts.append(WKUserScript(
-                    source: EPUBReflowableSpreadView.cssInlineScript
-                        .replacingOccurrences(of: "${css-before}", with: beforeCSS)
-                        .replacingOccurrences(of: "${css-after}", with: afterCSS),
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: false
-                ))
-
-            } else {
-                scripts.append(WKUserScript(
-                    source: EPUBReflowableSpreadView.cssScript
-                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(layout.readiumCSSBasePath).absoluteString),
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: false
-                ))
-            }
-        }
-        
         return scripts
     }
 

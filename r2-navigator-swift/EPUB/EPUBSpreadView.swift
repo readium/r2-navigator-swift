@@ -39,7 +39,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let publication: Publication
     let spread: EPUBSpread
     
-    let resourcesURL: URL?
+    let resourcesURL: URL
     let webView: WebView
 
     let readingProgression: ReadingProgression
@@ -64,7 +64,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL?, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
         self.resourcesURL = resourcesURL
@@ -311,31 +311,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     
     // MARK: - Scripts
     
-    private static let gesturesScript = loadScript(named: "gestures")
-    private static let utilsScript = loadScript(named: "utils")
-    private static let rectScript = loadScript(named: "rect")
-    private static let selectionScript = loadScript(named: "selection")
-    private static let highlightScript = loadScript(named: "highlight")
-
     class func loadScript(named name: String) -> String {
         return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Scripts")
             .flatMap { try? String(contentsOf: $0) }!
     }
     
     func loadResource(at path: String) -> String {
-        return (resourcesURL?.appendingPathComponent(path))
-            .flatMap { try? String(contentsOf: $0) }!
+        do {
+            return try String(contentsOf: resourcesURL.appendingPathComponent(path))
+        } catch {
+            log(.error, error)
+            return ""
+        }
     }
     
-    func makeScripts() -> [WKUserScript] {
-        return [
-            WKUserScript(source: EPUBSpreadView.gesturesScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBSpreadView.utilsScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBReflowableSpreadView.rectScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBReflowableSpreadView.selectionScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-            WKUserScript(source: EPUBReflowableSpreadView.highlightScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
-        ]
-    }
+    func makeScripts() -> [WKUserScript] { [] }
     
     
     // MARK: - JS Messages

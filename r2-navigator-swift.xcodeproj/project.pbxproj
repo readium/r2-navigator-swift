@@ -46,6 +46,7 @@
 		CA038E492521F34E00489729 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
+		CA1FA968268213D500733814 /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Scripts; sourceTree = "<group>"; };
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
 		CA479DC2226493570053445E /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		CA479DC42264AEA20053445E /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
@@ -146,6 +147,7 @@
 				CACE851E225CDE3300E19E8B /* EPUBFixedSpreadView.swift */,
 				CACE8520225CDFB000E19E8B /* EPUBReflowableSpreadView.swift */,
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
+				CA1FA968268213D500733814 /* Scripts */,
 				CAF648DA266F6EB10067D2C3 /* Assets */,
 			);
 			path = EPUB;

@@ -187,7 +187,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
     /// Base URL on the resources server to the files in Static/
     /// Used to serve Readium CSS.
-    private let resourcesURL: URL?
+    private let resourcesURL: URL
 
     public init(publication: Publication, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
@@ -203,16 +203,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
 
         self.resourcesURL = {
             do {
-                guard let baseURL = Bundle.module.resourceURL else {
-                    return nil
-                }
                 return try resourcesServer.serve(
-                   baseURL.appendingPathComponent("Assets/Static"),
+                    Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
                     at: "/r2-navigator/epub"
                 )
             } catch {
                 EPUBNavigatorViewController.log(.error, error)
-                return nil
+                return URL(string: "")!
             }
         }()
 
