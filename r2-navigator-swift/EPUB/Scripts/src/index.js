@@ -9,7 +9,8 @@
 import './gestures'
 import {removeProperty, scrollLeft, scrollRight, scrollToId, scrollToPosition, scrollToText, setProperty} from "./utils";
 import {getCurrentSelectionInfo, getSelectionRect} from "./selection";
-import {createHighlight} from "./highlight";
+import {createHighlight, createHighlightRange} from "./highlight";
+import {TextQuoteAnchor} from "./vendor/hypothesis/anchoring/types";
 
 
 // Public API used by the navigator.
@@ -29,4 +30,8 @@ window.readium = {
 
     // highlights
     'createHighlight': createHighlight,
+    'createHighlightRange': createHighlightRange,
+
+    // Hypothesis' anchoring
+    'TextQuoteAnchor': TextQuoteAnchor,
 };

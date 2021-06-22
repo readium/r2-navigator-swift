@@ -50,20 +50,30 @@ function hideAllHighlights() {
     }
 }
 
-export function createHighlight(selectionInfo, color, pointerInteraction) {
-    return _createHighlight(selectionInfo, color, pointerInteraction, ID_HIGHLIGHTS_CONTAINER)
+export function createHighlightRange(range) {
+
+    // FIXME: Use user-provided ID.
+    let id = "R2_HIGHLIGHT_" + Date.now();
+
+    destroyHighlight(id);
+
+    const highlight = {
+        color: defaultBackgroundColor,
+        id,
+        pointerInteraction: true,
+        rangeInfo: null
+    };
+    _highlights.push(highlight);
+    createHighlightFromRange(range, highlight);
+
+    return highlight;
 }
 
-function _createHighlight(locations, color, pointerInteraction, type) {
+export function createHighlight(locations, color, pointerInteraction) {
     const rangeInfo = location2RangeInfo(locations)
 
     // FIXME: Use user-provided ID.
-    let id = Date.now();
-    if (type === ID_HIGHLIGHTS_CONTAINER) {
-        id = "R2_HIGHLIGHT_" + id;
-    } else {
-        id = "R2_ANNOTATION_" + id;
-    }
+    let id = "R2_HIGHLIGHT_" + Date.now();
 
     destroyHighlight(id);
 
@@ -74,7 +84,7 @@ function _createHighlight(locations, color, pointerInteraction, type) {
         rangeInfo
     };
     _highlights.push(highlight);
-    createHighlightDom(window, highlight);
+    createHighlightDom(highlight);
 
     return highlight;
 }
@@ -95,21 +105,22 @@ function destroyHighlight(id) {
     }
 }
 
-function createHighlightDom(win, highlight) {
-
-    const document = win.document;
-
-    const scale = 1 / ((win.READIUM2 && win.READIUM2.isFixedLayout) ? win.READIUM2.fxlViewportScale : 1);
-
-    const scrollElement = document.scrollingElement;
-
+function createHighlightDom(highlight) {
     const range = convertRangeInfo(document, highlight.rangeInfo);
+    return createHighlightFromRange(range, highlight)
+}
+
+function createHighlightFromRange(range, highlight) {
     if (!range) {
         return undefined;
     }
 
+    const scale = 1 / ((window.READIUM2 && window.READIUM2.isFixedLayout) ? window.READIUM2.fxlViewportScale : 1);
+
+    const scrollElement = document.scrollingElement;
+
     const paginated = !isScrollModeEnabled()
-    const highlightsContainer = ensureContainer(win);
+    const highlightsContainer = ensureContainer(window);
     const highlightParent = document.createElement("div");
 
     highlightParent.setAttribute("id", highlight.id);

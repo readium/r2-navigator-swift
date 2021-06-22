@@ -5,6 +5,7 @@
 //
 
 // Catch JS errors to log them in the app.
+
 window.addEventListener("error", function(event) {
     webkit.messageHandlers.logError.postMessage({
         "message": event.message,
