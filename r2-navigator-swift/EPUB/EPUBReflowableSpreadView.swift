@@ -309,16 +309,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
     }
     
-    private static let reflowableScript = loadScript(named: "readium-reflowable")
-
     override func makeScripts() -> [WKUserScript] {
         var scripts = super.makeScripts()
 
         scripts.append(WKUserScript(
-            source: EPUBReflowableSpreadView.reflowableScript
-                .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(layout.readiumCSSBasePath).absoluteString),
+            source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
             injectionTime: .atDocumentStart,
-            forMainFrameOnly: true
+            forMainFrameOnly: false
         ))
 
         return scripts

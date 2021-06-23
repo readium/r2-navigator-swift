@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed.js"></script>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed-wrapper.js"></script>
   <style>
   body, html {
     height: 100%;
@@ -78,9 +80,9 @@
       var _viewportCenter = document.getElementById('viewport-center');
 
       var _pages = {
-        'left': FixedPage('page-left'),
-        'right': FixedPage('page-right'),
-        'center': FixedPage('page-center')
+        'left': readium.FixedPage('page-left'),
+        'right': readium.FixedPage('page-right'),
+        'center': readium.FixedPage('page-center')
       };
 
       function forEachPage(callback) {

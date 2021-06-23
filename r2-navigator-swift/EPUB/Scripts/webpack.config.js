@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'production',
-  devtool: 'source-map',
+  devtool: 'eval-source-map',
   entry: {
     'reflowable': './src/index-reflowable.js',
     'fixed': './src/index-fixed.js',
@@ -10,6 +10,6 @@ module.exports = {
   },
   output: {
     filename: 'readium-[name].js',
-    path: path.resolve(__dirname, '../Assets/Scripts'),
+    path: path.resolve(__dirname, '../Assets/Static/scripts'),
   },
 };

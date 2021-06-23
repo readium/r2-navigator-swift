@@ -100,6 +100,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         loadSpread()
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        disableJSMessages()
+    }
+
+    func makeScripts() -> [WKUserScript] { [] }
+
     var menuItems: [UIMenuItem] {
         [
             UIMenuItem(
@@ -111,11 +118,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
                 action: #selector(highlightSelection)
             ),
         ]
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-        disableJSMessages()
     }
 
     func setupWebView() {
@@ -308,25 +310,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         return false
     }
 
-    
-    // MARK: - Scripts
-    
-    class func loadScript(named name: String) -> String {
-        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Scripts")
-            .flatMap { try? String(contentsOf: $0) }!
-    }
-    
-    func loadResource(at path: String) -> String {
-        do {
-            return try String(contentsOf: resourcesURL.appendingPathComponent(path))
-        } catch {
-            log(.error, error)
-            return ""
-        }
-    }
-    
-    func makeScripts() -> [WKUserScript] { [] }
-    
     
     // MARK: - JS Messages
     

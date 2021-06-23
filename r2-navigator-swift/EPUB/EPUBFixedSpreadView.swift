@@ -118,16 +118,4 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         }
     }
 
-    /// MARK: - Scripts
-    
-    private static let fixedScript = loadScript(named: "readium-fixed")
-    private static let fixedWrapperScript = loadScript(named: "readium-fixed-wrapper")
-
-    override func makeScripts() -> [WKUserScript] {
-        var scripts = super.makeScripts()
-        scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
-        scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedWrapperScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        return scripts
-    }
-
 }

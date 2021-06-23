@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var link = document.createElement('link');
     link.setAttribute('rel', 'stylesheet');
     link.setAttribute('type', 'text/css');
-    link.setAttribute('href', '${readiumCSSBaseURL}' + name + '.css');
+    link.setAttribute('href', window.readiumCSSBaseURL + name + '.css');
     return link;
   }
 
