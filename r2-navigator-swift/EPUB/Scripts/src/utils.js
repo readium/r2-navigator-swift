@@ -6,6 +6,8 @@
 
 // Catch JS errors to log them in the app.
 
+import {TextQuoteAnchor} from "./vendor/hypothesis/anchoring/types";
+
 window.addEventListener("error", function(event) {
     webkit.messageHandlers.logError.postMessage({
         "message": event.message,
@@ -120,105 +122,18 @@ export function scrollToPosition(position, dir) {
 // The expected text argument is a Locator Text object, as defined here:
 // https://readium.org/architecture/models/locators/
 export function scrollToText(text) {
-    // Wrapper around a browser Selection object.
-    function Selection(selection) {
-        this.selection = selection;
-        this.markedRanges = []
+    try {
+        let anchor = new TextQuoteAnchor(document.body, text.highlight, {
+            prefix: text.before,
+            suffix: text.after,
+        })
+
+        scrollToRange(anchor.toRange())
+        return true
+    } catch (e) {
+        logException(e)
+        return false
     }
-
-    // Removes all the ranges of the selection.
-    Selection.prototype.clear = function() {
-        this.selection.removeAllRanges();
-    }
-
-    // Saves the current selection ranges, to be restored later with reset().
-    Selection.prototype.mark = function() {
-        this.markedRanges = []
-        for (var i = 0; i < this.selection.rangeCount; i++) {
-            this.markedRanges.push(this.selection.getRangeAt(i));
-        }
-    }
-
-    // Resets the selection with ranges previously saved with mark().
-    Selection.prototype.reset = function() {
-        this.clear();
-        for (var i = 0; i < this.markedRanges.length; i++) {
-            this.selection.addRange(this.markedRanges[i]);
-        }
-    }
-
-    // Returns the text content of the selection.
-    Selection.prototype.toString = function() {
-        return this.selection.toString();
-    }
-
-    // Extends the selection by moving the start and end positions by the given offsets.
-    Selection.prototype.adjust = function(offset, length) {
-        for (var i = 0; i <= Math.abs(offset); i++) {
-            var direction = (offset >= 0 ? "forward" : "backward")
-            this.selection.modify("move", direction, "character");
-        }
-        for (var i = 0; i <= length; i++) {
-            this.selection.modify("extend", "forward", "character");
-        }
-    }
-
-    Selection.prototype.isEmpty = function() {
-        return this.selection.isCollapsed
-    }
-
-    Selection.prototype.getFirstRange = function() {
-        return this.selection.getRangeAt(0);
-    }
-
-    function removeWhitespaces(s) {
-        return s.replace(/\s+/g, "");
-    }
-
-    var highlight = text.highlight;
-    var before  = text.before || "";
-    var after  = text.after || "";
-    var snippet = before + highlight + after;
-    var safeSnippet = removeWhitespaces(snippet);
-
-    if (!highlight || !safeSnippet) {
-        return false;
-    }
-
-    var selection = new Selection(window.getSelection());
-    // We need to reset any selection to begin the search from the start of the resource.
-    selection.clear();
-
-    var found = false;
-    while (window.find(text.highlight, true)) {
-        if (selection.isEmpty()) {
-            break; // Prevents infinite loop in edge cases.
-        }
-
-        // Get the surrounding context to compare to the expected snippet.
-        selection.mark();
-        selection.adjust(-before.length, snippet.length);
-        var safeSelection = removeWhitespaces(selection.toString());
-        selection.reset();
-
-        if (safeSelection !== "" && (safeSnippet.includes(safeSelection) || safeSelection.includes(safeSnippet))) {
-            found = true;
-            break;
-        }
-    }
-
-    if (!found || selection.isEmpty()) {
-        return false;
-    }
-
-    // WKWebView doesn't seem to scroll to the selection created by window.find().
-    // See https://bugs.webkit.org/show_bug.cgi?id=163911
-    scrollToRange(selection.getFirstRange())
-
-    // Resets the selection otherwise the last found occurrence will be highlighted.
-    selection.clear();
-
-    return true;
 }
 
 function scrollToRange(range) {
