@@ -168,9 +168,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
+    func evaluateScript(_ script: String, completion: @escaping ((Result<Any, Error>) -> Void)) {
         log(.debug, "Evaluate script: \(script)")
-        webView.evaluateJavaScript(script, completionHandler: completion)
+        webView.evaluateJavaScript(script) { res, error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(res ?? ()))
+            }
+        }
     }
     
     /// Called from the JS code when logging a message.
@@ -364,21 +370,26 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: – Decorator
 
     private func locatorForCurrentSelection(completion: @escaping (Locator?) -> Void) {
-        evaluateScript("readium.getCurrentSelectionInfo();") { res, _ in
-            guard let json = res as? [String: Any] else {
-                completion(nil)
-                return
-            }
+        evaluateScript("readium.getCurrentSelectionInfo();") { result in
+            switch result {
+            case .success(let value):
+                guard let json = value as? [String: Any] else {
+                    completion(nil)
+                    return
+                }
 
-            let link = self.spread.leading
-            let locator = Locator(
-                href: link.href,
-                type: link.type ?? "",
-                title: link.title,
-                locations: try! Locator.Locations(json: json["locations"]),
-                text: try! Locator.Text(json: json["text"])
-            )
-            completion(locator)
+                let link = self.spread.leading
+                let locator = Locator(
+                    href: link.href,
+                    type: link.type ?? "",
+                    title: link.title,
+                    locations: try! Locator.Locations(json: json["locations"]),
+                    text: try! Locator.Text(json: json["text"])
+                )
+                completion(locator)
+            case .failure(let error):
+                self.log(.error, error)
+            }
         }
     }
 
@@ -386,7 +397,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         guard let json = locator.jsonString else {
             return
         }
-        evaluateScript("readium.createHighlight(\(json), null, true);") { _, _ in
+        evaluateScript("readium.createHighlight(\(json), null, true);") { _ in
         }
     }
 

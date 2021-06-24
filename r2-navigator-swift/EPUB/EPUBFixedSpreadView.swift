@@ -51,7 +51,24 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         super.safeAreaInsetsDidChange()
         layoutSpread()
     }
-    
+
+    /// Layouts the resource to fit its content in the bounds.
+    private func layoutSpread() {
+        guard isWrapperLoaded else {
+            return
+        }
+        // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
+        let insets = notchAreaInsets
+        let viewportSize = bounds.inset(by: insets).size
+
+        webView.evaluateJavaScript("""
+            spread.setViewport(
+                {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
+                {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
+            );
+        """)
+    }
+
     override func loadSpread() {
         guard isWrapperLoaded else {
             return
@@ -64,23 +81,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         goToCompletions.complete()
     }
 
-    /// Layouts the resource to fit its content in the bounds.
-    private func layoutSpread() {
-        guard isWrapperLoaded else {
-            return
-        }
-        // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
-        let insets = notchAreaInsets
-        let viewportSize = bounds.inset(by: insets).size
-        
-        webView.evaluateJavaScript("""
-            spread.setViewport(
-              {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
-              {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
-            );
-        """)
+    override func evaluateScript(_ script: String, completion: @escaping ((Result<Any, Error>) -> Void)) {
+        let script = "spread.eval('', '\(script.replacingOccurrences(of: "'", with: "\\'"))')"
+        super.evaluateScript(script, completion: completion)
     }
-    
+
     override func pointFromTap(_ data: TapData) -> CGPoint? {
         let x = data.screenX
         let y = data.screenY

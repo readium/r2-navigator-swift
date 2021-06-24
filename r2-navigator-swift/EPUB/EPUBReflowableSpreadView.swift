@@ -75,7 +75,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }()
             return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
         }
-        evaluateScript(propertiesScript)
+        evaluateScript(propertiesScript) { res in
+            if case .failure(let error) = res {
+                self.log(.error, error)
+            }
+        }
 
         // Disables paginated mode if scroll is on.
         scrollView.isPagingEnabled = !isScrollEnabled
@@ -252,14 +256,20 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion(true)
         } else {
             let dir = readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _, _ in completion (true) }
+            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _ in completion(true) }
         }
     }
     
     /// Scrolls at the tag with ID `tagID`.
     private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');") { res, _ in
-            completion((res as? Bool) ?? false)
+        evaluateScript("readium.scrollToId(\'\(tagID)\');") { result in
+            switch result {
+            case .success(let value):
+                completion((value as? Bool) ?? false)
+            case .failure(let error):
+                self.log(.error, error)
+                completion(false)
+            }
         }
     }
 
@@ -269,8 +279,14 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion(false)
             return
         }
-        evaluateScript("readium.scrollToText(\(json));") { res, _ in
-            completion((res as? Bool) ?? false)
+        evaluateScript("readium.scrollToText(\(json));") { result in
+            switch result {
+            case .success(let value):
+                completion((value as? Bool) ?? false)
+            case .failure(let error):
+                self.log(.error, error)
+                completion(false)
+            }
         }
     }
 

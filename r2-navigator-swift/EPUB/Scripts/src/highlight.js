@@ -143,12 +143,6 @@ function createHighlightDOM(highlight) {
     return undefined;
   }
 
-  const scale =
-    1 /
-    (window.READIUM2 && window.READIUM2.isFixedLayout
-      ? window.READIUM2.fxlViewportScale
-      : 1);
-
   const scrollElement = document.scrollingElement;
 
   const paginated = !isScrollModeEnabled();
@@ -193,11 +187,7 @@ function createHighlightDOM(highlight) {
       extra = `outline-color: rgb(${r}, ${g}, ${b}); outline-style: solid; outline-width: 1px; outline-offset: -1px;`;
     } else {
       if (drawUnderline) {
-        extra += `border-bottom: ${underlineThickness * scale}px solid rgba(${
-          highlight.color.red
-        }, ${highlight.color.green}, ${
-          highlight.color.blue
-        }, ${opacity}) !important`;
+        extra += `border-bottom: ${underlineThickness}px solid rgba(${highlight.color.red}, ${highlight.color.green}, ${highlight.color.blue}, ${opacity}) !important`;
       }
     }
     highlightArea.setAttribute(
@@ -206,7 +196,7 @@ function createHighlightDOM(highlight) {
     );
     highlightArea.style.setProperty("pointer-events", "none");
     highlightArea.style.position = !paginated ? "fixed" : "absolute";
-    highlightArea.scale = scale;
+    highlightArea.scale = 1;
     /*
          highlightArea.rect = {
          height: clientRect.height,
@@ -222,10 +212,10 @@ function createHighlightDOM(highlight) {
       width: clientRect.width,
     };
 
-    highlightArea.style.width = `${highlightArea.rect.width * scale}px`;
-    highlightArea.style.height = `${highlightArea.rect.height * scale}px`;
-    highlightArea.style.left = `${highlightArea.rect.left * scale}px`;
-    highlightArea.style.top = `${highlightArea.rect.top * scale}px`;
+    highlightArea.style.width = `${highlightArea.rect.width}px`;
+    highlightArea.style.height = `${highlightArea.rect.height}px`;
+    highlightArea.style.left = `${highlightArea.rect.left}px`;
+    highlightArea.style.top = `${highlightArea.rect.top}px`;
     highlightParent.append(highlightArea);
     if (!debug && drawStrikeThrough) {
       //if (drawStrikeThrough) {
@@ -238,7 +228,7 @@ function createHighlightDOM(highlight) {
       );
       highlightAreaLine.style.setProperty("pointer-events", "none");
       highlightAreaLine.style.position = paginated ? "fixed" : "absolute";
-      highlightAreaLine.scale = scale;
+      highlightAreaLine.scale = 1;
       /*
              highlightAreaLine.rect = {
              height: clientRect.height,
@@ -255,18 +245,13 @@ function createHighlightDOM(highlight) {
         width: clientRect.width,
       };
 
-      highlightAreaLine.style.width = `${
-        highlightAreaLine.rect.width * scale
-      }px`;
-      highlightAreaLine.style.height = `${
-        strikeThroughLineThickness * scale
-      }px`;
-      highlightAreaLine.style.left = `${highlightAreaLine.rect.left * scale}px`;
+      highlightAreaLine.style.width = `${highlightAreaLine.rect.width}px`;
+      highlightAreaLine.style.height = `${strikeThroughLineThickness}px`;
+      highlightAreaLine.style.left = `${highlightAreaLine.rect.left}px`;
       highlightAreaLine.style.top = `${
-        (highlightAreaLine.rect.top +
-          highlightAreaLine.rect.height / 2 -
-          strikeThroughLineThickness / 2) *
-        scale
+        highlightAreaLine.rect.top +
+        highlightAreaLine.rect.height / 2 -
+        strikeThroughLineThickness / 2
       }px`;
       highlightParent.append(highlightAreaLine);
     }
@@ -277,7 +262,7 @@ function createHighlightDOM(highlight) {
 
   highlightBounding.style.setProperty("pointer-events", "none");
   highlightBounding.style.position = paginated ? "fixed" : "absolute";
-  highlightBounding.scale = scale;
+  highlightBounding.scale = 1;
 
   if (debug) {
     highlightBounding.setAttribute(
@@ -294,10 +279,10 @@ function createHighlightDOM(highlight) {
     width: rangeBoundingClientRect.width,
   };
 
-  highlightBounding.style.width = `${highlightBounding.rect.width * scale}px`;
-  highlightBounding.style.height = `${highlightBounding.rect.height * scale}px`;
-  highlightBounding.style.left = `${highlightBounding.rect.left * scale}px`;
-  highlightBounding.style.top = `${highlightBounding.rect.top * scale}px`;
+  highlightBounding.style.width = `${highlightBounding.rect.width}px`;
+  highlightBounding.style.height = `${highlightBounding.rect.height}px`;
+  highlightBounding.style.left = `${highlightBounding.rect.left}px`;
+  highlightBounding.style.top = `${highlightBounding.rect.top}px`;
 
   highlightParent.append(highlightBounding);
   highlightsContainer.append(highlightParent);
