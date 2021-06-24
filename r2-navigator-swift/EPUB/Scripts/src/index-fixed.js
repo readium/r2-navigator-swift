@@ -6,4 +6,4 @@
 
 // Script used for fixed layouts resources.
 
-import './index'
+import "./index";

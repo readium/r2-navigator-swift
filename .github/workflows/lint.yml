@@ -1,0 +1,22 @@
+name: Lint
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-latest
+    env:
+      scripts: ${{ 'r2-navigator-swift/EPUB/Scripts' }}
+
+    steps:
+      - name: Install dependencies
+        run: yarn global add prettier
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check JavaScript formatting
+        run: yarn --cwd "$scripts" run checkformat

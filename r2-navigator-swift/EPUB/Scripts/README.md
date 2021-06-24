@@ -2,6 +2,8 @@
 
 A set of JavaScript files used by the Swift EPUB navigator.
 
-## Build
+## Scripts
 
-To rebuild the assets after any changes in the `src/` folder, run `npx webpack`.
+* `npx webpack` Rebuild the assets after any changes in the `src/` folder.
+* `yarn run checkformat` Check if there's any formatting issues.
+* `yarn run format` Automatically format JavaScript sources.
