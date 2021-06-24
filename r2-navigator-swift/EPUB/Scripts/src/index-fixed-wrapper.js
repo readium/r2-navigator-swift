@@ -6,7 +6,7 @@
 
 // Script used for the wrapper HTML pages of fixed layouts resources.
 
-readium.FixedPage = function (iframeId) {
+window.FixedPage = function (iframeId) {
   // Fixed dimensions for the page, extracted from the viewport meta tag.
   var _pageSize = null;
   // Available viewport size to fill with the resource.

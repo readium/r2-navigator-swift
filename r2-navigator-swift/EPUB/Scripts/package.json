@@ -4,13 +4,15 @@
   "description": "A set of scripts for the EPUB navigator",
   "private": true,
   "scripts": {
-    "lint": "eslint .",
+    "bundle": "webpack",
+    "lint": "eslint src",
     "checkformat": "prettier --check '**/*.js'",
     "format": "prettier --list-different --write '**/*.js'"
   },
   "author": "Readium Foundation",
   "license": "BSD-3-Clause",
   "devDependencies": {
+    "eslint": "^7.29.0",
     "prettier": "2.3.1",
     "webpack": "^5.40.0",
     "webpack-cli": "^4.7.2"

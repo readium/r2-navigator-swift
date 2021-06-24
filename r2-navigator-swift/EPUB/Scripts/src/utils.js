@@ -46,7 +46,7 @@ function update(position) {
   webkit.messageHandlers.progressionChanged.postMessage(positionString);
 }
 
-window.addEventListener("scroll", function (e) {
+window.addEventListener("scroll", function () {
   last_known_scrollY_position =
     window.scrollY / document.scrollingElement.scrollHeight;
   // Using Math.abs because for RTL books, the value will be negative.
@@ -139,13 +139,13 @@ export function scrollToPosition(position, dir) {
   }
 
   if (isScrollModeEnabled()) {
-    var offset = document.scrollingElement.scrollHeight * position;
+    let offset = document.scrollingElement.scrollHeight * position;
     document.scrollingElement.scrollTop = offset;
     // window.scrollTo(0, offset);
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
-    var offset = documentWidth * position * factor;
+    let offset = documentWidth * position * factor;
     document.scrollingElement.scrollLeft = snapOffset(offset);
   }
 }

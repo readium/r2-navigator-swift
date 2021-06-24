@@ -346,9 +346,7 @@ function frameForHighlightWithID(id) {
 }
 
 function highlightWithID(id) {
-  let i = -1;
-  return _highlights.find((h, j) => {
-    i = j;
+  return _highlights.find((h) => {
     return h.id === id;
   });
 }

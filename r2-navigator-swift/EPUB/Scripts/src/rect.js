@@ -166,22 +166,18 @@ function replaceOverlapingRects(rects) {
       if (rectsTouchOrOverlap(rect1, rect2, -1)) {
         let toAdd = [];
         let toRemove;
-        let toPreserve;
         const subtractRects1 = rectSubtract(rect1, rect2);
         if (subtractRects1.length === 1) {
           toAdd = subtractRects1;
           toRemove = rect1;
-          toPreserve = rect2;
         } else {
           const subtractRects2 = rectSubtract(rect2, rect1);
           if (subtractRects1.length < subtractRects2.length) {
             toAdd = subtractRects1;
             toRemove = rect1;
-            toPreserve = rect2;
           } else {
             toAdd = subtractRects2;
             toRemove = rect2;
-            toPreserve = rect1;
           }
         }
         log(`CLIENT RECT: overlap, cut one rect into ${toAdd.length}`);
