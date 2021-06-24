@@ -6,6 +6,7 @@
 
 import {convertRangeInfo, location2RangeInfo} from "./selection";
 import {getClientRectsNoOverlap} from "./rect";
+import {log} from "./utils";
 
 const debug = false;
 
@@ -24,6 +25,24 @@ const defaultBackgroundColor = {
     green: 50,
     red: 230,
 };
+
+window.addEventListener("load", function(){ // on page load
+    const body = document.body;
+    var lastSize = { width: 0, height: 0 }
+    const observer = new ResizeObserver(() => {
+        log(body.clientWidth, body.clientHeight)
+        if (lastSize.width === body.clientWidth && lastSize.height === body.clientHeight) {
+            return
+        }
+        lastSize = {
+            width: body.clientWidth,
+            height: body.clientHeight,
+        }
+        resetHighlights()
+    })
+    observer.observe(body)
+
+}, false);
 
 export function rectForHighlightWithID(id) {
     const clientRects = frameForHighlightWithID(id);
@@ -50,6 +69,14 @@ function hideAllHighlights() {
     }
 }
 
+function resetHighlights() {
+    hideAllHighlights()
+
+    for (const highlight of _highlights) {
+        createHighlightDOM(highlight)
+    }
+}
+
 export function createHighlightRange(range) {
 
     // FIXME: Use user-provided ID.
@@ -61,10 +88,10 @@ export function createHighlightRange(range) {
         color: defaultBackgroundColor,
         id,
         pointerInteraction: true,
-        rangeInfo: null
+        range: range,
     };
     _highlights.push(highlight);
-    createHighlightFromRange(range, highlight);
+    createHighlightDOM(highlight);
 
     return highlight;
 }
@@ -81,10 +108,10 @@ export function createHighlight(locations, color, pointerInteraction) {
         color: color ? color : defaultBackgroundColor,
         id,
         pointerInteraction,
-        rangeInfo
+        range: convertRangeInfo(document, rangeInfo),
     };
     _highlights.push(highlight);
-    createHighlightDom(highlight);
+    createHighlightDOM(highlight);
 
     return highlight;
 }
@@ -105,13 +132,8 @@ function destroyHighlight(id) {
     }
 }
 
-function createHighlightDom(highlight) {
-    const range = convertRangeInfo(document, highlight.rangeInfo);
-    return createHighlightFromRange(range, highlight)
-}
-
-function createHighlightFromRange(range, highlight) {
-    if (!range) {
+function createHighlightDOM(highlight) {
+    if (!highlight.range) {
         return undefined;
     }
 
@@ -135,24 +157,15 @@ function createHighlightFromRange(range, highlight) {
     const drawUnderline = false;
     const drawStrikeThrough = false;
     const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
-    const clientRects = getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
+    const clientRects = getClientRectsNoOverlap(highlight.range, doNotMergeHorizontallyAlignedRects);
     const roundedCorner = 3;
     const underlineThickness = 2;
     const strikeThroughLineThickness = 3;
     const opacity = defaultBackgroundOpacity;
     let extra = "";
 
-    let xOffset;
-    let yOffset;
-
-    // if (navigator.userAgent.match(/Android/i)) {
-    xOffset = paginated ? (-scrollElement.scrollLeft) : bodyRect.left;
-    yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
-    // } else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-    //     xOffset = paginated ? 0 : (-scrollElement.scrollLeft);
-    //     yOffset = paginated ? 0 : (bodyRect.top);
-    //     annotationOffset = parseInt((rangeAnnotationBoundingClientRect.right/window.innerWidth) + 1);
-    // }
+    let xOffset = paginated ? (-scrollElement.scrollLeft) : bodyRect.left;
+    let yOffset = paginated ? (-scrollElement.scrollTop) : bodyRect.top;
 
     for (const clientRect of clientRects) {
         const highlightArea = document.createElement("div");
@@ -238,7 +251,7 @@ function createHighlightFromRange(range, highlight) {
         highlightBounding.setAttribute("style", `outline-color: magenta; outline-style: solid; outline-width: 1px; outline-offset: -1px;`);
     }
 
-    const rangeBoundingClientRect = range.getBoundingClientRect();
+    const rangeBoundingClientRect = highlight.range.getBoundingClientRect();
     highlightBounding.rect = {
         height: rangeBoundingClientRect.height,
         left: rangeBoundingClientRect.left - xOffset,
@@ -280,9 +293,7 @@ function frameForHighlightWithID(id) {
     if (!highlight)
         return;
 
-    const document = window.document;
-    const range = convertRangeInfo(document, highlight.rangeInfo);
-    if (!range) {
+    if (!highlight.range) {
         return undefined;
     }
 
@@ -290,7 +301,7 @@ function frameForHighlightWithID(id) {
     const drawUnderline = false;
     const drawStrikeThrough = false;
     const doNotMergeHorizontallyAlignedRects = drawUnderline || drawStrikeThrough;
-    return getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects);
+    return getClientRectsNoOverlap(highlight.range, doNotMergeHorizontallyAlignedRects);
 }
 
 function highlightWithID(id) {

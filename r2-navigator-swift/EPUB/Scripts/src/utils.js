@@ -7,6 +7,7 @@
 // Catch JS errors to log them in the app.
 
 import {TextQuoteAnchor} from "./vendor/hypothesis/anchoring/types";
+import {createHighlightRange} from "./highlight";
 
 window.addEventListener("error", function(event) {
     webkit.messageHandlers.logError.postMessage({
@@ -144,6 +145,7 @@ function scrollToRange(range) {
         document.scrollingElement.scrollLeft = rect.left + window.scrollX;
         snapCurrentPosition();
     }
+    createHighlightRange(range)
 }
 
 // Returns false if the page is already at the left-most scroll offset.
