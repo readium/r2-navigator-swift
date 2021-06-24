@@ -102,7 +102,7 @@ function orientationChanged() {
       : screen.height;
 }
 
-function isScrollModeEnabled() {
+export function isScrollModeEnabled() {
   return (
     document.documentElement.style
       .getPropertyValue("--USER__scroll")

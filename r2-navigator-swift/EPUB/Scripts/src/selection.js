@@ -5,6 +5,7 @@
 //
 
 import { log as logNative, logException } from "./utils";
+import { TextRange } from "./vendor/hypothesis/anchoring/text-range";
 
 const debug = true;
 
@@ -69,10 +70,33 @@ export function getCurrentSelectionInfo() {
     return undefined;
   }
 
+  const text = document.body.textContent;
+  const textRange = TextRange.fromRange(range).relativeTo(document.body);
+  const start = textRange.start.offset;
+  const end = textRange.end.offset;
+
+  const snippetLength = 200;
+
+  // Compute the text before the highlight, ignoring the first "word", which might be cut.
+  let before = text.slice(Math.max(0, start - snippetLength), start);
+  let firstWordStart = before.search(/\P{L}\p{L}/gu);
+  if (firstWordStart !== -1) {
+    before = before.slice(firstWordStart + 1);
+  }
+
+  // Compute the text after the highlight, ignoring the last "word", which might be cut.
+  let after = text.slice(end, Math.min(text.length, end + snippetLength));
+  let lastWordEnd = Array.from(after.matchAll(/\p{L}\P{L}/gu)).pop();
+  if (lastWordEnd !== undefined && lastWordEnd.index > 1) {
+    after = after.slice(0, lastWordEnd.index + 1);
+  }
+
   return {
     locations: rangeInfo2Location(rangeInfo),
     text: {
       highlight: rawText,
+      before: before,
+      after: after,
     },
   };
 }

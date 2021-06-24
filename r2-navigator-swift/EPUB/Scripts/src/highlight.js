@@ -6,7 +6,7 @@
 
 import { convertRangeInfo, location2RangeInfo } from "./selection";
 import { getClientRectsNoOverlap } from "./rect";
-import { log } from "./utils";
+import { isScrollModeEnabled, log } from "./utils";
 
 const debug = false;
 
@@ -288,15 +288,6 @@ function createHighlightDOM(highlight) {
   highlightsContainer.append(highlightParent);
 
   return highlightParent;
-}
-
-function isScrollModeEnabled() {
-  return (
-    document.documentElement.style
-      .getPropertyValue("--USER__scroll")
-      .toString()
-      .trim() === "readium-scroll-on"
-  );
 }
 
 function ensureContainer(win) {
