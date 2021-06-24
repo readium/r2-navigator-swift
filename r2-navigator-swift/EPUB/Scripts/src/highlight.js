@@ -195,7 +195,7 @@ function createHighlightDOM(highlight) {
       `border-radius: ${roundedCorner}px !important; background-color: rgba(${highlight.color.red}, ${highlight.color.green}, ${highlight.color.blue}, ${opacity}) !important; ${extra}`
     );
     highlightArea.style.setProperty("pointer-events", "none");
-    highlightArea.style.position = !paginated ? "fixed" : "absolute";
+    highlightArea.style.position = "absolute";
     highlightArea.scale = 1;
     /*
          highlightArea.rect = {
