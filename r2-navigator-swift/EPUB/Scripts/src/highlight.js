@@ -6,7 +6,8 @@
 
 import { convertRangeInfo, location2RangeInfo } from "./selection";
 import { getClientRectsNoOverlap } from "./rect";
-import { isScrollModeEnabled, log } from "./utils";
+import { isScrollModeEnabled, log, logException } from "./utils";
+import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
 
 const debug = false;
 
@@ -64,7 +65,7 @@ export function rectForHighlightWithID(id) {
   };
 }
 
-export function destroyAllHighlights() {
+export function clearHighlights() {
   hideAllHighlights();
   _highlights.splice(0, _highlights.length);
 }
@@ -79,12 +80,36 @@ function hideAllHighlights() {
 function resetHighlights() {
   hideAllHighlights();
 
-  for (const highlight of _highlights) {
-    createHighlightDOM(highlight);
+  let i = _highlights.length;
+  while (i--) {
+    let highlight = _highlights[i];
+    if (highlight.transient) {
+      _highlights.splice(i, 1);
+    } else {
+      createHighlightDOM(highlight);
+    }
   }
 }
 
-export function createHighlightRange(range) {
+export function highlight(locator) {
+  let text = locator.text;
+  if (!text || !text.highlight) {
+    return;
+  }
+
+  try {
+    let anchor = new TextQuoteAnchor(document.body, text.highlight, {
+      prefix: text.before,
+      suffix: text.after,
+    });
+    anchor.toRange();
+    highlightRange(anchor.toRange());
+  } catch (e) {
+    logException(e);
+  }
+}
+
+export function highlightRange(range) {
   // FIXME: Use user-provided ID.
   let id = "R2_HIGHLIGHT_" + Date.now();
 
@@ -95,26 +120,7 @@ export function createHighlightRange(range) {
     id,
     pointerInteraction: true,
     range: range,
-  };
-  _highlights.push(highlight);
-  createHighlightDOM(highlight);
-
-  return highlight;
-}
-
-export function createHighlight(locations, color, pointerInteraction) {
-  const rangeInfo = location2RangeInfo(locations);
-
-  // FIXME: Use user-provided ID.
-  let id = "R2_HIGHLIGHT_" + Date.now();
-
-  destroyHighlight(id);
-
-  const highlight = {
-    color: color ? color : defaultBackgroundColor,
-    id,
-    pointerInteraction,
-    range: convertRangeInfo(document, rangeInfo),
+    transient: true,
   };
   _highlights.push(highlight);
   createHighlightDOM(highlight);

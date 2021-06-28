@@ -540,6 +540,31 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             return
         }
 
+        evaluateJavaScript(script, in: webView, completion: completion)
+    }
+
+    public func highlight(locator: Locator) {
+        guard let json = locator.jsonString else {
+            return
+        }
+
+        paginationView.loadedViews
+            .compactMap { _, pageView in pageView as? EPUBSpreadView  }
+            .filter { $0.spread.links.first(withHREF: locator.href) != nil }
+            .forEach {
+                evaluateJavaScript("readium.highlight(\(json));", in: $0.webView)
+            }
+    }
+
+    public func clearHighlights() {
+        for (_, pageView) in paginationView.loadedViews {
+            if let webView = (pageView as? EPUBSpreadView)?.webView {
+                evaluateJavaScript("readium.clearHighlights();", in: webView)
+            }
+        }
+    }
+
+    private func evaluateJavaScript(_ script: String, in webView: WKWebView, completion: ((Result<Any, Error>) -> Void)? = nil) {
         webView.evaluateJavaScript(script) { result, error in
             DispatchQueue.main.async {
                 if let error = error {
@@ -550,7 +575,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             }
         }
     }
-    
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {

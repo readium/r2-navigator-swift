@@ -17,8 +17,7 @@ import {
   setProperty,
 } from "./utils";
 import { getCurrentSelectionInfo, getSelectionRect } from "./selection";
-import { createHighlight, createHighlightRange } from "./highlight";
-import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
+import { clearHighlights, highlight } from "./highlight";
 
 // Public API used by the navigator.
 window.readium = {
@@ -36,9 +35,6 @@ window.readium = {
   getCurrentSelectionInfo: getCurrentSelectionInfo,
 
   // highlights
-  createHighlight: createHighlight,
-  createHighlightRange: createHighlightRange,
-
-  // Hypothesis' anchoring
-  TextQuoteAnchor: TextQuoteAnchor,
+  highlight: highlight,
+  clearHighlights: clearHighlights,
 };
