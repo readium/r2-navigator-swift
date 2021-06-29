@@ -9,11 +9,12 @@
 //  in the LICENSE file present in the project repository where this source code is maintained.
 //
 
-import UIKit
+import DifferenceKit
 import R2Shared
-import WebKit
 import SafariServices
 import SwiftSoup
+import UIKit
+import WebKit
 
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
@@ -52,7 +53,7 @@ public extension EPUBNavigatorDelegate {
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Loggable {
+open class EPUBNavigatorViewController: UIViewController, VisualNavigator, DecorableNavigator, Loggable {
     
     public struct Configuration {
         /// Authorized actions to be displayed in the selection menu.
@@ -529,18 +530,110 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         return go(to: direction, animated: animated, completion: completion)
     }
 
+    // MARK: – DecorableNavigator
+
+    private var decorations: [String: [DiffableDecoration]] = [:]
+
+    private struct DiffableDecoration: Hashable, Differentiable {
+        let decoration: Decoration
+        var differenceIdentifier: Decoration.Identifier { decoration.identifier }
+    }
+
+    private enum DecorationChange {
+        case add(Decoration)
+        case remove(Decoration.Identifier)
+        case update(Decoration)
+        // FIXME: move?
+
+        var javascript: String {
+            switch self {
+            case .add(let decoration):
+                return "group.add(\(decoration.jsonString ?? "{}"));"
+            case .remove(let identifier):
+                return "group.remove('\(identifier)');"
+            case .update(let decoration):
+                return "group.update(\(decoration.jsonString ?? "{}"));"
+            }
+        }
+    }
+
+    public func apply(decorations: [Decoration], in group: String) {
+        if decorations.isEmpty {
+            let hrefs = (self.decorations[group] ?? [])
+                .map { $0.decoration.locator.href }
+                .removingDuplicates()
+
+            self.decorations.removeValue(forKey: group)
+
+            for href in hrefs {
+                loadedSpreadView(forHREF: href)?.evaluateScript(
+                    """
+                    readium.getDecorations('\(group)').clear();
+                    """,
+                    inHREF: href
+                )
+            }
+
+        } else {
+            let oldDecorations = self.decorations[group] ?? []
+            let decorations = decorations.map { DiffableDecoration(decoration: $0) }
+            let changeset = StagedChangeset(source: oldDecorations, target: decorations)
+            self.decorations[group] = decorations
+
+            var changes: [String: [DecorationChange]] = [:]
+
+            func register(_ change: DecorationChange, at locator: Locator) {
+                var resourceChanges: [DecorationChange] = changes[locator.href] ?? []
+                resourceChanges.append(change)
+                changes[locator.href] = resourceChanges
+            }
+
+            for change in changeset {
+                for deleted in change.elementDeleted {
+                    let decoration = oldDecorations[deleted.element].decoration
+                    register(.remove(decoration.identifier), at: decoration.locator)
+                }
+                for inserted in change.elementInserted {
+                    let decoration = decorations[inserted.element].decoration
+                    register(.add(decoration), at: decoration.locator)
+                }
+                for updated in change.elementUpdated {
+                    let decoration = decorations[updated.element].decoration
+                    register(.update(decoration), at: decoration.locator)
+                }
+            }
+
+            for (href, changes) in changes {
+                loadedSpreadView(forHREF: href)?.evaluateScript(
+                    """
+                    (function() {
+                        let group = readium.getDecorations('\(group)');
+                        \(changes.map { $0.javascript }.joined(separator: "\n"))
+                    })();
+                    """,
+                    inHREF: href
+                )
+            }
+        }
+    }
+
+    private func loadedSpreadView(forHREF href: String) -> EPUBSpreadView? {
+        paginationView.loadedViews
+            .compactMap { _, view in view as? EPUBSpreadView }
+            .first { $0.spread.links.first(withHREF: href) != nil}
+    }
+
     // MARK: – EPUB-specific extensions
 
     /// Evaluates the given JavaScript on the currently visible HTML resource.
     public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {
-        guard let webView = (paginationView.currentView as? EPUBSpreadView)?.webView else {
+        guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
             DispatchQueue.main.async {
                 completion?(.failure(EPUBError.spreadNotLoaded))
             }
             return
         }
-
-        evaluateJavaScript(script, in: webView, completion: completion)
+        spreadView.evaluateScript(script, completion: completion)
     }
 
     public func highlight(locator: Locator) {
@@ -552,26 +645,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
             .compactMap { _, pageView in pageView as? EPUBSpreadView  }
             .filter { $0.spread.links.first(withHREF: locator.href) != nil }
             .forEach {
-                evaluateJavaScript("readium.highlight(\(json));", in: $0.webView)
+                $0.evaluateScript("readium.highlight(\(json));")
             }
     }
 
     public func clearHighlights() {
         for (_, pageView) in paginationView.loadedViews {
-            if let webView = (pageView as? EPUBSpreadView)?.webView {
-                evaluateJavaScript("readium.clearHighlights();", in: webView)
-            }
-        }
-    }
-
-    private func evaluateJavaScript(_ script: String, in webView: WKWebView, completion: ((Result<Any, Error>) -> Void)? = nil) {
-        webView.evaluateJavaScript(script) { result, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    completion?(.failure(error))
-                } else {
-                    completion?(.success(result ?? ()))
-                }
+            if let spreadView = pageView as? EPUBSpreadView {
+                spreadView.evaluateScript("readium.clearHighlights();")
             }
         }
     }

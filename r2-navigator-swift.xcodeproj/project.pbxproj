@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3ED948DA031726D2B827F14D /* DecorableNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */; };
 		CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E312520DAF300489729 /* PDFDocumentHolder.swift */; };
 		CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E492521F34E00489729 /* WKWebView.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
@@ -42,6 +43,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DecorableNavigator.swift; sourceTree = "<group>"; };
 		CA038E312520DAF300489729 /* PDFDocumentHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentHolder.swift; sourceTree = "<group>"; };
 		CA038E492521F34E00489729 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
@@ -161,6 +163,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		CAF031D8268B40DB00D5F5FD /* Decorator */ = {
+			isa = PBXGroup;
+			children = (
+				3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */,
+			);
+			path = Decorator;
+			sourceTree = "<group>";
+		};
 		CAFC2F672278957A007DBB02 /* CBZ */ = {
 			isa = PBXGroup;
 			children = (
@@ -191,6 +201,7 @@
 		F3E7D3C51F4D83B000DF166D /* r2-navigator-swift */ = {
 			isa = PBXGroup;
 			children = (
+				CAF031D8268B40DB00D5F5FD /* Decorator */,
 				F3E7D3C61F4D83B000DF166D /* r2-navigator-swift.h */,
 				F3E7D3C71F4D83B000DF166D /* Info.plist */,
 				CAB9086A22492D4C00711C3F /* Navigator.swift */,
@@ -336,6 +347,7 @@
 				CAC2A6D72292E4BA000AA2A7 /* WebView.swift in Sources */,
 				CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* EPUBReflowableSpreadView.swift in Sources */,
+				3ED948DA031726D2B827F14D /* DecorableNavigator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

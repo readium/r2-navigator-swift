@@ -168,13 +168,14 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, completion: @escaping ((Result<Any, Error>) -> Void)) {
+    func evaluateScript(_ script: String, inHREF href: String? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
         log(.debug, "Evaluate script: \(script)")
         webView.evaluateJavaScript(script) { res, error in
             if let error = error {
-                completion(.failure(error))
+                self.log(.error, error)
+                completion?(.failure(error))
             } else {
-                completion(.success(res ?? ()))
+                completion?(.success(res ?? ()))
             }
         }
     }
