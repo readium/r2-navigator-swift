@@ -100,7 +100,7 @@ export function DecorationGroup(groupId) {
       doNotMergeHorizontallyAlignedRects
     );
     let roundedCorner = 3;
-    let color = defaultBackgroundColor;
+    let color = item.decoration.tint || defaultBackgroundColor;
     let opacity = defaultBackgroundOpacity;
     let extra = "";
 

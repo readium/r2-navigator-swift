@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import UIKit
 import R2Shared
 
 public struct Decoration: Hashable {
@@ -12,14 +13,16 @@ public struct Decoration: Hashable {
 
     /// The identifier for this decoration. It must be unique in its group.
     public var identifier: Identifier
-    public var style: Style
     public var locator: Locator
+    public var style: Style
+    public var tint: UIColor?
     public var userInfo: [AnyHashable: AnyHashable]
 
-    public init(identifier: Identifier, style: Style, locator: Locator, userInfo: [AnyHashable: AnyHashable] = [:]) {
+    public init(identifier: Identifier, locator: Locator, style: Style, tint: UIColor? = nil, userInfo: [AnyHashable: AnyHashable] = [:]) {
         self.identifier = identifier
         self.style = style
         self.locator = locator
+        self.tint = tint
         self.userInfo = userInfo
     }
 
@@ -40,10 +43,25 @@ public struct Decoration: Hashable {
     }
 
     public var json: [String: Any] {
-        [
+        var tintJSON: [String: Any]?
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        if let tint = tint, tint.getRed(&r, green: &g, blue: &b, alpha: &a) {
+            tintJSON = [
+                "red": Int(r * 255),
+                "green": Int(g * 255),
+                "blue": Int(b * 255),
+                "alpha": a,
+            ]
+        }
+
+        return [
             "identifier": identifier,
-            "style": style.rawValue,
             "locator": locator.json,
+            "style": style.rawValue,
+            "tint": tintJSON,
         ]
     }
 
