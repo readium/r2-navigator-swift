@@ -5,20 +5,41 @@
 //
 
 import { getClientRectsNoOverlap } from "./rect";
-import { isScrollModeEnabled, log, rangeFromLocator } from "./utils";
+import {
+  isScrollModeEnabled,
+  log,
+  logErrorMessage,
+  rangeFromLocator,
+} from "./utils";
 
-const debug = false;
-
-const defaultBackgroundOpacity = 0.3;
-
-const defaultBackgroundColor = {
-  blue: 100,
-  green: 50,
-  red: 230,
-};
-
+let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;
+
+export function registerStyles(newStyles) {
+  var stylesheet = "";
+
+  for (const [id, style] of Object.entries(newStyles)) {
+    try {
+      let template = document.createElement("template");
+      template.innerHTML = style.element.trim();
+      style.element = template;
+      styles.set(id, style);
+
+      if (style.stylesheet) {
+        stylesheet += style.stylesheet + "\n";
+      }
+    } catch (error) {
+      logErrorMessage(`Invalid decoration style "${id}": ${error.message}`);
+    }
+  }
+
+  if (stylesheet) {
+    let styleElement = document.createElement("style");
+    styleElement.innerHTML = stylesheet;
+    document.getElementsByTagName("head")[0].appendChild(styleElement);
+  }
+}
 
 export function getDecorations(groupIdentifier) {
   var group = groups.get(groupIdentifier);
@@ -82,9 +103,13 @@ export function DecorationGroup(groupId) {
   }
 
   function layout(item) {
-    let scrollElement = document.scrollingElement;
     let groupContainer = requireContainer();
-    let paginated = !isScrollModeEnabled();
+
+    let style = styles.get(item.decoration.style);
+    if (!style) {
+      logErrorMessage(`Unknown decoration style: ${item.decoration.style}`);
+      return;
+    }
 
     let itemContainer = document.createElement("div");
     itemContainer.setAttribute("id", item.id);
@@ -92,77 +117,47 @@ export function DecorationGroup(groupId) {
     if (item.pointerInteraction) {
       itemContainer.setAttribute("data-click", "1");
     }
+    let tint = item.decoration.tint;
+    if (tint) {
+      itemContainer.style.setProperty(
+        "--r2-decoration-tint",
+        `rgb(${tint.red}, ${tint.green}, ${tint.blue})`
+      );
+    }
 
-    let bodyRect = document.body.getBoundingClientRect();
-    let doNotMergeHorizontallyAlignedRects = false;
+    let doNotMergeHorizontallyAlignedRects = true;
     let clientRects = getClientRectsNoOverlap(
       item.range,
       doNotMergeHorizontallyAlignedRects
     );
-    let roundedCorner = 3;
-    let color = item.decoration.tint || defaultBackgroundColor;
-    let opacity = defaultBackgroundOpacity;
-    let extra = "";
 
-    let xOffset = paginated ? -scrollElement.scrollLeft : bodyRect.left;
-    let yOffset = paginated ? -scrollElement.scrollTop : bodyRect.top;
+    let paginated = !isScrollModeEnabled();
+    let scrollingElement = document.scrollingElement;
+    let bodyRect = document.body.getBoundingClientRect();
+    let xOffset = paginated ? -scrollingElement.scrollLeft : bodyRect.left;
+    let yOffset = paginated ? -scrollingElement.scrollTop : bodyRect.top;
+
+    function positionElement(element, rect) {
+      element.style.position = "absolute";
+      element.style.width = `${rect.width}px`;
+      element.style.height = `${rect.height}px`;
+      element.style.left = `${rect.left - xOffset}px`;
+      element.style.top = `${rect.top - yOffset}px`;
+    }
 
     for (let clientRect of clientRects) {
-      const itemArea = document.createElement("div");
-      if (debug) {
-        const rgb = Math.round(0xffffff * Math.random());
-        const r = rgb >> 16;
-        const g = (rgb >> 8) & 255;
-        const b = rgb & 255;
-        extra = `outline-color: rgb(${r}, ${g}, ${b}); outline-style: solid; outline-width: 1px; outline-offset: -1px;`;
-      }
-      itemArea.setAttribute(
-        "style",
-        `border-radius: ${roundedCorner}px !important; background-color: rgba(${color.red}, ${color.green}, ${color.blue}, ${opacity}) !important; ${extra}`
-      );
+      const itemArea = style.element.content.firstElementChild.cloneNode(true);
       itemArea.style.setProperty("pointer-events", "none");
-      itemArea.style.position = "absolute";
-      itemArea.scale = 1;
-      itemArea.rect = {
-        height: clientRect.height,
-        left: clientRect.left - xOffset,
-        top: clientRect.top - yOffset,
-        width: clientRect.width,
-      };
-
-      itemArea.style.width = `${itemArea.rect.width}px`;
-      itemArea.style.height = `${itemArea.rect.height}px`;
-      itemArea.style.left = `${itemArea.rect.left}px`;
-      itemArea.style.top = `${itemArea.rect.top}px`;
+      positionElement(itemArea, clientRect);
       itemContainer.append(itemArea);
     }
 
-    const itemBounding = document.createElement("div");
-    itemBounding.style.setProperty("pointer-events", "none");
-    itemBounding.style.position = paginated ? "fixed" : "absolute";
-    itemBounding.scale = 1;
-
-    if (debug) {
-      itemBounding.setAttribute(
-        "style",
-        `outline-color: magenta; outline-style: solid; outline-width: 1px; outline-offset: -1px;`
-      );
-    }
-
-    const rangeBoundingClientRect = item.range.getBoundingClientRect();
-    itemBounding.rect = {
-      height: rangeBoundingClientRect.height,
-      left: rangeBoundingClientRect.left - xOffset,
-      top: rangeBoundingClientRect.top - yOffset,
-      width: rangeBoundingClientRect.width,
-    };
-
-    itemBounding.style.width = `${itemBounding.rect.width}px`;
-    itemBounding.style.height = `${itemBounding.rect.height}px`;
-    itemBounding.style.left = `${itemBounding.rect.left}px`;
-    itemBounding.style.top = `${itemBounding.rect.top}px`;
-
-    itemContainer.append(itemBounding);
+    // const itemBounding = document.createElement("div");
+    // itemBounding.style.setProperty("pointer-events", "none");
+    // itemBounding.style.position = "absolute";
+    // positionElement(itemBounding, item.range.getBoundingClientRect());
+    //
+    // itemContainer.append(itemBounding);
     groupContainer.append(itemContainer);
   }
 

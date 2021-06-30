@@ -18,7 +18,7 @@ import {
 } from "./utils";
 import { getCurrentSelectionInfo, getSelectionRect } from "./selection";
 import { clearHighlights, highlight } from "./highlight";
-import { getDecorations } from "./decorator";
+import { getDecorations, registerStyles } from "./decorator";
 
 // Public API used by the navigator.
 window.readium = {
@@ -32,6 +32,7 @@ window.readium = {
   removeProperty: removeProperty,
 
   // decoration
+  registerDecorationStyles: registerStyles,
   getDecorations: getDecorations,
 
   // selection

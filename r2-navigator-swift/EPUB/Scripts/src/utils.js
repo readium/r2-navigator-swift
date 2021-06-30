@@ -233,7 +233,7 @@ export function rangeFromLocator(locator) {
     });
     return anchor.toRange();
   } catch (e) {
-    logException(e);
+    logError(e);
     return null;
   }
 }
@@ -275,7 +275,11 @@ export function log() {
   webkit.messageHandlers.log.postMessage(message);
 }
 
-export function logException(e) {
+export function logErrorMessage(msg) {
+  logError(new Error(msg));
+}
+
+export function logError(e) {
   webkit.messageHandlers.logError.postMessage({
     message: e.message,
   });

@@ -6,7 +6,7 @@
 
 import { convertRangeInfo, location2RangeInfo } from "./selection";
 import { getClientRectsNoOverlap } from "./rect";
-import { isScrollModeEnabled, log, logException } from "./utils";
+import { isScrollModeEnabled, log, logError } from "./utils";
 import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
 
 const debug = false;
@@ -105,7 +105,7 @@ export function highlight(locator) {
     anchor.toRange();
     highlightRange(anchor.toRange());
   } catch (e) {
-    logException(e);
+    logError(e);
   }
 }
 

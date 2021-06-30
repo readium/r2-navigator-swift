@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import { log as logNative, logException } from "./utils";
+import { log as logNative, logError } from "./utils";
 import { TextRange } from "./vendor/hypothesis/anchoring/text-range";
 
 const debug = true;
@@ -28,7 +28,7 @@ export function getSelectionRect() {
       height: clientRect.height,
     };
   } catch (e) {
-    logException(e);
+    logError(e);
     return null;
   }
 }

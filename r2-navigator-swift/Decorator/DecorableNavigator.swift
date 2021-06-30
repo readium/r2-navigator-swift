@@ -64,10 +64,6 @@ public struct Decoration: Hashable {
             "tint": tintJSON,
         ]
     }
-
-    public var jsonString: String? {
-        serializeJSONString(json)
-    }
 }
 
 public protocol DecorableNavigator: VisualNavigator {

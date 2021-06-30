@@ -1,12 +1,7 @@
 //
-//  EPUBNavigatorViewController.swift
-//  r2-navigator-swift
-//
-//  Created by Winnie Quinn, Alexandre Camilleri on 8/23/17.
-//
 //  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import DifferenceKit
@@ -54,7 +49,12 @@ public extension EPUBNavigatorDelegate {
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: UIViewController, VisualNavigator, DecorableNavigator, Loggable {
-    
+
+    public enum EPUBError: Error {
+        /// Returned when calling evaluateJavaScript() before a resource is loaded.
+        case spreadNotLoaded
+    }
+
     public struct Configuration {
         /// Authorized actions to be displayed in the selection menu.
         public var editingActions: [EditingAction] = EditingAction.defaultActions
@@ -75,15 +75,57 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         
         /// Logs the state changes when true.
         public var debugState = false
-        
+
+        /// Supported decoration styles.
+        public var decorationStyles: [Decoration.Style: DecorationStyleTemplate] = [
+            .highlight: DecorationStyleTemplate(
+                element: #"<div class="r2-highlight"/>"#,
+                stylesheet:
+                """
+                .r2-highlight {
+                    border-radius: 3px;
+                    background-color: var(--r2-decoration-tint);
+                    opacity: 0.3;
+                }
+                .r2-highlight:hover {
+                    opacity: 0.6;
+                }
+                """
+            ),
+            .underline: DecorationStyleTemplate(
+                element: #"<div class="r2-underline"/>"#,
+                stylesheet:
+                """
+                .r2-underline {
+                    border-bottom: 3px solid var(--r2-decoration-tint);
+                }
+                """
+            )
+        ]
+
         public init() {}
     }
 
-    public enum EPUBError: Error {
-        /// Returned when calling evaluateJavaScript() before a resource is loaded.
-        case spreadNotLoaded
+    public struct DecorationStyleTemplate {
+        let element: String
+        let stylesheet: String?
+        let applyScript: String?
+
+        public init(element: String = "<div/>", stylesheet: String? = nil, applyScript: String? = nil) {
+            self.element = element
+            self.stylesheet = stylesheet
+            self.applyScript = applyScript
+        }
+
+        public var json: [String: Any] {
+            [
+                "element": element,
+                "stylesheet": stylesheet,
+                "applyScript": applyScript,
+            ]
+        }
     }
-    
+
     public weak var delegate: EPUBNavigatorDelegate? {
         didSet { notifyCurrentLocation() }
     }
@@ -548,11 +590,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         var javascript: String {
             switch self {
             case .add(let decoration):
-                return "group.add(\(decoration.jsonString ?? "{}"));"
+                let json = serializeJSONString(decoration.json) ?? "{}"
+                return "group.add(\(json));"
             case .remove(let identifier):
                 return "group.remove('\(identifier)');"
             case .update(let decoration):
-                return "group.update(\(decoration.jsonString ?? "{}"));"
+                let json = serializeJSONString(decoration.json) ?? "{}"
+                return "group.update(\(json));"
             }
         }
     }
@@ -640,6 +684,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) {
+        let decorationStyles = config.decorationStyles.reduce(into: [:]) { styles, item in
+            styles[item.key.rawValue] = item.value.json
+        }
+
+        guard let stylesJSON = serializeJSONString(decorationStyles) else {
+            log(.error, "Can't serialize decoration styles to JSON")
+            return
+        }
+        spreadView.evaluateScript("readium.registerDecorationStyles(\(stylesJSON));")
+
         for link in spreadView.spread.links {
             let href = link.href
             let decorations = decorations.mapValues { decs in
@@ -650,7 +704,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                     continue
                 }
                 let changes = decorations.map {
-                    "group.add(\($0.decoration.jsonString ?? "{}"));"
+                    "group.add(\(serializeJSONString($0.decoration.json) ?? "{}"));"
                 }
                 spreadView.evaluateScript(
                     """

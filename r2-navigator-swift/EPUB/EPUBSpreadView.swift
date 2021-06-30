@@ -397,10 +397,11 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     private func createHighlight(at locator: Locator, color: UIColor) {
-        guard let json = locator.jsonString else {
+        let decoration = Decoration(identifier: UUID().uuidString, locator: locator, style: .highlight, tint: color)
+        guard let json = serializeJSONString(decoration.json) else {
             return
         }
-        evaluateScript("readium.createHighlight(\(json), null, true);") { _ in
+        evaluateScript("readium.getDecorations('highlight').add(\(json));") { _ in
         }
     }
 
