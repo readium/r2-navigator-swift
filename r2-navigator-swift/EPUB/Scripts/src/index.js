@@ -33,8 +33,6 @@ window.readium = {
 
   // decoration
   getDecorations: getDecorations,
-  highlight: highlight,
-  clearHighlights: clearHighlights,
 
   // selection
   getSelectionRect: getSelectionRect,

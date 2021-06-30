@@ -5,8 +5,7 @@
 //
 
 import { getClientRectsNoOverlap } from "./rect";
-import { isScrollModeEnabled, log, logException } from "./utils";
-import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
+import { isScrollModeEnabled, log, rangeFromLocator } from "./utils";
 
 const debug = false;
 
@@ -18,16 +17,34 @@ const defaultBackgroundColor = {
   red: 230,
 };
 
+let groups = new Map();
+var lastGroupId = 0;
+
+export function getDecorations(groupIdentifier) {
+  var group = groups.get(groupIdentifier);
+  if (!group) {
+    let id = "r2-decoration-" + lastGroupId++;
+    group = DecorationGroup(id);
+    groups.set(groupIdentifier, group);
+  }
+  return group;
+}
+
 export function DecorationGroup(groupId) {
   var items = [];
   var lastItemId = 0;
   var container = null;
 
   function add(decoration) {
-    let item = {
-      id: groupId + "_" + lastItemId++,
-      decoration,
-    };
+    let id = groupId + "-" + lastItemId++;
+
+    let range = rangeFromLocator(decoration.locator);
+    if (!range) {
+      log("Can't locate DOM range for decoration", decoration);
+      return;
+    }
+
+    let item = { id, decoration, range };
     items.push(item);
     layout(item);
   }
@@ -65,12 +82,6 @@ export function DecorationGroup(groupId) {
   }
 
   function layout(item) {
-    let range = rangeFromLocator(item.decoration.locator);
-    if (!range) {
-      log("Can't locate range for decoration", item.decoration);
-      return;
-    }
-
     let scrollElement = document.scrollingElement;
     let groupContainer = requireContainer();
     let paginated = !isScrollModeEnabled();
@@ -85,7 +96,7 @@ export function DecorationGroup(groupId) {
     let bodyRect = document.body.getBoundingClientRect();
     let doNotMergeHorizontallyAlignedRects = false;
     let clientRects = getClientRectsNoOverlap(
-      range,
+      item.range,
       doNotMergeHorizontallyAlignedRects
     );
     let roundedCorner = 3;
@@ -138,7 +149,7 @@ export function DecorationGroup(groupId) {
       );
     }
 
-    const rangeBoundingClientRect = range.getBoundingClientRect();
+    const rangeBoundingClientRect = item.range.getBoundingClientRect();
     itemBounding.rect = {
       height: rangeBoundingClientRect.height,
       left: rangeBoundingClientRect.left - xOffset,
@@ -153,23 +164,6 @@ export function DecorationGroup(groupId) {
 
     itemContainer.append(itemBounding);
     groupContainer.append(itemContainer);
-  }
-
-  function rangeFromLocator(locator) {
-    let text = locator.text;
-    if (!text || !text.highlight) {
-      return null;
-    }
-    try {
-      let anchor = new TextQuoteAnchor(document.body, text.highlight, {
-        prefix: text.before,
-        suffix: text.after,
-      });
-      return anchor.toRange();
-    } catch (e) {
-      logException(e);
-      return null;
-    }
   }
 
   function requireContainer() {
@@ -192,19 +186,6 @@ export function DecorationGroup(groupId) {
   return { add, remove, update, clear, requestLayout };
 }
 
-var groups = new Map();
-var lastGroupId = 0;
-
-export function getDecorations(groupIdentifier) {
-  var group = groups.get(groupIdentifier);
-  if (!group) {
-    let id = "r2-decoration-" + lastGroupId++;
-    group = DecorationGroup(id);
-    groups.set(groupIdentifier, group);
-  }
-  return group;
-}
-
 window.addEventListener(
   "load",
   function () {
@@ -223,7 +204,7 @@ window.addEventListener(
         height: body.clientHeight,
       };
 
-      groups.forEach(function (id, group) {
+      groups.forEach(function (group) {
         group.requestLayout();
       });
     });

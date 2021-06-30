@@ -154,18 +154,12 @@ export function scrollToPosition(position, dir) {
 // The expected text argument is a Locator Text object, as defined here:
 // https://readium.org/architecture/models/locators/
 export function scrollToText(text) {
-  try {
-    let anchor = new TextQuoteAnchor(document.body, text.highlight, {
-      prefix: text.before,
-      suffix: text.after,
-    });
-
-    scrollToRange(anchor.toRange());
-    return true;
-  } catch (e) {
-    logException(e);
+  let range = rangeFromLocator({ text });
+  if (!range) {
     return false;
   }
+  scrollToRange(range);
+  return true;
 }
 
 function scrollToRange(range) {
@@ -225,6 +219,23 @@ function snapCurrentPosition() {
   var currentOffsetSnapped = snapOffset(currentOffset + 1);
 
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
+}
+
+export function rangeFromLocator(locator) {
+  let text = locator.text;
+  if (!text || !text.highlight) {
+    return null;
+  }
+  try {
+    let anchor = new TextQuoteAnchor(document.body, text.highlight, {
+      prefix: text.before,
+      suffix: text.after,
+    });
+    return anchor.toRange();
+  } catch (e) {
+    logException(e);
+    return null;
+  }
 }
 
 /// User Settings.

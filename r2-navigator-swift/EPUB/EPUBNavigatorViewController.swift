@@ -635,31 +635,38 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         }
         spreadView.evaluateScript(script, completion: completion)
     }
-
-    public func highlight(locator: Locator) {
-        guard let json = locator.jsonString else {
-            return
-        }
-
-        paginationView.loadedViews
-            .compactMap { _, pageView in pageView as? EPUBSpreadView  }
-            .filter { $0.spread.links.first(withHREF: locator.href) != nil }
-            .forEach {
-                $0.evaluateScript("readium.highlight(\(json));")
-            }
-    }
-
-    public func clearHighlights() {
-        for (_, pageView) in paginationView.loadedViews {
-            if let spreadView = pageView as? EPUBSpreadView {
-                spreadView.evaluateScript("readium.clearHighlights();")
-            }
-        }
-    }
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
-    
+
+    func spreadViewDidLoad(_ spreadView: EPUBSpreadView) {
+        for link in spreadView.spread.links {
+            let href = link.href
+            let decorations = decorations.mapValues { decs in
+                decs.filter { $0.decoration.locator.href == href }
+            }
+            for (group, decorations) in decorations {
+                guard !decorations.isEmpty else {
+                    continue
+                }
+                let changes = decorations.map {
+                    "group.add(\($0.decoration.jsonString ?? "{}"));"
+                }
+                spreadView.evaluateScript(
+                    """
+                    // Using requestAnimationFrame helps to make sure the page is fully laid out before adding the
+                    // decorations.
+                    requestAnimationFrame(function () {
+                        let group = readium.getDecorations('\(group)');
+                        \(changes.joined(separator: "\n"))
+                    });
+                    """,
+                    inHREF: href
+                )
+            }
+        }
+    }
+
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint) {
         // We allow taps in any state, because we should always be able to toggle the navigation bar,
         // even while a locator is pending.
@@ -796,6 +803,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             resourcesURL: resourcesURL,
             readingProgression: readingProgression,
             userSettings: userSettings,
+            scripts: [],
             animatedLoad: false,  // FIXME: custom animated
             editingActions: editingActions,
             contentInset: config.contentInset

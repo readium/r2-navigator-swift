@@ -16,7 +16,16 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
     
-    private lazy var layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+        var scripts = scripts
+        let layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
+        scripts.append(WKUserScript(
+            source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
+        ))
+        super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+    }
 
     override func setupWebView() {
         super.setupWebView()
@@ -324,19 +333,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         super.registerJSMessages()
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
     }
-    
-    override func makeScripts() -> [WKUserScript] {
-        var scripts = super.makeScripts()
-
-        scripts.append(WKUserScript(
-            source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
-            injectionTime: .atDocumentStart,
-            forMainFrameOnly: false
-        ))
-
-        return scripts
-    }
-
 
     // MARK: - WKNavigationDelegate
     

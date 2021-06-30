@@ -15,7 +15,9 @@ import SwiftSoup
 
 
 protocol EPUBSpreadViewDelegate: AnyObject {
-    
+    /// Called when the spread view finished loading.
+    func spreadViewDidLoad(_ spreadView: EPUBSpreadView)
+
     /// Called when the user tapped on the spread contents.
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
     
@@ -30,7 +32,6 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
-
 }
 
 class EPUBSpreadView: UIView, Loggable, PageView {
@@ -44,8 +45,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
+    let scripts: [WKUserScript]
     let editingActions: EditingActionsController
-    
+
     private var lastTap: TapData? = nil
 
     /// If YES, the content will be faded in once loaded.
@@ -64,12 +66,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
         self.resourcesURL = resourcesURL
         self.readingProgression = readingProgression
         self.userSettings = userSettings
+        self.scripts = scripts
         self.editingActions = editingActions
         self.animatedLoad = animatedLoad
         self.webView = WebView(editingActions: editingActions)
@@ -87,7 +90,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         
-        for script in makeScripts() {
+        for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
         }
         registerJSMessages()
@@ -104,8 +107,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         NotificationCenter.default.removeObserver(self)
         disableJSMessages()
     }
-
-    func makeScripts() -> [WKUserScript] { [] }
 
     var menuItems: [UIMenuItem] {
         [
@@ -239,6 +240,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         spreadLoaded = true
         applyUserSettingsStyle()
         spreadDidLoad()
+        delegate?.spreadViewDidLoad(self)
     }
     
     /// To be overriden to customize the behavior after the spread is loaded.
