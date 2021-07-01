@@ -30,6 +30,7 @@ public struct Decoration: Hashable {
         public static let highlight: Style = "highlight"
         public static let underline: Style = "underline"
         public static let strikethrough: Style = "strikethrough"
+        public static let sidemark: Style = "sidemark"
 
         public let rawValue: String
 

@@ -77,53 +77,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         public var debugState = false
 
         /// Supported decoration styles.
-        public var decorationStyles: [Decoration.Style: DecorationStyleTemplate] = [
-            .highlight: DecorationStyleTemplate(
-                element: #"<div class="r2-highlight"/>"#,
-                stylesheet:
-                """
-                .r2-highlight {
-                    border-radius: 3px;
-                    background-color: var(--r2-decoration-tint);
-                    opacity: 0.3;
-                }
-                .r2-highlight:hover {
-                    opacity: 0.6;
-                }
-                """
-            ),
-            .underline: DecorationStyleTemplate(
-                element: #"<div class="r2-underline"/>"#,
-                stylesheet:
-                """
-                .r2-underline {
-                    border-bottom: 3px solid var(--r2-decoration-tint);
-                }
-                """
-            )
+        public var decorationStyles: [Decoration.Style: HTMLDecorationStyle] = [
+            .highlight: .highlight,
+            .underline: .underline,
+            .strikethrough: .strikethrough,
+            .sidemark: .sidemark,
         ]
 
         public init() {}
-    }
-
-    public struct DecorationStyleTemplate {
-        let element: String
-        let stylesheet: String?
-        let applyScript: String?
-
-        public init(element: String = "<div/>", stylesheet: String? = nil, applyScript: String? = nil) {
-            self.element = element
-            self.stylesheet = stylesheet
-            self.applyScript = applyScript
-        }
-
-        public var json: [String: Any] {
-            [
-                "element": element,
-                "stylesheet": stylesheet,
-                "applyScript": applyScript,
-            ]
-        }
     }
 
     public weak var delegate: EPUBNavigatorDelegate? {

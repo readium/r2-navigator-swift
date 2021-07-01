@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3ED947813648845A9A479DF4 /* HTMLDecorationStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationStyle.swift */; };
 		3ED948DA031726D2B827F14D /* DecorableNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */; };
 		CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E312520DAF300489729 /* PDFDocumentHolder.swift */; };
 		CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E492521F34E00489729 /* WKWebView.swift */; };
@@ -44,6 +45,7 @@
 
 /* Begin PBXFileReference section */
 		3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DecorableNavigator.swift; sourceTree = "<group>"; };
+		3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLDecorationStyle.swift; sourceTree = "<group>"; };
 		CA038E312520DAF300489729 /* PDFDocumentHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentHolder.swift; sourceTree = "<group>"; };
 		CA038E492521F34E00489729 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
 				CA1FA968268213D500733814 /* Scripts */,
 				CAF648DA266F6EB10067D2C3 /* Assets */,
+				3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationStyle.swift */,
 			);
 			path = EPUB;
 			sourceTree = "<group>";
@@ -348,6 +351,7 @@
 				CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* EPUBReflowableSpreadView.swift in Sources */,
 				3ED948DA031726D2B827F14D /* DecorableNavigator.swift in Sources */,
+				3ED947813648845A9A479DF4 /* HTMLDecorationStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

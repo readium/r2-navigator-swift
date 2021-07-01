@@ -125,39 +125,68 @@ export function DecorationGroup(groupId) {
       );
     }
 
-    let doNotMergeHorizontallyAlignedRects = true;
-    let clientRects = getClientRectsNoOverlap(
-      item.range,
-      doNotMergeHorizontallyAlignedRects
+    let viewportWidth = window.innerWidth;
+    let columnCount = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "column-count"
+      )
     );
-
-    let paginated = !isScrollModeEnabled();
+    let pageWidth = viewportWidth / (columnCount || 1);
     let scrollingElement = document.scrollingElement;
-    let bodyRect = document.body.getBoundingClientRect();
-    let xOffset = paginated ? -scrollingElement.scrollLeft : bodyRect.left;
-    let yOffset = paginated ? -scrollingElement.scrollTop : bodyRect.top;
+    let xOffset = scrollingElement.scrollLeft;
+    let yOffset = scrollingElement.scrollTop;
 
-    function positionElement(element, rect) {
+    function positionElement(element, rect, boundingRect) {
       element.style.position = "absolute";
-      element.style.width = `${rect.width}px`;
-      element.style.height = `${rect.height}px`;
-      element.style.left = `${rect.left - xOffset}px`;
-      element.style.top = `${rect.top - yOffset}px`;
+
+      if (style.width === "wrap") {
+        element.style.width = `${rect.width}px`;
+        element.style.height = `${rect.height}px`;
+        element.style.left = `${rect.left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      } else if (style.width === "viewport") {
+        element.style.width = `${viewportWidth}px`;
+        element.style.height = `${rect.height}px`;
+        let left = Math.floor(rect.left / viewportWidth) * viewportWidth;
+        element.style.left = `${left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      } else if (style.width === "bounds") {
+        element.style.width = `${boundingRect.width}px`;
+        element.style.height = `${rect.height}px`;
+        element.style.left = `${boundingRect.left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      } else if (style.width === "page") {
+        element.style.width = `${pageWidth}px`;
+        element.style.height = `${rect.height}px`;
+        let left = Math.floor(rect.left / pageWidth) * pageWidth;
+        element.style.left = `${left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      }
     }
 
-    for (let clientRect of clientRects) {
-      const itemArea = style.element.content.firstElementChild.cloneNode(true);
-      itemArea.style.setProperty("pointer-events", "none");
-      positionElement(itemArea, clientRect);
-      itemContainer.append(itemArea);
+    let boundingRect = item.range.getBoundingClientRect();
+
+    if (style.layout === "lines") {
+      let doNotMergeHorizontallyAlignedRects = true;
+      let clientRects = getClientRectsNoOverlap(
+        item.range,
+        doNotMergeHorizontallyAlignedRects
+      );
+
+      for (let clientRect of clientRects) {
+        const line = style.element.content.firstElementChild.cloneNode(true);
+        line.style.setProperty("pointer-events", "none");
+        positionElement(line, clientRect, boundingRect);
+        itemContainer.append(line);
+      }
+    } else if (style.layout === "bounds") {
+      const bounds = style.element.content.firstElementChild.cloneNode(true);
+      bounds.style.setProperty("pointer-events", "none");
+      positionElement(bounds, boundingRect, boundingRect);
+
+      itemContainer.append(bounds);
     }
 
-    // const itemBounding = document.createElement("div");
-    // itemBounding.style.setProperty("pointer-events", "none");
-    // itemBounding.style.position = "absolute";
-    // positionElement(itemBounding, item.range.getBoundingClientRect());
-    //
-    // itemContainer.append(itemBounding);
     groupContainer.append(itemContainer);
   }
 
