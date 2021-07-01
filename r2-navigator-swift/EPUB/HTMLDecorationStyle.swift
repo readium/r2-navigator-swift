@@ -10,17 +10,17 @@ public struct HTMLDecorationStyle {
     public enum Layout: String {
         case bounds, lines
     }
-    public enum Fit: String {
+    public enum Width: String {
         case wrap, bounds, viewport, page
     }
 
     let layout: Layout
-    let width: Fit
+    let width: Width
     let element: String
     let stylesheet: String?
     let applyScript: String?
 
-    public init(layout: Layout, width: Fit = .wrap, element: String = "<div/>", stylesheet: String? = nil, applyScript: String? = nil) {
+    public init(layout: Layout, width: Width = .wrap, element: String = "<div/>", stylesheet: String? = nil, applyScript: String? = nil) {
         self.layout = layout
         self.width = width
         self.element = element
@@ -38,65 +38,92 @@ public struct HTMLDecorationStyle {
         ]
     }
 
-    public static let highlight = HTMLDecorationStyle(
-        layout: .lines,
-        element: #"<div class="r2-highlight"/>"#,
-        stylesheet:
-        """
-        .r2-highlight {
-            border-radius: 3px;
-            background-color: var(--r2-decoration-tint);
-            opacity: 0.3;
-        }
-        .r2-highlight:hover {
-            opacity: 0.6;
-        }
-        """
-    )
+    public static func defaultStyles(
+        lineWeight: Int = 2,
+        cornerRadius: Int = 3,
+        highlightOpacity: Double = 0.3,
+        sidemarkWeight: Int = 5,
+        sidemarkMargin: Int = 20
+    ) -> [Decoration.Style: HTMLDecorationStyle] {
+        [
+            .highlight: .highlight(cornerRadius: cornerRadius, opacity: highlightOpacity),
+            .underline: .underline(lineWeight: lineWeight, cornerRadius: cornerRadius),
+            .strikethrough: .strikethrough(lineWeight: lineWeight, cornerRadius: cornerRadius),
+            .sidemark: .sidemark(lineWeight: sidemarkWeight, cornerRadius: cornerRadius, margin: sidemarkMargin),
+        ]
+    }
 
-    public static let underline = HTMLDecorationStyle(
-        layout: .lines,
-        element: #"<div><span class="r2-underline"/></div>"#,
-        stylesheet:
-        """
-        .r2-underline {
-            display: inline-block;
-            width: 100%;
-            height: 3px;
-            background-color: var(--r2-decoration-tint);
-            vertical-align: sub;
-        }
-        """
-    )
+    public static func highlight(cornerRadius: Int, opacity: Double) -> HTMLDecorationStyle {
+        HTMLDecorationStyle(
+            layout: .lines,
+            element: #"<div class="r2-highlight"/>"#,
+            stylesheet:
+            """
+            .r2-highlight {
+                border-radius: \(cornerRadius)px;
+                background-color: var(--r2-decoration-tint);
+                opacity: \(opacity);
+            }
+            """
+        )
+    }
 
-    public static let strikethrough = HTMLDecorationStyle(
-        layout: .lines,
-        element: #"<div><span class="r2-strikethrough"/></div>"#,
-        stylesheet:
-        """
-        .r2-strikethrough {
-            display: inline-block;
-            width: 100%;
-            height: 20%;
-            border-top: 3px solid var(--r2-decoration-tint);
-        }
-        """
-    )
+    public static func underline(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
+        HTMLDecorationStyle(
+            layout: .lines,
+            element: #"<div><span class="r2-underline"/></div>"#,
+            stylesheet:
+            """
+            .r2-underline {
+                display: inline-block;
+                width: 100%;
+                height: \(lineWeight)px;
+                border-radius: \(cornerRadius)px;
+                background-color: var(--r2-decoration-tint);
+                vertical-align: sub;
+            }
+            """
+        )
+    }
 
-    public static let sidemark = HTMLDecorationStyle(
-        layout: .bounds,
-        element: #"<div class="r2-sidemark"/>"#,
-        stylesheet:
-        """
-        .r2-sidemark {
-            margin-left: -20px;
-            border-left: 3px solid var(--r2-decoration-tint);
-        }
-        [dir=rtl] .r2-sidemark {
-            margin-left: 20px;
-            border-left: none;
-            border-right: 3px solid var(--r2-decoration-tint);
-        }
-        """
-    )
+    public static func strikethrough(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
+        HTMLDecorationStyle(
+            layout: .lines,
+            element: #"<div><span class="r2-strikethrough"/></div>"#,
+            stylesheet:
+            """
+            .r2-strikethrough {
+                display: inline-block;
+                width: 100%;
+                height: 20%;
+                border-radius: \(cornerRadius)px;
+                border-top: \(lineWeight)px solid var(--r2-decoration-tint);
+            }
+            """
+        )
+    }
+
+    public static func sidemark(lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationStyle {
+        HTMLDecorationStyle(
+            layout: .bounds,
+            width: .page,
+            element: #"<div><div class="r2-sidemark"/></div>"#,
+            stylesheet:
+            """
+            .r2-sidemark {
+                float: left;
+                width: \(lineWeight)px;
+                height: 100%;
+                background-color: var(--r2-decoration-tint);
+                margin-left: \(margin)px;
+                border-radius: \(cornerRadius)px;
+            }
+            [dir=rtl] .r2-sidemark {
+                float: right;
+                margin-left: 0px;
+                margin-right: \(margin)px;
+            }
+            """
+        )
+    }
 }

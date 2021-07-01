@@ -77,12 +77,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         public var debugState = false
 
         /// Supported decoration styles.
-        public var decorationStyles: [Decoration.Style: HTMLDecorationStyle] = [
-            .highlight: .highlight,
-            .underline: .underline,
-            .strikethrough: .strikethrough,
-            .sidemark: .sidemark,
-        ]
+        public var decorationStyles = HTMLDecorationStyle.defaultStyles()
 
         public init() {}
     }
