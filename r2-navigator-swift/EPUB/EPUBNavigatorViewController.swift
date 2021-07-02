@@ -4,13 +4,11 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import DifferenceKit
 import R2Shared
 import SafariServices
 import SwiftSoup
 import UIKit
 import WebKit
-
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
 
@@ -179,7 +177,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         }
     }
 
-    private let config: Configuration
+    let config: Configuration
     private let publication: Publication
     private let initialLocation: Locator?
     private let editingActions: EditingActionsController
@@ -532,87 +530,25 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
 
     private var decorations: [String: [DiffableDecoration]] = [:]
 
-    private struct DiffableDecoration: Hashable, Differentiable {
-        let decoration: Decoration
-        var differenceIdentifier: Decoration.Identifier { decoration.identifier }
-    }
-
-    private enum DecorationChange {
-        case add(Decoration)
-        case remove(Decoration.Identifier)
-        case update(Decoration)
-        // FIXME: move?
-
-        var javascript: String {
-            switch self {
-            case .add(let decoration):
-                let json = serializeJSONString(decoration.json) ?? "{}"
-                return "group.add(\(json));"
-            case .remove(let identifier):
-                return "group.remove('\(identifier)');"
-            case .update(let decoration):
-                let json = serializeJSONString(decoration.json) ?? "{}"
-                return "group.update(\(json));"
-            }
-        }
-    }
-
     public func apply(decorations: [Decoration], in group: String) {
+        let source = self.decorations[group] ?? []
+        let target = decorations.map { DiffableDecoration(decoration: $0) }
+
+        self.decorations[group] = target
+
         if decorations.isEmpty {
-            let hrefs = (self.decorations[group] ?? [])
-                .map { $0.decoration.locator.href }
-                .removingDuplicates()
-
-            self.decorations.removeValue(forKey: group)
-
-            for href in hrefs {
-                loadedSpreadView(forHREF: href)?.evaluateScript(
-                    """
-                    readium.getDecorations('\(group)').clear();
-                    """,
-                    inHREF: href
+            for (_, pageView) in paginationView.loadedViews {
+                (pageView as? EPUBSpreadView)?.evaluateScript(
+                    "readium.getDecorations('\(group)').clear();"
                 )
             }
 
         } else {
-            let oldDecorations = self.decorations[group] ?? []
-            let decorations = decorations.map { DiffableDecoration(decoration: $0) }
-            let changeset = StagedChangeset(source: oldDecorations, target: decorations)
-            self.decorations[group] = decorations
-
-            var changes: [String: [DecorationChange]] = [:]
-
-            func register(_ change: DecorationChange, at locator: Locator) {
-                var resourceChanges: [DecorationChange] = changes[locator.href] ?? []
-                resourceChanges.append(change)
-                changes[locator.href] = resourceChanges
-            }
-
-            for change in changeset {
-                for deleted in change.elementDeleted {
-                    let decoration = oldDecorations[deleted.element].decoration
-                    register(.remove(decoration.identifier), at: decoration.locator)
+            for (href, changes) in target.changesByHREF(from: source) {
+                guard let script = changes.javascript(forGroup: group, styles: config.decorationStyles) else {
+                    continue
                 }
-                for inserted in change.elementInserted {
-                    let decoration = decorations[inserted.element].decoration
-                    register(.add(decoration), at: decoration.locator)
-                }
-                for updated in change.elementUpdated {
-                    let decoration = decorations[updated.element].decoration
-                    register(.update(decoration), at: decoration.locator)
-                }
-            }
-
-            for (href, changes) in changes {
-                loadedSpreadView(forHREF: href)?.evaluateScript(
-                    """
-                    (function() {
-                        let group = readium.getDecorations('\(group)');
-                        \(changes.map { $0.javascript }.joined(separator: "\n"))
-                    })();
-                    """,
-                    inHREF: href
-                )
+                loadedSpreadView(forHREF: href)?.evaluateScript(script, inHREF: href)
             }
         }
     }
@@ -648,31 +584,19 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             log(.error, "Can't serialize decoration styles to JSON")
             return
         }
-        spreadView.evaluateScript("readium.registerDecorationStyles(\(stylesJSON));")
+        spreadView.evaluateScript("readium.registerDecorationStyles(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));")
 
         for link in spreadView.spread.links {
             let href = link.href
-            let decorations = decorations.mapValues { decs in
-                decs.filter { $0.decoration.locator.href == href }
-            }
             for (group, decorations) in decorations {
-                guard !decorations.isEmpty else {
+                let decorations = decorations
+                    .filter { $0.decoration.locator.href == href }
+                    .map { DecorationChange.add($0.decoration) }
+
+                guard let script = decorations.javascript(forGroup: group, styles: config.decorationStyles) else {
                     continue
                 }
-                let changes = decorations.map {
-                    "group.add(\(serializeJSONString($0.decoration.json) ?? "{}"));"
-                }
-                spreadView.evaluateScript(
-                    """
-                    // Using requestAnimationFrame helps to make sure the page is fully laid out before adding the
-                    // decorations.
-                    requestAnimationFrame(function () {
-                        let group = readium.getDecorations('\(group)');
-                        \(changes.joined(separator: "\n"))
-                    });
-                    """,
-                    inHREF: href
-                )
+                spreadView.evaluateScript(script, inHREF: href)
             }
         }
     }

@@ -20,25 +20,25 @@ public struct HTMLDecorationStyle {
 
     let layout: Layout
     let width: Width
-    let element: String
+    let makeElement: (Decoration) -> String
     let stylesheet: String?
-    let applyScript: String?
 
-    public init(layout: Layout, width: Width = .wrap, element: String = "<div/>", stylesheet: String? = nil, applyScript: String? = nil) {
+    public init(layout: Layout, width: Width = .wrap, makeElement: @escaping (Decoration) -> String = { _ in "<div/>" }, stylesheet: String? = nil) {
         self.layout = layout
         self.width = width
-        self.element = element
+        self.makeElement = makeElement
         self.stylesheet = stylesheet
-        self.applyScript = applyScript
+    }
+
+    public init(layout: Layout, width: Width = .wrap, element: String = "<div/>", stylesheet: String? = nil) {
+        self.init(layout: layout, width: width, makeElement: { _ in element }, stylesheet: stylesheet)
     }
 
     public var json: [String: Any] {
         [
             "layout": layout.rawValue,
             "width": width.rawValue,
-            "element": element,
             "stylesheet": stylesheet as Any,
-            "applyScript": applyScript as Any,
         ]
     }
 

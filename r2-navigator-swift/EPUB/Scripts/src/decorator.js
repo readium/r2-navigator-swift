@@ -5,12 +5,7 @@
 //
 
 import { getClientRectsNoOverlap } from "./rect";
-import {
-  isScrollModeEnabled,
-  log,
-  logErrorMessage,
-  rangeFromLocator,
-} from "./utils";
+import { log, logErrorMessage, rangeFromLocator } from "./utils";
 
 let styles = new Map();
 let groups = new Map();
@@ -20,17 +15,9 @@ export function registerStyles(newStyles) {
   var stylesheet = "";
 
   for (const [id, style] of Object.entries(newStyles)) {
-    try {
-      let template = document.createElement("template");
-      template.innerHTML = style.element.trim();
-      style.element = template;
-      styles.set(id, style);
-
-      if (style.stylesheet) {
-        stylesheet += style.stylesheet + "\n";
-      }
-    } catch (error) {
-      logErrorMessage(`Invalid decoration style "${id}": ${error.message}`);
+    styles.set(id, style);
+    if (style.stylesheet) {
+      stylesheet += style.stylesheet + "\n";
     }
   }
 
@@ -166,6 +153,18 @@ export function DecorationGroup(groupId) {
 
     let boundingRect = item.range.getBoundingClientRect();
 
+    let elementTemplate;
+    try {
+      let template = document.createElement("template");
+      template.innerHTML = item.decoration.element.trim();
+      elementTemplate = template.content.firstElementChild;
+    } catch (error) {
+      logErrorMessage(
+        `Invalid decoration element "${item.decoration.element}": ${error.message}`
+      );
+      return;
+    }
+
     if (style.layout === "boxes") {
       let doNotMergeHorizontallyAlignedRects = true;
       let clientRects = getClientRectsNoOverlap(
@@ -174,13 +173,13 @@ export function DecorationGroup(groupId) {
       );
 
       for (let clientRect of clientRects) {
-        const line = style.element.content.firstElementChild.cloneNode(true);
+        const line = elementTemplate.cloneNode(true);
         line.style.setProperty("pointer-events", "none");
         positionElement(line, clientRect, boundingRect);
         itemContainer.append(line);
       }
     } else if (style.layout === "bounds") {
-      const bounds = style.element.content.firstElementChild.cloneNode(true);
+      const bounds = elementTemplate.cloneNode(true);
       bounds.style.setProperty("pointer-events", "none");
       positionElement(bounds, boundingRect, boundingRect);
 
