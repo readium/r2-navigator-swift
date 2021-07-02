@@ -5,13 +5,17 @@
 //
 
 import Foundation
+import UIKit
 
 public struct HTMLDecorationStyle {
     public enum Layout: String {
-        case bounds, lines
+        case bounds, boxes
     }
     public enum Width: String {
         case wrap, bounds, viewport, page
+    }
+    public enum UnderlineAnchor {
+        case baseline, box
     }
 
     let layout: Layout
@@ -41,25 +45,30 @@ public struct HTMLDecorationStyle {
     public static func defaultStyles(
         lineWeight: Int = 2,
         cornerRadius: Int = 3,
-        highlightOpacity: Double = 0.3,
+        opacity: Double = 0.3,
         sidemarkWeight: Int = 5,
         sidemarkMargin: Int = 20
     ) -> [Decoration.Style: HTMLDecorationStyle] {
         [
-            .highlight: .highlight(cornerRadius: cornerRadius, opacity: highlightOpacity),
-            .underline: .underline(lineWeight: lineWeight, cornerRadius: cornerRadius),
+            .highlight: .highlight(padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, opacity: opacity),
+            .underline: .underline(anchor: .baseline, lineWeight: lineWeight, cornerRadius: cornerRadius),
             .strikethrough: .strikethrough(lineWeight: lineWeight, cornerRadius: cornerRadius),
             .sidemark: .sidemark(lineWeight: sidemarkWeight, cornerRadius: cornerRadius, margin: sidemarkMargin),
         ]
     }
 
-    public static func highlight(cornerRadius: Int, opacity: Double) -> HTMLDecorationStyle {
-        HTMLDecorationStyle(
-            layout: .lines,
-            element: #"<div class="r2-highlight"/>"#,
+    public static func highlight(padding: UIEdgeInsets, cornerRadius: Int, opacity: Double) -> HTMLDecorationStyle {
+        let className = makeUniqueClassName(key: "highlight")
+        return HTMLDecorationStyle(
+            layout: .boxes,
+            element: "<div class=\"\(className)\"/>",
             stylesheet:
             """
-            .r2-highlight {
+            .\(className) {
+                margin-left: \(-padding.left)px;
+                padding-right: \(padding.left + padding.right)px;
+                margin-top: \(-padding.top)px;
+                padding-bottom: \(padding.top + padding.bottom)px;
                 border-radius: \(cornerRadius)px;
                 background-color: var(--r2-decoration-tint);
                 opacity: \(opacity);
@@ -68,31 +77,49 @@ public struct HTMLDecorationStyle {
         )
     }
 
-    public static func underline(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
-        HTMLDecorationStyle(
-            layout: .lines,
-            element: #"<div><span class="r2-underline"/></div>"#,
-            stylesheet:
-            """
-            .r2-underline {
-                display: inline-block;
-                width: 100%;
-                height: \(lineWeight)px;
-                border-radius: \(cornerRadius)px;
-                background-color: var(--r2-decoration-tint);
-                vertical-align: sub;
-            }
-            """
-        )
+    public static func underline(anchor: UnderlineAnchor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
+        let className = makeUniqueClassName(key: "underline")
+        switch anchor {
+        case .baseline:
+            return HTMLDecorationStyle(
+                layout: .boxes,
+                element: "<div><span class=\"\(className)\"/></div>",
+                stylesheet:
+                """
+                .\(className) {
+                    display: inline-block;
+                    width: 100%;
+                    height: \(lineWeight)px;
+                    border-radius: \(cornerRadius)px;
+                    background-color: var(--r2-decoration-tint);
+                    vertical-align: sub;
+                }
+                """
+            )
+        case .box:
+            return HTMLDecorationStyle(
+                layout: .boxes,
+                element: "<div class=\"\(className)\"/>",
+                stylesheet:
+                """
+                .\(className) {
+                    box-sizing: border-box;
+                    border-radius: \(cornerRadius)px;
+                    border-bottom: \(lineWeight)px solid var(--r2-decoration-tint);
+                }
+                """
+            )
+        }
     }
 
     public static func strikethrough(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
-        HTMLDecorationStyle(
-            layout: .lines,
-            element: #"<div><span class="r2-strikethrough"/></div>"#,
+        let className = makeUniqueClassName(key: "strikethrough")
+        return HTMLDecorationStyle(
+            layout: .boxes,
+            element: "<div><span class=\"\(className)\"/></div>",
             stylesheet:
             """
-            .r2-strikethrough {
+            .\(className) {
                 display: inline-block;
                 width: 100%;
                 height: 20%;
@@ -104,13 +131,14 @@ public struct HTMLDecorationStyle {
     }
 
     public static func sidemark(lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationStyle {
-        HTMLDecorationStyle(
+        let className = makeUniqueClassName(key: "sidemark")
+        return HTMLDecorationStyle(
             layout: .bounds,
             width: .page,
-            element: #"<div><div class="r2-sidemark"/></div>"#,
+            element: "<div><div class=\"\(className)\"/></div>",
             stylesheet:
             """
-            .r2-sidemark {
+            .\(className) {
                 float: left;
                 width: \(lineWeight)px;
                 height: 100%;
@@ -118,12 +146,30 @@ public struct HTMLDecorationStyle {
                 margin-left: \(margin)px;
                 border-radius: \(cornerRadius)px;
             }
-            [dir=rtl] .r2-sidemark {
+            [dir=rtl] .\(className) {
                 float: right;
                 margin-left: 0px;
                 margin-right: \(margin)px;
             }
             """
         )
+    }
+
+    public static let image = HTMLDecorationStyle(
+        layout: .bounds,
+        width: .page,
+        element: #"<div><img class="r2-image" src="https://lea.verou.me/mark.svg"/></div>"#,
+        stylesheet:
+        """
+        .r2-image {
+            opacity: 0.5;
+        }
+        """
+    )
+
+    private static var classNamesId = 0;
+    private static func makeUniqueClassName(key: String) -> String {
+        classNamesId += 1
+        return "r2-\(key)-\(classNamesId)"
     }
 }

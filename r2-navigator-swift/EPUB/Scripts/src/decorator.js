@@ -166,7 +166,7 @@ export function DecorationGroup(groupId) {
 
     let boundingRect = item.range.getBoundingClientRect();
 
-    if (style.layout === "lines") {
+    if (style.layout === "boxes") {
       let doNotMergeHorizontallyAlignedRects = true;
       let clientRects = getClientRectsNoOverlap(
         item.range,
