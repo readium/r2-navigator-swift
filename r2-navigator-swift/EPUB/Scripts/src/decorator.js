@@ -28,12 +28,12 @@ export function registerStyles(newStyles) {
   }
 }
 
-export function getDecorations(groupIdentifier) {
-  var group = groups.get(groupIdentifier);
+export function getDecorations(groupId) {
+  var group = groups.get(groupId);
   if (!group) {
     let id = "r2-decoration-" + lastGroupId++;
     group = DecorationGroup(id);
-    groups.set(groupIdentifier, group);
+    groups.set(groupId, group);
   }
   return group;
 }
@@ -57,10 +57,8 @@ export function DecorationGroup(groupId) {
     layout(item);
   }
 
-  function remove(decorationIdentifier) {
-    let index = items.findIndex(
-      (i) => i.decoration.identifier === decorationIdentifier
-    );
+  function remove(decorationId) {
+    let index = items.findIndex((i) => i.decoration.id === decorationId);
     if (index === -1) {
       return;
     }
@@ -75,7 +73,7 @@ export function DecorationGroup(groupId) {
   }
 
   function update(decoration) {
-    remove(decoration.identifier);
+    remove(decoration.id);
     add(decoration);
   }
 

@@ -75,7 +75,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         public var debugState = false
 
         /// Supported decoration styles.
-        public var decorationStyles = HTMLDecorationStyle.defaultStyles()
+        public var decorationStyles = HTMLDecorationTemplate.defaultStyles()
 
         public init() {}
     }
@@ -529,6 +529,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
     // MARK: – DecorableNavigator
 
     private var decorations: [String: [DiffableDecoration]] = [:]
+
+    public var supportedDecorationStyles: Set<Decoration.Style.Id> {
+        Set(config.decorationStyles.keys)
+    }
 
     public func apply(decorations: [Decoration], in group: String) {
         let source = self.decorations[group] ?? []

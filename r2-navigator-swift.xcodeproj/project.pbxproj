@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3ED943EA7427D26C871FE6A5 /* DiffableDecoration+HTML.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED94EEA2E641A306F8F5523 /* DiffableDecoration+HTML.swift */; };
-		3ED947813648845A9A479DF4 /* HTMLDecorationStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationStyle.swift */; };
+		3ED947813648845A9A479DF4 /* HTMLDecorationTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationTemplate.swift */; };
 		3ED948DA031726D2B827F14D /* DecorableNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */; };
 		3ED94ECB10C286E62F6A33B2 /* DiffableDecoration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED94BC8F8AABD2BBBD3F936 /* DiffableDecoration.swift */; };
 		CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E312520DAF300489729 /* PDFDocumentHolder.swift */; };
@@ -47,7 +47,7 @@
 
 /* Begin PBXFileReference section */
 		3ED940A7AF1E36768F06D377 /* DecorableNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DecorableNavigator.swift; sourceTree = "<group>"; };
-		3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLDecorationStyle.swift; sourceTree = "<group>"; };
+		3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationTemplate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLDecorationTemplate.swift; sourceTree = "<group>"; };
 		3ED94BC8F8AABD2BBBD3F936 /* DiffableDecoration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiffableDecoration.swift; sourceTree = "<group>"; };
 		3ED94EEA2E641A306F8F5523 /* DiffableDecoration+HTML.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DiffableDecoration+HTML.swift"; sourceTree = "<group>"; };
 		CA038E312520DAF300489729 /* PDFDocumentHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentHolder.swift; sourceTree = "<group>"; };
@@ -157,7 +157,7 @@
 				F341C2701F506ED5005E6758 /* UserSettings.swift */,
 				CA1FA968268213D500733814 /* Scripts */,
 				CAF648DA266F6EB10067D2C3 /* Assets */,
-				3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationStyle.swift */,
+				3ED942CE9B5F39D64C1CECB9 /* HTMLDecorationTemplate.swift */,
 				3ED94EEA2E641A306F8F5523 /* DiffableDecoration+HTML.swift */,
 			);
 			path = EPUB;
@@ -357,7 +357,7 @@
 				CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */,
 				CACE8521225CDFB000E19E8B /* EPUBReflowableSpreadView.swift in Sources */,
 				3ED948DA031726D2B827F14D /* DecorableNavigator.swift in Sources */,
-				3ED947813648845A9A479DF4 /* HTMLDecorationStyle.swift in Sources */,
+				3ED947813648845A9A479DF4 /* HTMLDecorationTemplate.swift in Sources */,
 				3ED94ECB10C286E62F6A33B2 /* DiffableDecoration.swift in Sources */,
 				3ED943EA7427D26C871FE6A5 /* DiffableDecoration+HTML.swift in Sources */,
 			);

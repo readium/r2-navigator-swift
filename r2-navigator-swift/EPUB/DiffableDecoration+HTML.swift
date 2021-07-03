@@ -8,7 +8,7 @@ import Foundation
 import R2Shared
 
 extension Array where Element == DecorationChange {
-    func javascript(forGroup group: String, styles: [Decoration.Style: HTMLDecorationStyle]) -> String? {
+    func javascript(forGroup group: String, styles: [Decoration.Style.Id: HTMLDecorationTemplate]) -> String? {
         guard !isEmpty else {
             return nil
         }
@@ -26,14 +26,14 @@ extension Array where Element == DecorationChange {
 }
 
 extension DecorationChange {
-    func javascript(styles: [Decoration.Style: HTMLDecorationStyle]) -> String? {
+    func javascript(styles: [Decoration.Style.Id: HTMLDecorationTemplate]) -> String? {
         func serializeJSON(of decoration: Decoration) -> String? {
-            guard let style = styles[decoration.style] else {
-                EPUBNavigatorViewController.log(.error, "Decoration style not registered: \(decoration.style.rawValue)")
+            guard let style = styles[decoration.style.id] else {
+                EPUBNavigatorViewController.log(.error, "Decoration style not registered: \(decoration.style.id)")
                 return nil
             }
             var json = decoration.json
-            json["element"] = style.makeElement(decoration)
+            json["element"] = style.element(decoration)
             guard let jsonString = serializeJSONString(json) else {
                 EPUBNavigatorViewController.log(.error, "Can't serialize decoration to JSON: \(json)")
                 return nil

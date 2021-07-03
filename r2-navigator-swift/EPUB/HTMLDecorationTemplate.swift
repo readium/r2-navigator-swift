@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import SwiftSoup
 import UIKit
 
-public struct HTMLDecorationStyle {
+public struct HTMLDecorationTemplate {
     public enum Layout: String {
         case bounds, boxes
     }
@@ -20,18 +21,18 @@ public struct HTMLDecorationStyle {
 
     let layout: Layout
     let width: Width
-    let makeElement: (Decoration) -> String
+    let element: (Decoration) -> String
     let stylesheet: String?
 
-    public init(layout: Layout, width: Width = .wrap, makeElement: @escaping (Decoration) -> String = { _ in "<div/>" }, stylesheet: String? = nil) {
+    public init(layout: Layout, width: Width = .wrap, element: @escaping (Decoration) -> String = { _ in "<div/>" }, stylesheet: String? = nil) {
         self.layout = layout
         self.width = width
-        self.makeElement = makeElement
+        self.element = element
         self.stylesheet = stylesheet
     }
 
     public init(layout: Layout, width: Width = .wrap, element: String = "<div/>", stylesheet: String? = nil) {
-        self.init(layout: layout, width: width, makeElement: { _ in element }, stylesheet: stylesheet)
+        self.init(layout: layout, width: width, element: { _ in element }, stylesheet: stylesheet)
     }
 
     public var json: [String: Any] {
@@ -45,23 +46,29 @@ public struct HTMLDecorationStyle {
     public static func defaultStyles(
         lineWeight: Int = 2,
         cornerRadius: Int = 3,
-        opacity: Double = 0.3,
+        alpha: Double = 0.3,
         sidemarkWeight: Int = 5,
         sidemarkMargin: Int = 20
-    ) -> [Decoration.Style: HTMLDecorationStyle] {
+    ) -> [Decoration.Style.Id: HTMLDecorationTemplate] {
         [
-            .highlight: .highlight(padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, opacity: opacity),
+            .highlight: .highlight(defaultTint: .yellow, padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, alpha: alpha),
             .underline: .underline(anchor: .baseline, lineWeight: lineWeight, cornerRadius: cornerRadius),
             .strikethrough: .strikethrough(lineWeight: lineWeight, cornerRadius: cornerRadius),
             .sidemark: .sidemark(lineWeight: sidemarkWeight, cornerRadius: cornerRadius, margin: sidemarkMargin),
+            .text: .text(),
+            .image: .image(),
         ]
     }
 
-    public static func highlight(padding: UIEdgeInsets, cornerRadius: Int, opacity: Double) -> HTMLDecorationStyle {
+    public static func highlight(defaultTint: UIColor, padding: UIEdgeInsets, cornerRadius: Int, alpha: Double) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "highlight")
-        return HTMLDecorationStyle(
+        return HTMLDecorationTemplate(
             layout: .boxes,
-            element: "<div class=\"\(className)\"/>",
+            element: { decoration in
+                let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                let tint = config.tint ?? defaultTint
+                return "<div class=\"\(className)\" style=\"--tint: \(tint.cssValue(includingAlpha: false))\"/>"
+            },
             stylesheet:
             """
             .\(className) {
@@ -70,18 +77,18 @@ public struct HTMLDecorationStyle {
                 margin-top: \(-padding.top)px;
                 padding-bottom: \(padding.top + padding.bottom)px;
                 border-radius: \(cornerRadius)px;
-                background-color: var(--r2-decoration-tint);
-                opacity: \(opacity);
+                background-color: var(--tint);
+                opacity: \(alpha);
             }
             """
         )
     }
 
-    public static func underline(anchor: UnderlineAnchor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
+    public static func underline(anchor: UnderlineAnchor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "underline")
         switch anchor {
         case .baseline:
-            return HTMLDecorationStyle(
+            return HTMLDecorationTemplate(
                 layout: .boxes,
                 element: "<div><span class=\"\(className)\"/></div>",
                 stylesheet:
@@ -97,7 +104,7 @@ public struct HTMLDecorationStyle {
                 """
             )
         case .box:
-            return HTMLDecorationStyle(
+            return HTMLDecorationTemplate(
                 layout: .boxes,
                 element: "<div class=\"\(className)\"/>",
                 stylesheet:
@@ -112,9 +119,9 @@ public struct HTMLDecorationStyle {
         }
     }
 
-    public static func strikethrough(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationStyle {
+    public static func strikethrough(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "strikethrough")
-        return HTMLDecorationStyle(
+        return HTMLDecorationTemplate(
             layout: .boxes,
             element: "<div><span class=\"\(className)\"/></div>",
             stylesheet:
@@ -130,9 +137,9 @@ public struct HTMLDecorationStyle {
         )
     }
 
-    public static func sidemark(lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationStyle {
+    public static func sidemark(lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "sidemark")
-        return HTMLDecorationStyle(
+        return HTMLDecorationTemplate(
             layout: .bounds,
             width: .page,
             element: "<div><div class=\"\(className)\"/></div>",
@@ -155,21 +162,80 @@ public struct HTMLDecorationStyle {
         )
     }
 
-    public static let image = HTMLDecorationStyle(
-        layout: .bounds,
-        width: .page,
-        element: #"<div><img class="r2-image" src="https://lea.verou.me/mark.svg"/></div>"#,
-        stylesheet:
-        """
-        .r2-image {
-            opacity: 0.5;
-        }
-        """
-    )
+    public static func text() -> HTMLDecorationTemplate {
+        let className = makeUniqueClassName(key: "text")
+        return HTMLDecorationTemplate(
+            layout: .bounds,
+            width: .page,
+            element: { decoration in
+                let config = decoration.style.config as! Decoration.Style.TextConfig
+                return "<div><span class=\"\(className)\">\(config.text ?? "")</span></div>"
+            },
+            stylesheet:
+            """
+            .\(className) {
+                font-weight: bold;
+            }
+            """
+        )
+    }
+
+    public static func image() -> HTMLDecorationTemplate {
+        let className = makeUniqueClassName(key: "image")
+        return HTMLDecorationTemplate(
+            layout: .bounds,
+            width: .page,
+            element: { decoration in
+                let config = decoration.style.config as! Decoration.Style.ImageConfig
+                let src: String? = {
+                    guard let source = config.source else {
+                        return nil
+                    }
+                    switch source {
+                    case .url(let url):
+                        return Entities.escape(url.absoluteString, .utf8)
+                    case .bitmap(let bitmap):
+                        guard let data = bitmap.pngData() else {
+                            return nil
+                        }
+                        let b64 = data.base64EncodedString()
+                        return "data:image/png;base64,\(b64)"
+                    }
+                }()
+                return "<div><img class=\"\(className)\" src=\"\(src ?? "")\"/></div>"
+            },
+            stylesheet:
+            """
+            .\(className) {
+                opacity: 0.5;
+            }
+            """
+        )
+    }
 
     private static var classNamesId = 0;
     private static func makeUniqueClassName(key: String) -> String {
         classNamesId += 1
         return "r2-\(key)-\(classNamesId)"
+    }
+}
+
+private extension UIColor {
+    func cssValue(includingAlpha: Bool) -> String {
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard getRed(&r, green: &g, blue: &b, alpha: &alpha) else {
+            return "black"
+        }
+        let red = Int(r * 255)
+        let green = Int(g * 255)
+        let blue = Int(b * 255)
+        if includingAlpha {
+            return "rgba(\(red), \(green), \(blue), \(alpha))"
+        } else {
+            return "rgb(\(red), \(green), \(blue))"
+        }
     }
 }

@@ -10,12 +10,12 @@ import R2Shared
 
 struct DiffableDecoration: Hashable, Differentiable {
     let decoration: Decoration
-    var differenceIdentifier: Decoration.Identifier { decoration.identifier }
+    var differenceIdentifier: Decoration.Id { decoration.id }
 }
 
 enum DecorationChange {
     case add(Decoration)
-    case remove(Decoration.Identifier)
+    case remove(Decoration.Id)
     case update(Decoration)
 }
 
@@ -35,7 +35,7 @@ extension Array where Element == DiffableDecoration {
         for change in changeset {
             for deleted in change.elementDeleted {
                 let decoration = source[deleted.element].decoration
-                register(.remove(decoration.identifier), at: decoration.locator)
+                register(.remove(decoration.id), at: decoration.locator)
             }
             for inserted in change.elementInserted {
                 let decoration = self[inserted.element].decoration
