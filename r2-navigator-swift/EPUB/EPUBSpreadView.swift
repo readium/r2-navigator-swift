@@ -26,7 +26,10 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     
     /// Called when the user tapped on an internal link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
-    
+
+    /// Called when the user tapped on a decoration.
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String)
+
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
     
@@ -345,6 +348,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
+        registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
@@ -371,6 +375,19 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
 
     // MARK: – Decorator
+
+    /// Called by the JavaScript layer when the user activates a decoration.
+    private func decorationDidActivate(_ body: Any) {
+        guard
+            let decoration = body as? [String: Any],
+            let decorationId = decoration["id"] as? Decoration.Id,
+            let groupName = decoration["group"] as? String
+        else {
+            log(.warning, "Invalid body for decorationDidActivate: \(body)")
+            return
+        }
+        delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName)
+    }
 
     private func locatorForCurrentSelection(completion: @escaping (Locator?) -> Void) {
         evaluateScript("readium.getCurrentSelectionInfo();") { result in

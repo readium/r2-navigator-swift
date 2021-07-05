@@ -67,7 +67,7 @@ public struct HTMLDecorationTemplate {
             element: { decoration in
                 let config = decoration.style.config as! Decoration.Style.HighlightConfig
                 let tint = config.tint ?? defaultTint
-                return "<div class=\"\(className)\" style=\"--tint: \(tint.cssValue(includingAlpha: false))\"/>"
+                return "<div data-activable=\"1\" class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/>"
             },
             stylesheet:
             """
@@ -77,7 +77,6 @@ public struct HTMLDecorationTemplate {
                 margin-top: \(-padding.top)px;
                 padding-bottom: \(padding.top + padding.bottom)px;
                 border-radius: \(cornerRadius)px;
-                background-color: var(--tint);
                 opacity: \(alpha);
             }
             """

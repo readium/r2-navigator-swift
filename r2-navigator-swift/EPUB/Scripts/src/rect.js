@@ -145,7 +145,7 @@ function rectContains(rect1, rect2, tolerance) {
   );
 }
 
-function rectContainsPoint(rect, x, y, tolerance) {
+export function rectContainsPoint(rect, x, y, tolerance) {
   return (
     (rect.left < x || almostEqual(rect.left, x, tolerance)) &&
     (rect.right > x || almostEqual(rect.right, x, tolerance)) &&

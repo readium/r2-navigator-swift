@@ -4,6 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import { handleDecorationClickEvent } from "./decorator";
+
 window.addEventListener("DOMContentLoaded", function () {
   // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
   document.body.style.cursor = "pointer";
@@ -14,6 +16,10 @@ window.addEventListener("DOMContentLoaded", function () {
 function onClick(event) {
   if (!window.getSelection().isCollapsed) {
     // There's an on-going selection, the tap will dismiss it so we don't forward it.
+    return;
+  }
+
+  if (handleDecorationClickEvent(event)) {
     return;
   }
 

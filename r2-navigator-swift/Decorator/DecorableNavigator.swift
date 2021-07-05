@@ -8,7 +8,7 @@ import Foundation
 import UIKit
 import R2Shared
 
-public protocol DecorableNavigator: VisualNavigator {
+public protocol DecorableNavigator {
     var supportedDecorationStyles: Set<Decoration.Style.Id> { get }
 
     func apply(decorations: [Decoration], in group: String)

@@ -707,7 +707,18 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             return nil
         }
     }
-    
+
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String) {
+        guard let decoration: Decoration = decorations[group]?
+            .first(where: { $0.decoration.id == id })
+            .map({ $0.decoration })
+        else {
+            return
+        }
+
+        log(.info, "Activated decoration: \(decoration)")
+    }
+
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView) {
         if paginationView.currentView == spreadView {
             notifyCurrentLocation()

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import { getClientRectsNoOverlap } from "./rect";
+import { getClientRectsNoOverlap, rectContainsPoint } from "./rect";
 import { log, logErrorMessage, rangeFromLocator } from "./utils";
 
 let styles = new Map();
@@ -38,6 +38,35 @@ export function getDecorations(groupId) {
   return group;
 }
 
+export function handleDecorationClickEvent(event) {
+  if (groups.size === 0) {
+    return false;
+  }
+
+  function findTarget() {
+    for (const [group, groupContent] of groups) {
+      for (const item of groupContent.items) {
+        for (const element of item.clickableElements) {
+          let rect = element.getBoundingClientRect().toJSON();
+          if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
+            return { group, item, element, rect };
+          }
+        }
+      }
+    }
+  }
+
+  let target = findTarget();
+  if (!target) {
+    return false;
+  }
+  webkit.messageHandlers.decorationActivated.postMessage({
+    id: target.item.decoration.id,
+    group: target.group,
+  });
+  return true;
+}
+
 export function DecorationGroup(groupId) {
   var items = [];
   var lastItemId = 0;
@@ -65,10 +94,10 @@ export function DecorationGroup(groupId) {
 
     let item = items[index];
     items.splice(index, 1);
-    let itemContainer = document.getElementById(item.id);
-    if (itemContainer) {
-      itemContainer.remove();
-      itemContainer = null;
+    item.clickableElements = null;
+    if (item.container) {
+      item.container.remove();
+      item.container = null;
     }
   }
 
@@ -79,7 +108,7 @@ export function DecorationGroup(groupId) {
 
   function clear() {
     clearContainer();
-    items = [];
+    items.length = 0;
   }
 
   function requestLayout() {
@@ -99,9 +128,6 @@ export function DecorationGroup(groupId) {
     let itemContainer = document.createElement("div");
     itemContainer.setAttribute("id", item.id);
     itemContainer.style.setProperty("pointer-events", "none");
-    if (item.pointerInteraction) {
-      itemContainer.setAttribute("data-click", "1");
-    }
     let tint = item.decoration.tint;
     if (tint) {
       itemContainer.style.setProperty(
@@ -170,6 +196,16 @@ export function DecorationGroup(groupId) {
         doNotMergeHorizontallyAlignedRects
       );
 
+      clientRects = clientRects.sort((r1, r2) => {
+        if (r1.top < r2.top) {
+          return -1;
+        } else if (r1.top > r2.top) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
       for (let clientRect of clientRects) {
         const line = elementTemplate.cloneNode(true);
         line.style.setProperty("pointer-events", "none");
@@ -185,6 +221,10 @@ export function DecorationGroup(groupId) {
     }
 
     groupContainer.append(itemContainer);
+    item.container = itemContainer;
+    item.clickableElements = itemContainer.querySelectorAll(
+      "[data-activable='1']"
+    );
   }
 
   function requireContainer() {
@@ -204,7 +244,7 @@ export function DecorationGroup(groupId) {
     }
   }
 
-  return { add, remove, update, clear, requestLayout };
+  return { add, remove, update, clear, items, requestLayout };
 }
 
 window.addEventListener(
