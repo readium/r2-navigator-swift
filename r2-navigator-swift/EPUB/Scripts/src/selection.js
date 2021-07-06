@@ -9,7 +9,16 @@ import { TextRange } from "./vendor/hypothesis/anchoring/text-range";
 
 const debug = true;
 
-export function getSelectionRect() {
+export function getCurrentSelection() {
+  const locator = getCurrentSelectionLocator();
+  if (!locator) {
+    return null;
+  }
+  const frame = getSelectionRect();
+  return { locator, frame };
+}
+
+function getSelectionRect() {
   try {
     let sel = window.getSelection();
     if (!sel) {
@@ -17,15 +26,12 @@ export function getSelectionRect() {
     }
     let range = sel.getRangeAt(0);
 
-    const clientRect = range.getBoundingClientRect();
-
+    const rect = range.getBoundingClientRect();
     return {
-      screenWidth: window.outerWidth,
-      screenHeight: window.outerHeight,
-      left: clientRect.left,
-      width: clientRect.width,
-      top: clientRect.top,
-      height: clientRect.height,
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
     };
   } catch (e) {
     logError(e);
@@ -33,7 +39,11 @@ export function getSelectionRect() {
   }
 }
 
-export function getCurrentSelectionInfo() {
+function getCurrentSelectionLocator() {
+  if (!readium.link) {
+    return null;
+  }
+
   const selection = window.getSelection();
   if (!selection) {
     return undefined;
@@ -92,6 +102,8 @@ export function getCurrentSelectionInfo() {
   }
 
   return {
+    href: readium.link.href,
+    type: readium.link.type || "application/xhtml+xml",
     locations: rangeInfo2Location(rangeInfo),
     text: {
       highlight: rawText,

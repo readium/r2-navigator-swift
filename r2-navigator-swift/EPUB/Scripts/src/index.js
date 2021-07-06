@@ -16,8 +16,6 @@ import {
   scrollToText,
   setProperty,
 } from "./utils";
-import { getCurrentSelectionInfo, getSelectionRect } from "./selection";
-import { clearHighlights, highlight } from "./highlight";
 import { getDecorations, registerStyles } from "./decorator";
 
 // Public API used by the navigator.
@@ -34,8 +32,4 @@ window.readium = {
   // decoration
   registerDecorationStyles: registerStyles,
   getDecorations: getDecorations,
-
-  // selection
-  getSelectionRect: getSelectionRect,
-  getCurrentSelectionInfo: getCurrentSelectionInfo,
 };

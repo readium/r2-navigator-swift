@@ -73,7 +73,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        webView.evaluateJavaScript("spread.load(\(spread.jsonString(for: publication)));")
+        super.evaluateScript("spread.load(\(spread.jsonString(for: publication)));")
     }
 
     override func spreadDidLoad() {

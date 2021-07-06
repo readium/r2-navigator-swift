@@ -4,7 +4,8 @@
         "es2021": true
     },
     "globals": {
-        "webkit": "readonly"
+        "webkit": "readonly",
+        "readium": "writable"
     },
     "extends": "eslint:recommended",
     "parserOptions": {

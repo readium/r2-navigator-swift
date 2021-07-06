@@ -70,12 +70,12 @@ window.FixedPage = function (iframeId) {
     // Returns whether the page is currently loading its contents.
     isLoading: false,
 
-    // Href of the resource currently loaded in the page.
-    href: null,
+    // Link object for the resource currently loaded in the page.
+    link: null,
 
-    // Loads the given link ({href, url}) in the page.
-    load: function (link, completion) {
-      if (!link.href || !link.url) {
+    // Loads the given resource ({link, url}) in the page.
+    load: function (resource, completion) {
+      if (!resource.link || !resource.url) {
         if (completion) {
           completion();
         }
@@ -83,7 +83,7 @@ window.FixedPage = function (iframeId) {
       }
 
       var page = this;
-      page.href = link.href;
+      page.link = resource.link;
       page.isLoading = true;
 
       function loaded() {
@@ -92,6 +92,9 @@ window.FixedPage = function (iframeId) {
         // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.
         _iframe.contentWindow.requestAnimationFrame(function () {
           page.isLoading = false;
+          _iframe.contentWindow.eval(
+            `readium.link = ${JSON.stringify(resource.link)};`
+          );
           if (completion) {
             completion();
           }
@@ -99,22 +102,22 @@ window.FixedPage = function (iframeId) {
       }
 
       _iframe.addEventListener("load", loaded);
-      _iframe.src = link.url;
+      _iframe.src = resource.url;
     },
 
     // Resets the page and empty its contents.
     reset: function () {
-      if (!this.href) {
+      if (!this.link) {
         return;
       }
-      this.href = null;
+      this.link = null;
       _pageSize = null;
       _iframe.src = "about:blank";
     },
 
     // Evaluates a script in the context of the page.
     eval: function (script) {
-      if (!this.href || this.isLoading) {
+      if (!this.link || this.isLoading) {
         return;
       }
       return _iframe.contentWindow.eval(script);

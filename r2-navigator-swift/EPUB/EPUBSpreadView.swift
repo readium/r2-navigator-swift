@@ -103,19 +103,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         disableJSMessages()
     }
 
-    var menuItems: [UIMenuItem] {
-        [
-            UIMenuItem(
-                title: R2NavigatorLocalizedString("EditingAction.share"),
-                action: #selector(shareSelection)
-            ),
-            UIMenuItem(
-                title: "Highlight",
-                action: #selector(highlightSelection)
-            ),
-        ]
-    }
-
     func setupWebView() {
         scrollView.alpha = 0
         
@@ -252,18 +239,23 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// Called by the JavaScript layer when the user selection changed.
     private func selectionDidChange(_ body: Any) {
-        guard let selection = body as? [String: Any],
-            let text = selection["text"] as? String,
-            let frame = selection["frame"] as? [String: Any] else
-        {
+        if body is NSNull {
+            editingActions.selection = nil
+            return
+        }
+
+        guard
+            let selection = body as? [String: Any],
+            let locator = try? Locator(json: selection["locator"]),
+            let frame = selection["frame"] as? [String: Any]
+        else {
             editingActions.selection = nil
             log(.warning, "Invalid body for selectionDidChange: \(body)")
             return
         }
+
         editingActions.selection = Selection(
-            locator: Locator(
-                href: "", type: "", text: Locator.Text(highlight: text)
-            ),
+            locator: locator,
             frame: CGRect(
                 x: frame["x"] as? CGFloat ?? 0,
                 y: frame["y"] as? CGFloat ?? 0,
@@ -384,39 +376,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName)
     }
 
-    private func locatorForCurrentSelection(completion: @escaping (Locator?) -> Void) {
-        evaluateScript("readium.getCurrentSelectionInfo();") { result in
-            switch result {
-            case .success(let value):
-                guard let json = value as? [String: Any] else {
-                    completion(nil)
-                    return
-                }
-
-                let link = self.spread.leading
-                let locator = Locator(
-                    href: link.href,
-                    type: link.type ?? "",
-                    title: link.title,
-                    locations: try! Locator.Locations(json: json["locations"]),
-                    text: try! Locator.Text(json: json["text"])
-                )
-                completion(locator)
-            case .failure(let error):
-                self.log(.error, error)
-            }
-        }
-    }
-
-    @objc private func highlightSelection() {
-        locatorForCurrentSelection { locator in
-            guard let locator = locator else {
-                return
-            }
-            print("SELECT \(locator.json)")
-        }
-    }
-
     
     // MARK: - Accessibility
     
@@ -481,7 +440,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        webView.dismissUserSelection()
+        webView.clearSelection()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {

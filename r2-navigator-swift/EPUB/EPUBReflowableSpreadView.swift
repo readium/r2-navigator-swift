@@ -153,6 +153,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() {
+        if let linkJSON = serializeJSONString(spread.leading.json) {
+            evaluateScript("readium.link = \(linkJSON);")
+        }
+
         // FIXME: Better solution for delaying scrolling to pending location
         // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
         // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.

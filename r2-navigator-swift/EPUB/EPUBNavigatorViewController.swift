@@ -10,7 +10,7 @@ import SwiftSoup
 import UIKit
 import WebKit
 
-public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate {
+public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
 
     // MARK: - WebView Customization
 
@@ -46,7 +46,7 @@ public extension EPUBNavigatorDelegate {
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController, VisualNavigator, DecorableNavigator, Loggable {
+open class EPUBNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, DecorableNavigator, Loggable {
 
     public enum EPUBError: Error {
         /// Returned when calling evaluateJavaScript() before a resource is loaded.
@@ -546,6 +546,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
             }
         }()
         return go(to: direction, animated: animated, completion: completion)
+    }
+
+    // MARK: – SelectableNavigator
+
+    public var currentSelection: Selection? { editingActions.selection }
+
+    public func clearSelection() {
+        for (_, pageView) in paginationView.loadedViews {
+            (pageView as? EPUBSpreadView)?.webView.clearSelection()
+        }
     }
 
     // MARK: – DecorableNavigator
