@@ -97,7 +97,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         var items: [UIMenuItem] = []
         for action in editingActions.actions {
-            items.append(action.menuItem())
+            if editingActions.canPerformAction(action.selector) {
+                items.append(action.menuItem())
+            }
         }
 
         UIMenuController.shared.menuItems = items
@@ -308,8 +310,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     private static let utilsScript = loadScript(named: "utils")
 
     class func loadScript(named name: String) -> String {
-        return Bundle(for: EPUBSpreadView.self)
-            .url(forResource: "Scripts/\(name)", withExtension: "js")
+        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Scripts")
             .flatMap { try? String(contentsOf: $0) }!
     }
     
@@ -450,8 +451,6 @@ extension EPUBSpreadView: UIScrollViewDelegate {
 
 extension EPUBSpreadView: WKUIDelegate {
     
-    // The property allowsLinkPreview is default false in iOS9, so it should be safe to use @available(iOS 10.0, *)
-    @available(iOS 10.0, *)
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
         return (elementInfo.linkURL?.host != publication.baseURL?.host)

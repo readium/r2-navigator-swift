@@ -2,14 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-**Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with
+**Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with
 *caution.
 
 ## [Unreleased]
 
 ### Added
 
+* (*alpha*) A new navigator for audiobooks.
+  * The navigator is chromeless, so you will need to provide your own user interface.
+* The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
 * New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-navigator-swift/pull/176)).
 
 ### Deprecated
 
@@ -18,6 +22,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 * Fixed receiving `EPUBNavigatorDelegate.navigator(_:setupUserScripts:)` for the first web view.
+* [r2-testapp-swift#343](https://github.com/readium/r2-testapp-swift/issues/343) Fixed hiding "Share" editing action (contributed by [@rocxteady](https://github.com/readium/r2-navigator-swift/pull/149)).
 
 
 ## [2.0.0]
