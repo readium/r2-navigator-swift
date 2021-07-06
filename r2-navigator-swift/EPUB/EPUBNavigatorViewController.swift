@@ -54,30 +54,50 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
     }
 
     public struct Configuration {
-        /// Authorized actions to be displayed in the selection menu.
-        public var editingActions: [EditingAction] = EditingAction.defaultActions
-        
+        /// Editing actions which will be displayed in the default text selection menu.
+        ///
+        /// The default set of editing actions is `EditingAction.defaultActions`.
+        ///
+        /// You can provide custom actions with `EditingAction(title: "Highlight", action: #selector(highlight:))`.
+        /// Then, implement the selector in one of your classes in the responder chain. Typically, in the
+        /// `UIViewController` wrapping the `EPUBNavigatorViewController`.
+        public var editingActions: [EditingAction]
+
         /// Content insets used to add some vertical margins around reflowable EPUB publications.
         /// The insets can be configured for each size class to allow smaller margins on compact
         /// screens.
-        public var contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
-            .compact: (top: 20, bottom: 20),
-            .regular: (top: 44, bottom: 44)
-        ]
-        
+        public var contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
+
         /// Number of positions (as in `Publication.positionList`) to preload before the current page.
-        public var preloadPreviousPositionCount = 2
+        public var preloadPreviousPositionCount: Int
         
         /// Number of positions (as in `Publication.positionList`) to preload after the current page.
-        public var preloadNextPositionCount = 6
-        
-        /// Logs the state changes when true.
-        public var debugState = false
+        public var preloadNextPositionCount: Int
 
         /// Supported decoration styles.
-        public var decorationStyles = HTMLDecorationTemplate.defaultStyles()
+        public var decorationStyles: [Decoration.Style.Id: HTMLDecorationTemplate]
 
-        public init() {}
+        /// Logs the state changes when true.
+        public var debugState: Bool
+
+        public init(
+            editingActions: [EditingAction] = EditingAction.defaultActions,
+            contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
+                .compact: (top: 20, bottom: 20),
+                .regular: (top: 44, bottom: 44)
+            ],
+            preloadPreviousPositionCount: Int = 2,
+            preloadNextPositionCount: Int = 6,
+            decorationStyles: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultStyles(),
+            debugState: Bool = false
+        ) {
+            self.editingActions = editingActions
+            self.contentInset = contentInset
+            self.preloadPreviousPositionCount = preloadPreviousPositionCount
+            self.preloadNextPositionCount = preloadNextPositionCount
+            self.decorationStyles = decorationStyles
+            self.debugState = debugState
+        }
     }
 
     public weak var delegate: EPUBNavigatorDelegate? {
@@ -230,6 +250,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Decor
         view.addSubview(paginationView)
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+
+        editingActions.updateSharedMenuController()
 
         reloadSpreads(at: initialLocation)
     }

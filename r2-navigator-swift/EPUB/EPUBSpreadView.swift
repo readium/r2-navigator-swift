@@ -99,8 +99,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessages()
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
-        
-        UIMenuController.shared.menuItems = menuItems
 
         updateActivityIndicator()
         loadSpread()
@@ -413,22 +411,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func createHighlight(at locator: Locator, color: UIColor) {
-        let decoration = Decoration(identifier: UUID().uuidString, locator: locator, style: .highlight, tint: color)
-        guard let json = serializeJSONString(decoration.json) else {
-            return
-        }
-        evaluateScript("readium.getDecorations('highlight').add(\(json));") { _ in
-        }
-    }
-
     @objc private func highlightSelection() {
         locatorForCurrentSelection { locator in
             guard let locator = locator else {
                 return
             }
             print("SELECT \(locator.json)")
-            self.createHighlight(at: locator, color: .yellow)
         }
     }
 
