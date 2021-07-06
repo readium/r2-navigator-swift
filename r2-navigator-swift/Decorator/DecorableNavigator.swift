@@ -56,6 +56,18 @@ public struct Decoration: Hashable {
             .init(id: .highlight, config: HighlightConfig(tint: tint))
         }
 
+        public static func underline(tint: UIColor? = nil) -> Style {
+            .init(id: .underline, config: HighlightConfig(tint: tint))
+        }
+
+        public static func strikethrough(tint: UIColor? = nil) -> Style {
+            .init(id: .strikethrough, config: HighlightConfig(tint: tint))
+        }
+
+        public static func sidemark(tint: UIColor? = nil) -> Style {
+            .init(id: .sidemark, config: HighlightConfig(tint: tint))
+        }
+
         public static func text(_ text: String? = nil) -> Style {
             .init(id: .text, config: TextConfig(text: text))
         }

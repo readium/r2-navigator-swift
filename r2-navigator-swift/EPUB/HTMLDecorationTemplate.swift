@@ -44,6 +44,7 @@ public struct HTMLDecorationTemplate {
     }
 
     public static func defaultStyles(
+        defaultTint: UIColor = .yellow,
         lineWeight: Int = 2,
         cornerRadius: Int = 3,
         alpha: Double = 0.3,
@@ -51,10 +52,10 @@ public struct HTMLDecorationTemplate {
         sidemarkMargin: Int = 20
     ) -> [Decoration.Style.Id: HTMLDecorationTemplate] {
         [
-            .highlight: .highlight(defaultTint: .yellow, padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, alpha: alpha),
-            .underline: .underline(anchor: .baseline, lineWeight: lineWeight, cornerRadius: cornerRadius),
-            .strikethrough: .strikethrough(lineWeight: lineWeight, cornerRadius: cornerRadius),
-            .sidemark: .sidemark(lineWeight: sidemarkWeight, cornerRadius: cornerRadius, margin: sidemarkMargin),
+            .highlight: .highlight(defaultTint: defaultTint, padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, alpha: alpha),
+            .underline: .underline(defaultTint: defaultTint, anchor: .baseline, lineWeight: lineWeight, cornerRadius: cornerRadius),
+            .strikethrough: .strikethrough(defaultTint: defaultTint, lineWeight: lineWeight, cornerRadius: cornerRadius),
+            .sidemark: .sidemark(defaultTint: defaultTint, lineWeight: sidemarkWeight, cornerRadius: cornerRadius, margin: sidemarkMargin),
             .text: .text(),
             .image: .image(),
         ]
@@ -83,13 +84,17 @@ public struct HTMLDecorationTemplate {
         )
     }
 
-    public static func underline(anchor: UnderlineAnchor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
+    public static func underline(defaultTint: UIColor, anchor: UnderlineAnchor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "underline")
         switch anchor {
         case .baseline:
             return HTMLDecorationTemplate(
                 layout: .boxes,
-                element: "<div><span class=\"\(className)\"/></div>",
+                element: { decoration in
+                    let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                    let tint = config.tint ?? defaultTint
+                    return "<div><span class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/></div>"
+                },
                 stylesheet:
                 """
                 .\(className) {
@@ -97,7 +102,6 @@ public struct HTMLDecorationTemplate {
                     width: 100%;
                     height: \(lineWeight)px;
                     border-radius: \(cornerRadius)px;
-                    background-color: var(--r2-decoration-tint);
                     vertical-align: sub;
                 }
                 """
@@ -105,24 +109,32 @@ public struct HTMLDecorationTemplate {
         case .box:
             return HTMLDecorationTemplate(
                 layout: .boxes,
-                element: "<div class=\"\(className)\"/>",
+                element: { decoration in
+                    let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                    let tint = config.tint ?? defaultTint
+                    return "<div class=\"\(className)\" style=\"--tint: \(tint.cssValue(includingAlpha: false))\"/>"
+                },
                 stylesheet:
                 """
                 .\(className) {
                     box-sizing: border-box;
                     border-radius: \(cornerRadius)px;
-                    border-bottom: \(lineWeight)px solid var(--r2-decoration-tint);
+                    border-bottom: \(lineWeight)px solid var(--tint);
                 }
                 """
             )
         }
     }
 
-    public static func strikethrough(lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
+    public static func strikethrough(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "strikethrough")
         return HTMLDecorationTemplate(
             layout: .boxes,
-            element: "<div><span class=\"\(className)\"/></div>",
+            element: { decoration in
+                let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                let tint = config.tint ?? defaultTint
+                return "<div><span class=\"\(className)\" style=\"--tint: \(tint.cssValue(includingAlpha: false))\"/></div>"
+            },
             stylesheet:
             """
             .\(className) {
@@ -130,25 +142,28 @@ public struct HTMLDecorationTemplate {
                 width: 100%;
                 height: 20%;
                 border-radius: \(cornerRadius)px;
-                border-top: \(lineWeight)px solid var(--r2-decoration-tint);
+                border-top: \(lineWeight)px solid var(--tint);
             }
             """
         )
     }
 
-    public static func sidemark(lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationTemplate {
+    public static func sidemark(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "sidemark")
         return HTMLDecorationTemplate(
             layout: .bounds,
             width: .page,
-            element: "<div><div class=\"\(className)\"/></div>",
+            element: { decoration in
+                let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                let tint = config.tint ?? defaultTint
+                return "<div><div class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/></div>"
+            },
             stylesheet:
             """
             .\(className) {
                 float: left;
                 width: \(lineWeight)px;
                 height: 100%;
-                background-color: var(--r2-decoration-tint);
                 margin-left: \(margin)px;
                 border-radius: \(cornerRadius)px;
             }
