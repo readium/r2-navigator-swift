@@ -35,7 +35,8 @@ final class WebView: WKWebView {
     }
 
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        return editingActions.canPerformAction(action)
+        return super.canPerformAction(action, withSender: sender)
+            && editingActions.canPerformAction(action)
     }
     
     override func copy(_ sender: Any?) {

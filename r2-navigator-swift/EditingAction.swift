@@ -1,56 +1,74 @@
 //
-//  EditingAction.swift
-//  r2-navigator-swift
-//
-//  Created by Aferdita Muriqi, Mickaël Menu on 03.04.19.
-//
 //  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import UIKit
 import R2Shared
 
+/// An `EditingAction` is an item in the text selection menu.
+///
+/// iOS provides default actions for copy, share, etc. (see `UIMenuController`), but you can provide custom actions
+/// with `EditingAction(title: "Highlight", action: #selector(highlight:))`. Then, implement the selector in one of your
+/// classes in the responder chain. Typically, in the `UIViewController` wrapping the navigator view controller.
+public struct EditingAction: Hashable {
 
-public struct EditingAction: RawRepresentable, Comparable {
-
-    public let rawValue: String
-    public var name: String?
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public init(rawValue: String, name: String? = nil) {
-        self.rawValue = rawValue
-        self.name = name
-    }
-
-    public static func < (lhs: EditingAction, rhs: EditingAction) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-
-    public func menuItem() -> UIMenuItem {
-        let title: String = name ?? rawValue.replacingOccurrences(of: "(_ :)", with: "", options: .regularExpression).capitalized(with: .current)
-        
-        return UIMenuItem(title: title, action: Selector(rawValue))
-    }
-}
-
-extension EditingAction {
-
-    static let copy: EditingAction = EditingAction(rawValue: "copy:")
-    static let share = EditingAction(rawValue: "shareSelection:", name: R2NavigatorLocalizedString("EditingAction.share"))
-    static let lookup = EditingAction(rawValue: "_lookup:")
-    
+    /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        return [copy, share, lookup]
+        [copy, share, lookup]
     }
 
-    var selector: Selector { Selector(rawValue) }
-}
+    /// Copy the text selection.
+    public static let copy = EditingAction(kind: .native("copy:"))
 
+    /// Look up the text selection in the dictionary.
+    public static let lookup = EditingAction(kind: .native("_lookup:"))
+
+    /// Share the text selection.
+    ///
+    /// Implementation detail: We use a custom share action to make sure the user is allowed to share the content. We
+    /// can't override the native _share: action since it is private.
+    public static let share = EditingAction(title: R2NavigatorLocalizedString("EditingAction.share"), action: #selector(EPUBSpreadView.shareSelection))
+
+    /// Create a custom editing action.
+    ///
+    /// You need to implement the selector in one of your classes in the responder chain. Typically, in the
+    /// `UIViewController` wrapping the navigator view controller.
+    public init(title: String, action: Selector) {
+        self.init(kind: .custom(UIMenuItem(title: title, action: action)))
+    }
+
+    enum Kind: Hashable {
+        case native(String)
+        case custom(UIMenuItem)
+    }
+
+    let kind: Kind
+
+    init(kind: Kind) {
+        self.kind = kind
+    }
+
+    var action: Selector {
+        switch kind {
+        case .native(let action):
+            return Selector(action)
+        case .custom(let item):
+            return item.action
+        }
+    }
+
+    var menuItem: UIMenuItem? {
+        switch kind {
+        case .native:
+            return nil
+        case .custom(let item):
+            return item
+        }
+    }
+}
 
 protocol EditingActionsControllerDelegate: AnyObject {
 
@@ -60,11 +78,11 @@ protocol EditingActionsControllerDelegate: AnyObject {
 
 
 /// Handles the authorization and check of editing actions.
-public final class EditingActionsController {
+final class EditingActionsController {
 
-    internal weak var delegate: EditingActionsControllerDelegate?
+    weak var delegate: EditingActionsControllerDelegate?
 
-    internal let actions: [EditingAction]
+    private let actions: [EditingAction]
     private let rights: UserRights
 
     init(actions: [EditingAction], rights: UserRights) {
@@ -73,12 +91,12 @@ public final class EditingActionsController {
     }
 
     func canPerformAction(_ action: Selector) -> Bool {
-        for editingAction in self.actions {
-            if action == Selector(editingAction.rawValue) {
-                return true
-            }
-        }
-        return false
+        actions.contains { $0.action == action }
+    }
+
+    func updateSharedMenuController() {
+        UIMenuController.shared.menuItems = actions.compactMap { $0.menuItem }
+        UIMenuController.shared.update()
     }
     
     
@@ -97,7 +115,7 @@ public final class EditingActionsController {
 
     /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
     var canCopy: Bool {
-        return actions.contains(.copy) && rights.canCopy
+        actions.contains(.copy) && rights.canCopy
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
