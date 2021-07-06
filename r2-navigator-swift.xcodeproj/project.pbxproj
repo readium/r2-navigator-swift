@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		CA038E322520DAF300489729 /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E312520DAF300489729 /* PDFDocumentHolder.swift */; };
 		CA038E4A2521F34E00489729 /* WKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA038E492521F34E00489729 /* WKWebView.swift */; };
+		CA05C5892694980B00D370F1 /* SelectableNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA05C5882694980B00D370F1 /* SelectableNavigator.swift */; };
 		CA0B3AC3222EE555006D9363 /* PDFNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */; };
 		CA1E4F4B240037E6009C4DE3 /* CompletionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */; };
 		CA26EF7E22803FE90011653E /* VisualNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA26EF7D22803FE90011653E /* VisualNavigator.swift */; };
@@ -44,6 +45,7 @@
 /* Begin PBXFileReference section */
 		CA038E312520DAF300489729 /* PDFDocumentHolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentHolder.swift; sourceTree = "<group>"; };
 		CA038E492521F34E00489729 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
+		CA05C5882694980B00D370F1 /* SelectableNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectableNavigator.swift; sourceTree = "<group>"; };
 		CA0B3AC2222EE555006D9363 /* PDFNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFNavigatorViewController.swift; sourceTree = "<group>"; };
 		CA1E4F4A240037E6009C4DE3 /* CompletionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionList.swift; sourceTree = "<group>"; };
 		CA26EF7D22803FE90011653E /* VisualNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualNavigator.swift; sourceTree = "<group>"; };
@@ -194,6 +196,7 @@
 				CAB9086A22492D4C00711C3F /* Navigator.swift */,
 				CA26EF7D22803FE90011653E /* VisualNavigator.swift */,
 				CA62EFC725EFE8590016828A /* MediaNavigator.swift */,
+				CA05C5882694980B00D370F1 /* SelectableNavigator.swift */,
 				CACE84FA2254BFEE00E19E8B /* EditingAction.swift */,
 				CA62EFCD25EFE9F30016828A /* Audiobook */,
 				CAFC2F672278957A007DBB02 /* CBZ */,
@@ -318,6 +321,7 @@
 				CAAABA9B24D695E5004A4466 /* TargetAction.swift in Sources */,
 				F3E7D42E1F4EE0FE00DF166D /* CBZNavigatorViewController.swift in Sources */,
 				CA479DC52264AEA20053445E /* UIColor.swift in Sources */,
+				CA05C5892694980B00D370F1 /* SelectableNavigator.swift in Sources */,
 				CAD178B622B3B553004E6812 /* R2NavigatorLocalizedString.swift in Sources */,
 				CA62EFD125EFE9F30016828A /* AudioNavigator.swift in Sources */,
 				CA62EFC825EFE8590016828A /* MediaNavigator.swift in Sources */,
