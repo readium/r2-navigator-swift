@@ -562,8 +562,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 
     private var decorations: [String: [DiffableDecoration]] = [:]
 
-    public var supportedDecorationStyles: Set<Decoration.Style.Id> {
-        Set(config.decorationStyles.keys)
+    public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
+        config.decorationStyles.keys.contains(style)
     }
 
     public func apply(decorations: [Decoration], in group: String) {

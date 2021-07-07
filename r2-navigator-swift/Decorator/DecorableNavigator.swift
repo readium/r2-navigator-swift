@@ -8,19 +8,41 @@ import Foundation
 import UIKit
 import R2Shared
 
+/// A navigator able to render arbitrary decorations over a publication.
 public protocol DecorableNavigator {
-    var supportedDecorationStyles: Set<Decoration.Style.Id> { get }
 
+    /// Declares the current state of the decorations in the given decoration `group`.
+    ///
+    /// The Navigator will decide when to actually render each decoration efficiently. Your only responsibility is to
+    /// submit the updated list of decorations when there are changes.
+    /// Name each decoration group as you see fit. A good practice is to use the name of the feature requiring
+    /// decorations, e.g. `annotation`, `search`, `tts`, etc.
     func apply(decorations: [Decoration], in group: String)
+
+    /// Indicates whether the Navigator supports the given decoration `style`.
+    ///
+    /// You should check whether the Navigator supports drawing the decoration styles required by a particular feature
+    /// before enabling it. For example, underlining an audiobook does not make sense, so an Audiobook Navigator would
+    /// not support the `underline` decoration style.
+    func supports(decorationStyle style: Decoration.Style.Id) -> Bool
 }
 
+/// A decoration is a user interface element drawn on top of a publication. It associates a `style` to be rendered with
+/// a discrete `locator` in the publication.
+///
+/// For example, decorations can be used to draw highlights, images or buttons.
 public struct Decoration: Hashable {
-    public typealias Id = String
 
-    /// The identifier for this decoration. It must be unique in its group.
+    /// An identifier for this decoration. It must be unique in the group the decoration is applied to.
     public var id: Id
+
+    /// Location in the publication where the decoration will be rendered.
     public var locator: Locator
+
+    /// Declares the look and feel of the decoration.
     public var style: Style
+
+    /// Additional context data specific to a reading app. Readium does not use it.
     public var userInfo: [AnyHashable: AnyHashable]
 
     public init(id: Id, locator: Locator, style: Style, userInfo: [AnyHashable: AnyHashable] = [:]) {
@@ -30,26 +52,30 @@ public struct Decoration: Hashable {
         self.userInfo = userInfo
     }
 
-    public enum State {
-        case active
-    }
+    /// Unique identifier for a decoration.
+    public typealias Id = String
 
+    /// The Decoration Style determines the look and feel of a decoration once rendered by a Navigator.
+    ///
+    /// It is media type agnostic, meaning that each Navigator will translate the style into a set of rendering
+    /// instructions which makes sense for the resource type.
     public struct Style: Hashable {
-        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable {
-            public static let highlight: Id = "highlight"
-            public static let underline: Id = "underline"
-            public static let strikethrough: Id = "strikethrough"
-            public static let sidemark: Id = "sidemark"
-            public static let text: Id = "text"
-            public static let image: Id = "image"
 
+        /// Unique ID for a style.
+        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable {
             public let rawValue: String
             public init(rawValue: String) {
                 self.rawValue = rawValue
             }
+
             public init(stringLiteral value: StringLiteralType) {
                 self.init(rawValue: value)
             }
+
+            // Default Readium style IDs.
+
+            public static let highlight: Id = "highlight"
+            public static let underline: Id = "underline"
         }
 
         public static func highlight(tint: UIColor? = nil) -> Style {
@@ -60,26 +86,6 @@ public struct Decoration: Hashable {
             .init(id: .underline, config: HighlightConfig(tint: tint))
         }
 
-        public static func strikethrough(tint: UIColor? = nil) -> Style {
-            .init(id: .strikethrough, config: HighlightConfig(tint: tint))
-        }
-
-        public static func sidemark(tint: UIColor? = nil) -> Style {
-            .init(id: .sidemark, config: HighlightConfig(tint: tint))
-        }
-
-        public static func text(_ text: String? = nil) -> Style {
-            .init(id: .text, config: TextConfig(text: text))
-        }
-
-        public static func image(url: URL) -> Style {
-            .init(id: .image, config: ImageConfig(source: .url(url)))
-        }
-
-        public static func image(_ image: UIImage?) -> Style {
-            .init(id: .image, config: ImageConfig(source: image.map { .bitmap($0) }))
-        }
-
         public struct HighlightConfig: Hashable {
             public var tint: UIColor?
             public init(tint: UIColor? = nil) {
@@ -87,26 +93,8 @@ public struct Decoration: Hashable {
             }
         }
 
-        public struct TextConfig: Hashable {
-            public var text: String?
-            public init(text: String?) {
-                self.text = text
-            }
-        }
-
-        public struct ImageConfig: Hashable {
-            public enum Source: Hashable {
-                case url(URL)
-                case bitmap(UIImage)
-            }
-            public var source: Source?
-            public init(source: Source?) {
-                self.source = source
-            }
-        }
-
-        let id: Id
-        let config: AnyHashable?
+        public let id: Id
+        public let config: AnyHashable?
 
         public init(id: Id, config: AnyHashable? = nil) {
             self.id = id

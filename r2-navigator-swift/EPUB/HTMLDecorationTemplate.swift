@@ -8,14 +8,30 @@ import Foundation
 import SwiftSoup
 import UIKit
 
+/// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate {
+
+    /// Determines the number of created HTML elements and their position relative to the matching DOM range.
     public enum Layout: String {
-        case bounds, boxes
+        /// A single HTML element covering the smallest region containing all CSS border boxes.
+        case bounds
+        /// One HTML element for each CSS border box (e.g. line of text).
+        case boxes
     }
+
+    /// Indicates how the width of each created HTML element expands in the viewport.
     public enum Width: String {
-        case wrap, bounds, viewport, page
+        /// Smallest width fitting the CSS border box.
+        case wrap
+        /// Fills the bounds layout.
+        case bounds
+        /// Fills the anchor page, useful for dual page.
+        case viewport
+        /// Fills the whole viewport.
+        case page
     }
-    public enum UnderlineAnchor {
+
+    enum UnderlineAnchor {
         case baseline, box
     }
 
@@ -43,24 +59,20 @@ public struct HTMLDecorationTemplate {
         ]
     }
 
+    /// Creates the default list of decoration styles with associated HTML templates.
     public static func defaultStyles(
         defaultTint: UIColor = .yellow,
         lineWeight: Int = 2,
         cornerRadius: Int = 3,
-        alpha: Double = 0.3,
-        sidemarkWeight: Int = 5,
-        sidemarkMargin: Int = 20
+        alpha: Double = 0.3
     ) -> [Decoration.Style.Id: HTMLDecorationTemplate] {
         [
             .highlight: .highlight(defaultTint: defaultTint, padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, alpha: alpha),
-            .underline: .underline(defaultTint: defaultTint, anchor: .baseline, lineWeight: lineWeight, cornerRadius: cornerRadius),
-            .strikethrough: .strikethrough(defaultTint: defaultTint, lineWeight: lineWeight, cornerRadius: cornerRadius),
-            .sidemark: .sidemark(defaultTint: defaultTint, lineWeight: sidemarkWeight, cornerRadius: cornerRadius, margin: sidemarkMargin),
-            .text: .text(),
-            .image: .image(),
+            .underline: .underline(defaultTint: defaultTint, lineWeight: lineWeight, cornerRadius: cornerRadius),
         ]
     }
 
+    /// Creates a new decoration template for the `highlight` style.
     public static func highlight(defaultTint: UIColor, padding: UIEdgeInsets, cornerRadius: Int, alpha: Double) -> HTMLDecorationTemplate {
         let className = makeUniqueClassName(key: "highlight")
         return HTMLDecorationTemplate(
@@ -84,7 +96,9 @@ public struct HTMLDecorationTemplate {
         )
     }
 
-    public static func underline(defaultTint: UIColor, anchor: UnderlineAnchor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
+    /// Creates a new decoration template for the `underline` style.
+    public static func underline(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
+        let anchor = UnderlineAnchor.baseline
         let className = makeUniqueClassName(key: "underline")
         switch anchor {
         case .baseline:
@@ -124,107 +138,6 @@ public struct HTMLDecorationTemplate {
                 """
             )
         }
-    }
-
-    public static func strikethrough(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
-        let className = makeUniqueClassName(key: "strikethrough")
-        return HTMLDecorationTemplate(
-            layout: .boxes,
-            element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.HighlightConfig
-                let tint = config.tint ?? defaultTint
-                return "<div><span class=\"\(className)\" style=\"--tint: \(tint.cssValue(includingAlpha: false))\"/></div>"
-            },
-            stylesheet:
-            """
-            .\(className) {
-                display: inline-block;
-                width: 100%;
-                height: 20%;
-                border-radius: \(cornerRadius)px;
-                border-top: \(lineWeight)px solid var(--tint);
-            }
-            """
-        )
-    }
-
-    public static func sidemark(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int, margin: Int) -> HTMLDecorationTemplate {
-        let className = makeUniqueClassName(key: "sidemark")
-        return HTMLDecorationTemplate(
-            layout: .bounds,
-            width: .page,
-            element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.HighlightConfig
-                let tint = config.tint ?? defaultTint
-                return "<div><div class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/></div>"
-            },
-            stylesheet:
-            """
-            .\(className) {
-                float: left;
-                width: \(lineWeight)px;
-                height: 100%;
-                margin-left: \(margin)px;
-                border-radius: \(cornerRadius)px;
-            }
-            [dir=rtl] .\(className) {
-                float: right;
-                margin-left: 0px;
-                margin-right: \(margin)px;
-            }
-            """
-        )
-    }
-
-    public static func text() -> HTMLDecorationTemplate {
-        let className = makeUniqueClassName(key: "text")
-        return HTMLDecorationTemplate(
-            layout: .bounds,
-            width: .page,
-            element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.TextConfig
-                return "<div><span class=\"\(className)\">\(config.text ?? "")</span></div>"
-            },
-            stylesheet:
-            """
-            .\(className) {
-                font-weight: bold;
-            }
-            """
-        )
-    }
-
-    public static func image() -> HTMLDecorationTemplate {
-        let className = makeUniqueClassName(key: "image")
-        return HTMLDecorationTemplate(
-            layout: .bounds,
-            width: .page,
-            element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.ImageConfig
-                let src: String? = {
-                    guard let source = config.source else {
-                        return nil
-                    }
-                    switch source {
-                    case .url(let url):
-                        return Entities.escape(url.absoluteString, .utf8)
-                    case .bitmap(let bitmap):
-                        guard let data = bitmap.pngData() else {
-                            return nil
-                        }
-                        let b64 = data.base64EncodedString()
-                        return "data:image/png;base64,\(b64)"
-                    }
-                }()
-                return "<div><img class=\"\(className)\" src=\"\(src ?? "")\"/></div>"
-            },
-            stylesheet:
-            """
-            .\(className) {
-                opacity: 0.5;
-            }
-            """
-        )
     }
 
     private static var classNamesId = 0;
