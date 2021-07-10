@@ -2,7 +2,7 @@ name: r2-navigator-swift
 options:
   bundleIdPrefix: org.readium
 targets:
-  r2-navigator-swift:
+  R2Navigator:
     type: framework
     platform: iOS
     deploymentTarget: "10.0"
@@ -18,5 +18,10 @@ targets:
       - framework: Carthage/Build/R2Shared.xcframework
       - framework: Carthage/Build/SwiftSoup.xcframework
     settings:
-      PRODUCT_NAME: R2Navigator
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
       LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+schemes:
+  r2-navigator-swift:
+    build:
+      targets:
+        R2Navigator: all

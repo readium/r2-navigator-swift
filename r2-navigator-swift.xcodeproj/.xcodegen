@@ -7,8 +7,17 @@
   "options" : {
     "bundleIdPrefix" : "org.readium"
   },
-  "targets" : {
+  "schemes" : {
     "r2-navigator-swift" : {
+      "build" : {
+        "targets" : {
+          "R2Navigator" : "all"
+        }
+      }
+    }
+  },
+  "targets" : {
+    "R2Navigator" : {
       "dependencies" : [
         {
           "framework" : "Carthage\/Build\/Fuzi.xcframework"
@@ -27,7 +36,7 @@
       "platform" : "iOS",
       "settings" : {
         "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
-        "PRODUCT_NAME" : "R2Navigator"
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-navigator-swift"
       },
       "sources" : [
         {
