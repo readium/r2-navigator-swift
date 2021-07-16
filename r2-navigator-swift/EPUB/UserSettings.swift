@@ -41,25 +41,67 @@ public class UserSettings {
     
     private let userDefaults = UserDefaults.standard
 
-    internal init() {
+    /// Designated initializer.
+    ///
+    /// - Important: For each parameter, if a corresponding value is found in
+    /// `UserDefaults`, that value will be used instead of the passed-in value.
+    ///
+    /// - Parameters:
+    ///   - hyphens: Whether words should be hyphenated by default.
+    ///   - fontSize: The default font size as a `%` value.
+    ///   - fontFamily: Index for the default font family. The list of font
+    ///   families is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.fontFamily` in the `userProperties` property.
+    ///   - appearance: Index for the default appearance. The list of
+    ///  appearances is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.appearance` in the `userProperties` property.
+    ///   - verticalScroll: Whether vertical scroll should be enabled by default.
+    ///   - publisherDefaults: Whether the publisher's EPUB formatting choices
+    ///   should be enabled by default.
+    ///   - textAlignment: Index for the default text alignment. The list of
+    ///  usable alignments is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.textAlignment` in the `userProperties` property.
+    ///   - columnCount: Index for the default column count. The list of
+    ///  usable values is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.columnCount` in the `userProperties` property.
+    ///   - wordSpacing: The default word spacing as an `em` value.
+    ///   - letterSpacing: The default letter spacing as a `rem` value.
+    ///   - pageMargins: The default page margin value.
+    ///   - lineHeight: The default line height.
+    public init(hyphens: Bool = false,
+                fontSize: Float = 100,
+                fontFamily: Int = 0,
+                appearance: Int = 0,
+                verticalScroll: Bool = false,
+                publisherDefaults: Bool = true,
+                textAlignment: Int = 0,
+                columnCount: Int = 0,
+                wordSpacing: Float = 0,
+                letterSpacing: Float = 0,
+                pageMargins: Float = 1,
+                lineHeight: Float = 1.5) {
         
         /// Load settings from UserDefaults
         
         // hyphens
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.hyphens) {
-            hyphens = userDefaults.bool(forKey: ReadiumCSSName.hyphens.rawValue)
+            self.hyphens = userDefaults.bool(forKey: ReadiumCSSName.hyphens.rawValue)
         } else {
-            hyphens = false
+            self.hyphens = hyphens
         }
         
         // Font size
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontSize) {
-            fontSize = userDefaults.float(forKey: ReadiumCSSName.fontSize.rawValue)
+            self.fontSize = userDefaults.float(forKey: ReadiumCSSName.fontSize.rawValue)
+        } else {
+            self.fontSize = fontSize
         }
 
         // Font family
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontFamily) {
-            fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontFamily.rawValue)
+            self.fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontFamily.rawValue)
+        } else {
+            self.fontFamily = fontFamily
         }
         
         // Font override
@@ -71,47 +113,65 @@ public class UserSettings {
         
         // Appearance
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.appearance) {
-            appearance = userDefaults.integer(forKey: ReadiumCSSName.appearance.rawValue)
+            self.appearance = userDefaults.integer(forKey: ReadiumCSSName.appearance.rawValue)
+        } else {
+            self.appearance = appearance
         }
         
         // Vertical scroll
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.scroll) {
-            verticalScroll = userDefaults.bool(forKey: ReadiumCSSName.scroll.rawValue)
+            self.verticalScroll = userDefaults.bool(forKey: ReadiumCSSName.scroll.rawValue)
+        } else {
+            self.verticalScroll = verticalScroll
         }
         
         // Publisher default system
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.publisherDefault) {
-            publisherDefaults = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
+            self.publisherDefaults = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
+        } else {
+            self.publisherDefaults = publisherDefaults
         }
         
         // Text alignment
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.textAlignment) {
-            textAlignment = userDefaults.integer(forKey: ReadiumCSSName.textAlignment.rawValue)
+            self.textAlignment = userDefaults.integer(forKey: ReadiumCSSName.textAlignment.rawValue)
+        } else {
+            self.textAlignment = textAlignment
         }
         
         // Column count
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.columnCount) {
-            columnCount = userDefaults.integer(forKey: ReadiumCSSName.columnCount.rawValue)
+            self.columnCount = userDefaults.integer(forKey: ReadiumCSSName.columnCount.rawValue)
+        } else {
+            self.columnCount = columnCount
         }
         
         // Word spacing
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.wordSpacing) {
-            wordSpacing = userDefaults.float(forKey: ReadiumCSSName.wordSpacing.rawValue)
+            self.wordSpacing = userDefaults.float(forKey: ReadiumCSSName.wordSpacing.rawValue)
+        } else {
+            self.wordSpacing = wordSpacing
         }
         
         // Letter spacing
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.letterSpacing) {
-            letterSpacing = userDefaults.float(forKey: ReadiumCSSName.letterSpacing.rawValue)
+            self.letterSpacing = userDefaults.float(forKey: ReadiumCSSName.letterSpacing.rawValue)
+        } else {
+            self.letterSpacing = letterSpacing
         }
         
         // Page margins
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.pageMargins) {
-            pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
+            self.pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
+        } else {
+            self.pageMargins = pageMargins
         }
         
         // Line height
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.lineHeight) {
-            lineHeight = userDefaults.float(forKey: ReadiumCSSName.lineHeight.rawValue)
+            self.lineHeight = userDefaults.float(forKey: ReadiumCSSName.lineHeight.rawValue)
+        } else {
+            self.lineHeight = lineHeight
         }
         
         buildCssProperties()

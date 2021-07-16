@@ -207,13 +207,17 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     /// Used to serve Readium CSS.
     private let resourcesURL: URL?
 
-    public init(publication: Publication, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
+    public init(publication: Publication,
+                initialLocation: Locator? = nil,
+                resourcesServer: ResourcesServer,
+                config: Configuration = .init(),
+                userSettings: UserSettings = UserSettings()) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-        self.userSettings = UserSettings()
+        self.userSettings = userSettings
         publication.userProperties.properties = self.userSettings.userProperties.properties
         self.readingProgression = publication.metadata.effectiveReadingProgression
         self.config = config
