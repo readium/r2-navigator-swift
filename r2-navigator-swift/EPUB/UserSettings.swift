@@ -22,20 +22,20 @@ public class UserSettings {
     private let textAlignmentValues = ["justify", "start"]
     private let columnCountValues = ["auto", "1", "2"]
     
-    private var fontSize: Float = 100
-    private var fontOverride = false
-    private var fontFamily = 0
-    private var appearance = 0
-    private var verticalScroll = false
-    private var hyphens = false
+    private var fontSize: Float
+    private var fontOverride: Bool
+    private var fontFamily: Int
+    private var appearance: Int
+    private var verticalScroll: Bool
+    private var hyphens: Bool
     
-    private var publisherDefaults = true
-    private var textAlignment = 0
-    private var columnCount = 0
-    private var wordSpacing: Float = 0
-    private var letterSpacing: Float = 0
-    private var pageMargins: Float = 1
-    private var lineHeight: Float = 1.5
+    private var publisherDefaults: Bool
+    private var textAlignment: Int
+    private var columnCount: Int
+    private var wordSpacing: Float
+    private var letterSpacing: Float
+    private var pageMargins: Float
+    private var lineHeight: Float
     
     public let userProperties = UserProperties()
     
@@ -68,19 +68,26 @@ public class UserSettings {
     ///   - letterSpacing: The default letter spacing as a `rem` value.
     ///   - pageMargins: The default page margin value.
     ///   - lineHeight: The default line height.
-    public init(hyphens: Bool = false,
-                fontSize: Float = 100,
-                fontFamily: Int = 0,
-                appearance: Int = 0,
-                verticalScroll: Bool = false,
-                publisherDefaults: Bool = true,
-                textAlignment: Int = 0,
-                columnCount: Int = 0,
-                wordSpacing: Float = 0,
-                letterSpacing: Float = 0,
-                pageMargins: Float = 1,
-                lineHeight: Float = 1.5) {
-        
+    public init(
+        hyphens: Bool = false,
+        fontSize: Float = 100,
+        fontFamily: Int = 0,
+        appearance: Int = 0,
+        verticalScroll: Bool = false,
+        publisherDefaults: Bool = true,
+        textAlignment: Int = 0,
+        columnCount: Int = 0,
+        wordSpacing: Float = 0,
+        letterSpacing: Float = 0,
+        pageMargins: Float = 1,
+        lineHeight: Float = 1.5
+    ) {
+
+        /// Check if a given key is set in the UserDefaults.
+        func isKeyPresentInUserDefaults(key: ReadiumCSSName) -> Bool {
+            UserDefaults.standard.object(forKey: key.rawValue) != nil
+        }
+
         /// Load settings from UserDefaults
         
         // hyphens
@@ -106,9 +113,9 @@ public class UserSettings {
         
         // Font override
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontOverride) {
-            fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
-        } else if fontFamily != 0 {
-            fontOverride = true
+            self.fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
+        } else {
+            self.fontOverride = (fontFamily != 0)
         }
         
         // Appearance
@@ -334,13 +341,5 @@ public class UserSettings {
         }
         
     }
-    
-    /// Check if a given key is set in the UserDefaults.
-    ///
-    /// - Parameter key: The key name.
-    /// - Returns: A boolean value indicating if the value is present.
-    private func isKeyPresentInUserDefaults(key: ReadiumCSSName) -> Bool {
-        return UserDefaults.standard.object(forKey: key.rawValue) != nil
-    }
-    
+
 }
