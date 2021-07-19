@@ -1,12 +1,7 @@
 //
-//  EPUBReflowableSpreadView.swift
-//  r2-navigator-swift
-//
-//  Created by Mickaël Menu on 09.04.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -20,6 +15,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
+    
+    private lazy var layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
 
     override func setupWebView() {
         super.setupWebView()
@@ -147,10 +144,19 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() {
-        // FIXME: We need to give the CSS and webview time to layout correctly. 0.2 seconds seems like a good value for it to work on an iPhone 5s. Look into solving this better
+        // FIXME: Better solution for delaying scrolling to pending location
+        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
+        // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
+        // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.go(to: self.pendingLocation) {
-                self.showSpread()
+            let location = self.pendingLocation
+            self.go(to: location) {
+                // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
+                // a generous delay before showing the spread again.
+                let delayed = !location.isStart
+                DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
+                    self.showSpread()
+                }
             }
         }
     }
@@ -180,6 +186,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         
         scrollView.setContentOffset(newOffset, animated: animated)
         
+        // This delay is only used when turning pages in a single resource if the page turn is animated. The delay is roughly the length of the animation.
         // FIXME: completion should be implemented using scroll view delegates
         DispatchQueue.main.asyncAfter(
             deadline: .now() + (animated ? 0.3 : 0),
@@ -219,11 +226,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             completion()
             return
         }
-        guard !locator.locations.isEmpty else {
-            completion()
-            return
-        }
-        
+
         // FIXME: find the first fragment matching a tag ID (need a regex)
         if let id = locator.locations.fragments.first, !id.isEmpty {
             go(toTagID: id, completion: completion)
@@ -232,7 +235,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         } else if let partialCfi = locator.locations.otherLocations["partialCfi"] {
             go(toPartialCfi: partialCfi as! String, completion: completion)
         } else {
-            completion()
+            let progression = locator.locations.progression ?? 0
+            go(toProgression: progression, completion: completion)
         }
     }
 
@@ -324,7 +328,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             // When a publication is served from an HTTPS server, then WKWebView forbids accessing the stylesheets from the local, unsecured GCDWebServer instance. In this case we will inject directly the full content of the CSS in the JavaScript.
             if publication.baseURL?.scheme?.lowercased() == "https" {
                 func loadCSS(_ name: String) -> String {
-                    return loadResource(at: contentLayout.readiumCSSPath(for: name))
+                    return loadResource(at: layout.readiumCSSPath(for: name))
                         .replacingOccurrences(of: "\\", with: "\\\\")
                         .replacingOccurrences(of: "`", with: "\\`")
                 }
@@ -342,7 +346,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             } else {
                 scripts.append(WKUserScript(
                     source: EPUBReflowableSpreadView.cssScript
-                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(contentLayout.readiumCSSBasePath).absoluteString),
+                        .replacingOccurrences(of: "${readiumCSSBaseURL}", with: resourcesURL.appendingPathComponent(layout.readiumCSSBasePath).absoluteString),
                     injectionTime: .atDocumentStart,
                     forMainFrameOnly: false
                 ))
@@ -380,7 +384,33 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
 }
 
-private extension ContentLayout {
+/// Determines the Readium CSS stylesheets to use depending on the publication languages and
+/// reading progression.
+// FIXME: To move in a dedicated native Readium CSS module
+private enum ReadiumCSSLayout: String {
+    case ltr
+    case rtl
+    case cjkVertical
+    case cjkHorizontal
+    
+    init(languages: [String], readingProgression: ReadingProgression) {
+        let isCJK: Bool = {
+            guard
+                languages.count == 1,
+                let language = languages.first?.split(separator: "-").first.map(String.init)?.lowercased()
+            else {
+                return false
+            }
+            return ["zh", "ja", "ko"].contains(language)
+        }()
+        
+        switch readingProgression {
+        case .rtl, .btt:
+            self = isCJK ? .cjkVertical : .rtl
+        case .ltr, .ttb, .auto:
+            self = isCJK ? .cjkHorizontal : .ltr
+        }
+    }
     
     var readiumCSSBasePath: String {
         let folder: String = {

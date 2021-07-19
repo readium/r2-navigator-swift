@@ -72,7 +72,20 @@ struct EPUBSpread: Loggable {
     func contains(href: String) -> Bool {
         return links.first(withHREF: href) != nil
     }
-    
+
+    /// Return the number of positions (as in `Publication.positionList`) contained in the spread.
+    func positionCount(in publication: Publication) -> Int {
+        links
+            .map {
+                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
+                    return publication.positionsByReadingOrder[index].count
+                } else {
+                    return 0
+                }
+            }
+            .reduce(0, +)
+    }
+
     /// Returns a JSON representation of the links in the spread.
     /// The JSON is an array of link objects in reading progression order.
     /// Each link object contains:
@@ -213,7 +226,7 @@ struct EPUBSpread: Loggable {
         /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
         func areConsecutive(_ first: Link, _ second: Link) -> Bool {
             // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
-            switch publication.contentLayout.readingProgression {
+            switch publication.metadata.effectiveReadingProgression {
             case .ltr, .ttb, .auto:
                 let firstPosition = first.properties.page ?? .left
                 let secondPosition = second.properties.page ?? .right
