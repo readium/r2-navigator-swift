@@ -31,10 +31,6 @@ public struct HTMLDecorationTemplate {
         case page
     }
 
-    enum UnderlineAnchor {
-        case baseline, box
-    }
-
     let layout: Layout
     let width: Width
     let element: (Decoration) -> String
@@ -80,7 +76,11 @@ public struct HTMLDecorationTemplate {
             element: { decoration in
                 let config = decoration.style.config as! Decoration.Style.HighlightConfig
                 let tint = config.tint ?? defaultTint
-                return "<div class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/>"
+                var extraStyle = ""
+                if config.isActive {
+                    extraStyle += " border-bottom: 2px solid \(tint.cssValue());"
+                }
+                return "<div class=\"\(className)\" style=\"background-color: \(tint.cssValue(alpha: alpha)) !important; \(extraStyle)\"/>"
             },
             stylesheet:
             """
@@ -90,7 +90,7 @@ public struct HTMLDecorationTemplate {
                 margin-top: \(-padding.top)px;
                 padding-bottom: \(padding.top + padding.bottom)px;
                 border-radius: \(cornerRadius)px;
-                opacity: \(alpha);
+                box-sizing: border-box;
             }
             """
         )
@@ -98,71 +98,30 @@ public struct HTMLDecorationTemplate {
 
     /// Creates a new decoration template for the `underline` style.
     public static func underline(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
-        let anchor = UnderlineAnchor.baseline
         let className = makeUniqueClassName(key: "underline")
-        switch anchor {
-        case .baseline:
-            return HTMLDecorationTemplate(
-                layout: .boxes,
-                element: { decoration in
-                    let config = decoration.style.config as! Decoration.Style.HighlightConfig
-                    let tint = config.tint ?? defaultTint
-                    return "<div><span class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/></div>"
-                },
-                stylesheet:
-                """
-                .\(className) {
-                    display: inline-block;
-                    width: 100%;
-                    height: \(lineWeight)px;
-                    border-radius: \(cornerRadius)px;
-                    vertical-align: sub;
-                }
-                """
-            )
-        case .box:
-            return HTMLDecorationTemplate(
-                layout: .boxes,
-                element: { decoration in
-                    let config = decoration.style.config as! Decoration.Style.HighlightConfig
-                    let tint = config.tint ?? defaultTint
-                    return "<div class=\"\(className)\" style=\"--tint: \(tint.cssValue(includingAlpha: false))\"/>"
-                },
-                stylesheet:
-                """
-                .\(className) {
-                    box-sizing: border-box;
-                    border-radius: \(cornerRadius)px;
-                    border-bottom: \(lineWeight)px solid var(--tint);
-                }
-                """
-            )
-        }
+        return HTMLDecorationTemplate(
+            layout: .boxes,
+            element: { decoration in
+                let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                let tint = config.tint ?? defaultTint
+                return "<div><span class=\"\(className)\" style=\"background-color: \(tint.cssValue())\"/></div>"
+            },
+            stylesheet:
+            """
+            .\(className) {
+                display: inline-block;
+                width: 100%;
+                height: \(lineWeight)px;
+                border-radius: \(cornerRadius)px;
+                vertical-align: sub;
+            }
+            """
+        )
     }
 
     private static var classNamesId = 0;
     private static func makeUniqueClassName(key: String) -> String {
         classNamesId += 1
         return "r2-\(key)-\(classNamesId)"
-    }
-}
-
-private extension UIColor {
-    func cssValue(includingAlpha: Bool) -> String {
-        var r: CGFloat = 0
-        var g: CGFloat = 0
-        var b: CGFloat = 0
-        var alpha: CGFloat = 0
-        guard getRed(&r, green: &g, blue: &b, alpha: &alpha) else {
-            return "black"
-        }
-        let red = Int(r * 255)
-        let green = Int(g * 255)
-        let blue = Int(b * 255)
-        if includingAlpha {
-            return "rgba(\(red), \(green), \(blue), \(alpha))"
-        } else {
-            return "rgb(\(red), \(green), \(blue))"
-        }
     }
 }

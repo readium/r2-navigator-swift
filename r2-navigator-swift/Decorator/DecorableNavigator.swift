@@ -98,18 +98,20 @@ public struct Decoration: Hashable {
             public static let underline: Id = "underline"
         }
 
-        public static func highlight(tint: UIColor? = nil) -> Style {
-            .init(id: .highlight, config: HighlightConfig(tint: tint))
+        public static func highlight(tint: UIColor? = nil, isActive: Bool = false) -> Style {
+            .init(id: .highlight, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public static func underline(tint: UIColor? = nil) -> Style {
-            .init(id: .underline, config: HighlightConfig(tint: tint))
+        public static func underline(tint: UIColor? = nil, isActive: Bool = false) -> Style {
+            .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
         public struct HighlightConfig: Hashable {
             public var tint: UIColor?
-            public init(tint: UIColor? = nil) {
+            public var isActive: Bool
+            public init(tint: UIColor? = nil, isActive: Bool = false) {
                 self.tint = tint
+                self.isActive = isActive
             }
         }
 
