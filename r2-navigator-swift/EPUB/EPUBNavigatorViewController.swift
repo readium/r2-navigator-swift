@@ -460,7 +460,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             return nil
         }
         
-        let link = spreadView.spread.leading
+        let link = spreadView.focusedResource ?? spreadView.spread.leading
         let href = link.href
         let progression = spreadView.progression(in: href)
         
@@ -749,6 +749,20 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
 
         log(.info, "Activated decoration: \(decoration)")
+    }
+
+    func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect) {
+        guard
+            let locator = currentLocation,
+            let text = text
+        else {
+            editingActions.selection = nil
+            return
+        }
+        editingActions.selection = Selection(
+            locator: locator.copy(text: { $0 = text }),
+            frame: frame
+        )
     }
 
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView) {

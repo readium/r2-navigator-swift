@@ -5,17 +5,22 @@
 //
 
 import { log as logNative, logError } from "./utils";
+import { toNativeRect } from "./rect";
 import { TextRange } from "./vendor/hypothesis/anchoring/text-range";
 
 const debug = true;
 
 export function getCurrentSelection() {
-  const locator = getCurrentSelectionLocator();
-  if (!locator) {
+  const href = readium.link?.href;
+  if (!href) {
     return null;
   }
-  const frame = getSelectionRect();
-  return { locator, frame };
+  const text = getCurrentSelectionText();
+  if (!text) {
+    return null;
+  }
+  const rect = getSelectionRect();
+  return { href, text, rect };
 }
 
 function getSelectionRect() {
@@ -26,36 +31,27 @@ function getSelectionRect() {
     }
     let range = sel.getRangeAt(0);
 
-    const rect = range.getBoundingClientRect();
-    return {
-      x: rect.left,
-      y: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
+    return toNativeRect(range.getBoundingClientRect());
   } catch (e) {
     logError(e);
     return null;
   }
 }
 
-function getCurrentSelectionLocator() {
-  if (!readium.link) {
-    return null;
-  }
-
+function getCurrentSelectionText() {
   const selection = window.getSelection();
   if (!selection) {
     return undefined;
   }
   if (selection.isCollapsed) {
-    log("^^^ SELECTION COLLAPSED.");
     return undefined;
   }
-  const rawText = selection.toString();
-  const cleanText = rawText.trim().replace(/\n/g, " ").replace(/\s\s+/g, " ");
-  if (cleanText.length === 0) {
-    log("^^^ SELECTION TEXT EMPTY.");
+  const highlight = selection.toString();
+  const cleanHighlight = highlight
+    .trim()
+    .replace(/\n/g, " ")
+    .replace(/\s\s+/g, " ");
+  if (cleanHighlight.length === 0) {
     return undefined;
   }
   if (!selection.anchorNode || !selection.focusNode) {
@@ -72,11 +68,6 @@ function getCurrentSelectionLocator() {
         );
   if (!range || range.collapsed) {
     log("$$$$$$$$$$$$$$$$$ CANNOT GET NON-COLLAPSED SELECTION RANGE?!");
-    return undefined;
-  }
-  const rangeInfo = convertRange(range, fullQualifiedSelector);
-  if (!rangeInfo) {
-    log("^^^ SELECTION RANGE INFO FAIL?!");
     return undefined;
   }
 
@@ -101,16 +92,7 @@ function getCurrentSelectionLocator() {
     after = after.slice(0, lastWordEnd.index + 1);
   }
 
-  return {
-    href: readium.link.href,
-    type: readium.link.type || "application/xhtml+xml",
-    locations: rangeInfo2Location(rangeInfo),
-    text: {
-      highlight: rawText,
-      before: before,
-      after: after,
-    },
-  };
+  return { highlight, before, after };
 }
 
 function createOrderedRange(startNode, startOffset, endNode, endOffset) {

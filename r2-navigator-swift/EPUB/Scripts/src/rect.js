@@ -8,6 +8,17 @@ import { log as logNative } from "./utils";
 
 const debug = false;
 
+export function toNativeRect(rect) {
+  const pixelRatio = 1; //window.devicePixelRatio;
+  const width = rect.width * pixelRatio;
+  const height = rect.height * pixelRatio;
+  const left = rect.left * pixelRatio;
+  const top = rect.top * pixelRatio;
+  const right = left + width;
+  const bottom = top + height;
+  return { width, height, left, top, right, bottom };
+}
+
 export function getClientRectsNoOverlap(
   range,
   doNotMergeHorizontallyAlignedRects

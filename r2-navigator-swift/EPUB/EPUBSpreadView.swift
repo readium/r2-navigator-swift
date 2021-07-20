@@ -24,6 +24,9 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the user tapped on a decoration.
     func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String)
 
+    /// Called when the text selection changes.
+    func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect)
+
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
     
@@ -36,6 +39,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     weak var delegate: EPUBSpreadViewDelegate?
     let publication: Publication
     let spread: EPUBSpread
+    private(set) var focusedResource: Link?
     
     let resourcesURL: URL
     let webView: WebView
@@ -240,29 +244,30 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called by the JavaScript layer when the user selection changed.
     private func selectionDidChange(_ body: Any) {
         if body is NSNull {
-            editingActions.selection = nil
+            focusedResource = nil
+            delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
             return
         }
 
         guard
             let selection = body as? [String: Any],
-            let locator = try? Locator(json: selection["locator"]),
-            let frame = selection["frame"] as? [String: Any]
+            let href = selection["href"] as? String,
+            let text = try? Locator.Text(json: selection["text"]),
+            let frame = selection["rect"] as? [String: Any]
         else {
-            editingActions.selection = nil
+            focusedResource = nil
+            delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
             log(.warning, "Invalid body for selectionDidChange: \(body)")
             return
         }
 
-        editingActions.selection = Selection(
-            locator: locator,
-            frame: CGRect(
-                x: frame["x"] as? CGFloat ?? 0,
-                y: frame["y"] as? CGFloat ?? 0,
-                width: frame["width"] as? CGFloat ?? 0,
-                height: frame["height"] as? CGFloat ?? 0
-            )
-        )
+        focusedResource = spread.links.first(withHREF: href)
+        delegate?.spreadView(self, selectionDidChange: text, frame: CGRect(
+            x: frame["left"] as? CGFloat ?? 0,
+            y: frame["top"] as? CGFloat ?? 0,
+            width: frame["width"] as? CGFloat ?? 0,
+            height: frame["height"] as? CGFloat ?? 0
+        ))
     }
     
     /// Called when the user hit the Share item in the selection context menu.
