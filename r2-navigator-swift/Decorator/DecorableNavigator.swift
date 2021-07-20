@@ -25,6 +25,26 @@ public protocol DecorableNavigator {
     /// before enabling it. For example, underlining an audiobook does not make sense, so an Audiobook Navigator would
     /// not support the `underline` decoration style.
     func supports(decorationStyle style: Decoration.Style.Id) -> Bool
+
+    /// Registers new callbacks for decoration interactions in the given `group`.
+    ///
+    /// - Parameter onActivated: Called when the user activates the decoration, e.g. with a click or tap.
+    func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback?)
+
+    /// Called when the user activates the [decoration], e.g. with a click or tap.
+    ///
+    /// - Parameters:
+    ///   - decoration: Activated decoration.
+    ///   - group: Name of the group the decoration belongs to.
+    ///   - rect: Frame of the bounding rect for the decoration, in the coordinate of the navigator view. This is only
+    ///     useful in the context of a VisualNavigator.
+    typealias OnActivatedCallback = ((decoration: Decoration, group: String, rect: CGRect?)) -> Void
+}
+
+public extension DecorableNavigator {
+    func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback? = nil) {
+        observeDecorationInteractions(inGroup: group, onActivated: onActivated)
+    }
 }
 
 /// A decoration is a user interface element drawn on top of a publication. It associates a `style` to be rendered with

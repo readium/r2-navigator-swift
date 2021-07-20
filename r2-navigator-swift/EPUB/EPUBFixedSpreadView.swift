@@ -88,15 +88,16 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     }
 
     override func pointFromTap(_ data: TapData) -> CGPoint? {
-        let x = data.screenX
-        let y = data.screenY
+        convertPointToNavigatorSpace(CGPoint(x: data.screenX, y: data.screenY))
+    }
 
-        return CGPoint(
-            x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
-            y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
+    override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
+        CGPoint(
+            x: point.x * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
+            y: point.y * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
         )
     }
-    
+
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         super.webView(webView, didFinish: navigation)
         

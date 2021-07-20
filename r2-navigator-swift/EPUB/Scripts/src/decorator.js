@@ -4,8 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import { getClientRectsNoOverlap, rectContainsPoint } from "./rect";
-import { log, logErrorMessage, rangeFromLocator } from "./utils";
+import {
+  getClientRectsNoOverlap,
+  rectContainsPoint,
+  toNativeRect,
+} from "./rect";
+import { log, logError, rangeFromLocator } from "./utils";
 
 let styles = new Map();
 let groups = new Map();
@@ -46,10 +50,12 @@ export function handleDecorationClickEvent(event) {
   function findTarget() {
     for (const [group, groupContent] of groups) {
       for (const item of groupContent.items) {
-        for (const element of item.clickableElements) {
-          let rect = element.getBoundingClientRect().toJSON();
-          if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
-            return { group, item, element, rect };
+        if (item.clickableElements != null) {
+          for (const element of item.clickableElements) {
+            let rect = element.getBoundingClientRect().toJSON();
+            if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
+              return { group, item, element, rect };
+            }
           }
         }
       }
@@ -63,6 +69,7 @@ export function handleDecorationClickEvent(event) {
   webkit.messageHandlers.decorationActivated.postMessage({
     id: target.item.decoration.id,
     group: target.group,
+    rect: toNativeRect(target.item.range.getBoundingClientRect()),
   });
   return true;
 }
@@ -128,13 +135,6 @@ export function DecorationGroup(groupId) {
     let itemContainer = document.createElement("div");
     itemContainer.setAttribute("id", item.id);
     itemContainer.style.setProperty("pointer-events", "none");
-    let tint = item.decoration.tint;
-    if (tint) {
-      itemContainer.style.setProperty(
-        "--r2-decoration-tint",
-        `rgb(${tint.red}, ${tint.green}, ${tint.blue})`
-      );
-    }
 
     let viewportWidth = window.innerWidth;
     let columnCount = parseInt(
@@ -222,9 +222,12 @@ export function DecorationGroup(groupId) {
 
     groupContainer.append(itemContainer);
     item.container = itemContainer;
-    item.clickableElements = itemContainer.querySelectorAll(
-      "[data-activable='1']"
+    item.clickableElements = Array.from(
+      itemContainer.querySelectorAll("[data-activable='1']")
     );
+    if (item.clickableElements.length == 0) {
+      item.clickableElements = Array.from(itemContainer.children);
+    }
   }
 
   function requireContainer() {

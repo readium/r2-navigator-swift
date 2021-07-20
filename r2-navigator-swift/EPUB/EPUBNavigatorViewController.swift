@@ -447,6 +447,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
+    private func loadedSpreadView(forHREF href: String) -> EPUBSpreadView? {
+        paginationView.loadedViews
+            .compactMap { _, view in view as? EPUBSpreadView }
+            .first { $0.spread.links.first(withHREF: href) != nil}
+    }
+
     
     // MARK: - Navigator
     
@@ -562,6 +568,9 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 
     private var decorations: [String: [DiffableDecoration]] = [:]
 
+    /// Decoration group callbacks, indexed by the group name.
+    private var decorationCallbacks: [String: [DecorableNavigator.OnActivatedCallback]] = [:]
+
     public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
         config.decorationStyles.keys.contains(style)
     }
@@ -589,10 +598,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    private func loadedSpreadView(forHREF href: String) -> EPUBSpreadView? {
-        paginationView.loadedViews
-            .compactMap { _, view in view as? EPUBSpreadView }
-            .first { $0.spread.links.first(withHREF: href) != nil}
+    public func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback?) {
+        guard let onActivated = onActivated else {
+            return
+        }
+        var callbacks = decorationCallbacks[group] ?? []
+        callbacks.append(onActivated)
+        decorationCallbacks[group] = callbacks
     }
 
     // MARK: – EPUB-specific extensions
@@ -740,15 +752,19 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String) {
-        guard let decoration: Decoration = decorations[group]?
-            .first(where: { $0.decoration.id == id })
-            .map({ $0.decoration })
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?) {
+        guard
+            let callbacks = decorationCallbacks[group].takeIf({ !$0.isEmpty }),
+            let decoration: Decoration = decorations[group]?
+                .first(where: { $0.decoration.id == id })
+                .map({ $0.decoration })
         else {
             return
         }
 
-        log(.info, "Activated decoration: \(decoration)")
+        for callback in callbacks {
+            callback((decoration, group, frame))
+        }
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect) {

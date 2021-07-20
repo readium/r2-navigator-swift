@@ -80,7 +80,7 @@ public struct HTMLDecorationTemplate {
             element: { decoration in
                 let config = decoration.style.config as! Decoration.Style.HighlightConfig
                 let tint = config.tint ?? defaultTint
-                return "<div data-activable=\"1\" class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/>"
+                return "<div class=\"\(className)\" style=\"background-color: \(tint.cssValue(includingAlpha: false))\"/>"
             },
             stylesheet:
             """

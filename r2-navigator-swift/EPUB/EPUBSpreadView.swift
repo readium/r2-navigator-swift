@@ -22,7 +22,7 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
 
     /// Called when the user tapped on a decoration.
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String)
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?)
 
     /// Called when the text selection changes.
     func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect)
@@ -213,7 +213,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         // To override in subclasses.
         return nil
     }
-    
+
+    /// Converts the given JavaScript point into a point in the webview's coordinate space.
+    func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
+        // To override in subclasses.
+        return point
+    }
+
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: self)
@@ -253,7 +259,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             let selection = body as? [String: Any],
             let href = selection["href"] as? String,
             let text = try? Locator.Text(json: selection["text"]),
-            let frame = selection["rect"] as? [String: Any]
+            var frame = CGRect(json: selection["rect"])
         else {
             focusedResource = nil
             delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
@@ -262,12 +268,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         focusedResource = spread.links.first(withHREF: href)
-        delegate?.spreadView(self, selectionDidChange: text, frame: CGRect(
-            x: frame["left"] as? CGFloat ?? 0,
-            y: frame["top"] as? CGFloat ?? 0,
-            width: frame["width"] as? CGFloat ?? 0,
-            height: frame["height"] as? CGFloat ?? 0
-        ))
+        frame.origin = convertPointToNavigatorSpace(frame.origin)
+        delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
     
     /// Called when the user hit the Share item in the selection context menu.
@@ -373,12 +375,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         guard
             let decoration = body as? [String: Any],
             let decorationId = decoration["id"] as? Decoration.Id,
-            let groupName = decoration["group"] as? String
+            let groupName = decoration["group"] as? String,
+            var frame = CGRect(json: decoration["rect"])
         else {
             log(.warning, "Invalid body for decorationDidActivate: \(body)")
             return
         }
-        delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName)
+
+        frame.origin = convertPointToNavigatorSpace(frame.origin)
+        delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName, frame: frame)
     }
 
     
