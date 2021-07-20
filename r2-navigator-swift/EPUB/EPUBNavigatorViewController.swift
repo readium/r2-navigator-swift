@@ -74,8 +74,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         /// Number of positions (as in `Publication.positionList`) to preload after the current page.
         public var preloadNextPositionCount: Int
 
-        /// Supported decoration styles.
-        public var decorationStyles: [Decoration.Style.Id: HTMLDecorationTemplate]
+        /// Supported HTML decoration templates.
+        public var decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate]
 
         /// Logs the state changes when true.
         public var debugState: Bool
@@ -88,14 +88,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             ],
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
-            decorationStyles: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultStyles(),
+            decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             debugState: Bool = false
         ) {
             self.editingActions = editingActions
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
-            self.decorationStyles = decorationStyles
+            self.decorationTemplates = decorationTemplates
             self.debugState = debugState
         }
     }
@@ -572,7 +572,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     private var decorationCallbacks: [String: [DecorableNavigator.OnActivatedCallback]] = [:]
 
     public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
-        config.decorationStyles.keys.contains(style)
+        config.decorationTemplates.keys.contains(style)
     }
 
     public func apply(decorations: [Decoration], in group: String) {
@@ -590,7 +590,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 
         } else {
             for (href, changes) in target.changesByHREF(from: source) {
-                guard let script = changes.javascript(forGroup: group, styles: config.decorationStyles) else {
+                guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
                     continue
                 }
                 loadedSpreadView(forHREF: href)?.evaluateScript(script, inHREF: href)
@@ -605,6 +605,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         var callbacks = decorationCallbacks[group] ?? []
         callbacks.append(onActivated)
         decorationCallbacks[group] = callbacks
+
+        for (_, view) in self.paginationView.loadedViews {
+            (view as? EPUBSpreadView)?.evaluateScript("readium.getDecorations('\(group)').setActivable();")
+        }
     }
 
     // MARK: – EPUB-specific extensions
@@ -624,27 +628,38 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) {
-        let decorationStyles = config.decorationStyles.reduce(into: [:]) { styles, item in
+        let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
             styles[item.key.rawValue] = item.value.json
         }
 
-        guard let stylesJSON = serializeJSONString(decorationStyles) else {
+        guard let stylesJSON = serializeJSONString(templates) else {
             log(.error, "Can't serialize decoration styles to JSON")
             return
         }
-        spreadView.evaluateScript("readium.registerDecorationStyles(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));")
+        var script = "readium.registerDecorationTemplates(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));\n"
 
-        for link in spreadView.spread.links {
-            let href = link.href
-            for (group, decorations) in decorations {
-                let decorations = decorations
-                    .filter { $0.decoration.locator.href == href }
-                    .map { DecorationChange.add($0.decoration) }
-
-                guard let script = decorations.javascript(forGroup: group, styles: config.decorationStyles) else {
-                    continue
+        script += decorationCallbacks
+            .compactMap { group, callbacks in
+                guard !callbacks.isEmpty else {
+                    return nil
                 }
-                spreadView.evaluateScript(script, inHREF: href)
+                return "readium.getDecorations('\(group)').setActivable();"
+            }
+            .joined(separator: "\n")
+
+        spreadView.evaluateScript("(function() {\n\(script)\n})();") { _ in
+            for link in spreadView.spread.links {
+                let href = link.href
+                for (group, decorations) in self.decorations {
+                    let decorations = decorations
+                        .filter { $0.decoration.locator.href == href }
+                        .map { DecorationChange.add($0.decoration) }
+
+                    guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
+                        continue
+                    }
+                    spreadView.evaluateScript(script, inHREF: href)
+                }
             }
         }
     }

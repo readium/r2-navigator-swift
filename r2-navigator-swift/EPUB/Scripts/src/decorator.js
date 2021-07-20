@@ -9,13 +9,13 @@ import {
   rectContainsPoint,
   toNativeRect,
 } from "./rect";
-import { log, logError, rangeFromLocator } from "./utils";
+import { log, logErrorMessage, rangeFromLocator } from "./utils";
 
 let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;
 
-export function registerStyles(newStyles) {
+export function registerTemplates(newStyles) {
   var stylesheet = "";
 
   for (const [id, style] of Object.entries(newStyles)) {
@@ -49,13 +49,18 @@ export function handleDecorationClickEvent(event) {
 
   function findTarget() {
     for (const [group, groupContent] of groups) {
+      if (!groupContent.isActivable()) {
+        continue;
+      }
+
       for (const item of groupContent.items) {
-        if (item.clickableElements != null) {
-          for (const element of item.clickableElements) {
-            let rect = element.getBoundingClientRect().toJSON();
-            if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
-              return { group, item, element, rect };
-            }
+        if (!item.clickableElements) {
+          continue;
+        }
+        for (const element of item.clickableElements) {
+          let rect = element.getBoundingClientRect().toJSON();
+          if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
+            return { group, item, element, rect };
           }
         }
       }
@@ -78,6 +83,15 @@ export function DecorationGroup(groupId) {
   var items = [];
   var lastItemId = 0;
   var container = null;
+  var activable = false;
+
+  function isActivable() {
+    return activable;
+  }
+
+  function setActivable() {
+    activable = true;
+  }
 
   function add(decoration) {
     let id = groupId + "-" + lastItemId++;
@@ -225,7 +239,7 @@ export function DecorationGroup(groupId) {
     item.clickableElements = Array.from(
       itemContainer.querySelectorAll("[data-activable='1']")
     );
-    if (item.clickableElements.length == 0) {
+    if (item.clickableElements.length === 0) {
       item.clickableElements = Array.from(itemContainer.children);
     }
   }
@@ -247,7 +261,16 @@ export function DecorationGroup(groupId) {
     }
   }
 
-  return { add, remove, update, clear, items, requestLayout };
+  return {
+    add,
+    remove,
+    update,
+    clear,
+    items,
+    requestLayout,
+    isActivable,
+    setActivable,
+  };
 }
 
 window.addEventListener(

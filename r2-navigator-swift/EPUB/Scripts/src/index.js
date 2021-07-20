@@ -16,7 +16,7 @@ import {
   scrollToText,
   setProperty,
 } from "./utils";
-import { getDecorations, registerStyles } from "./decorator";
+import { getDecorations, registerTemplates } from "./decorator";
 
 // Public API used by the navigator.
 window.readium = {
@@ -30,6 +30,6 @@ window.readium = {
   removeProperty: removeProperty,
 
   // decoration
-  registerDecorationStyles: registerStyles,
+  registerDecorationTemplates: registerTemplates,
   getDecorations: getDecorations,
 };

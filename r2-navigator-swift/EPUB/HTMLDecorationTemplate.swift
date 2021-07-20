@@ -60,7 +60,7 @@ public struct HTMLDecorationTemplate {
     }
 
     /// Creates the default list of decoration styles with associated HTML templates.
-    public static func defaultStyles(
+    public static func defaultTemplates(
         defaultTint: UIColor = .yellow,
         lineWeight: Int = 2,
         cornerRadius: Int = 3,
