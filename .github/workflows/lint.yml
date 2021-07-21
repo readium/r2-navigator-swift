@@ -22,3 +22,7 @@ jobs:
         run: yarn --cwd "$scripts" run lint
       - name: Check JavaScript formatting
         run: yarn --cwd "$scripts" run checkformat
+      - name: Check if bundled scripts are up-to-date
+        run: |
+            make scripts
+            git diff --exit-code --name-only r2-navigator-swift/EPUB/Assets/Static/scripts
