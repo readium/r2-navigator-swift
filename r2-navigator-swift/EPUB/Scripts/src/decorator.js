@@ -32,12 +32,12 @@ export function registerTemplates(newStyles) {
   }
 }
 
-export function getDecorations(groupId) {
-  var group = groups.get(groupId);
+export function getDecorations(groupName) {
+  var group = groups.get(groupName);
   if (!group) {
     let id = "r2-decoration-" + lastGroupId++;
-    group = DecorationGroup(id);
-    groups.set(groupId, group);
+    group = DecorationGroup(id, groupName);
+    groups.set(groupName, group);
   }
   return group;
 }
@@ -53,7 +53,7 @@ export function handleDecorationClickEvent(event) {
         continue;
       }
 
-      for (const item of groupContent.items) {
+      for (const item of groupContent.items.reverse()) {
         if (!item.clickableElements) {
           continue;
         }
@@ -79,7 +79,7 @@ export function handleDecorationClickEvent(event) {
   return true;
 }
 
-export function DecorationGroup(groupId) {
+export function DecorationGroup(groupId, groupName) {
   var items = [];
   var lastItemId = 0;
   var container = null;
@@ -148,6 +148,7 @@ export function DecorationGroup(groupId) {
 
     let itemContainer = document.createElement("div");
     itemContainer.setAttribute("id", item.id);
+    itemContainer.setAttribute("data-style", item.decoration.style);
     itemContainer.style.setProperty("pointer-events", "none");
 
     let viewportWidth = window.innerWidth;
@@ -248,6 +249,7 @@ export function DecorationGroup(groupId) {
     if (!container) {
       container = document.createElement("div");
       container.setAttribute("id", groupId);
+      container.setAttribute("data-group", groupName);
       container.style.setProperty("pointer-events", "none");
       document.body.append(container);
     }
