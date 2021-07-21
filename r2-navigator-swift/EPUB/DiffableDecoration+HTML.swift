@@ -8,6 +8,8 @@ import Foundation
 import R2Shared
 
 extension Array where Element == DecorationChange {
+
+    /// Generates the JavaScript used to apply the receiver list of `DecorationChange` in a web view.
     func javascript(forGroup group: String, styles: [Decoration.Style.Id: HTMLDecorationTemplate]) -> String? {
         guard !isEmpty else {
             return nil
@@ -26,6 +28,8 @@ extension Array where Element == DecorationChange {
 }
 
 extension DecorationChange {
+
+    /// Generates the JavaScript used to apply the receiver `DecorationChange` in a web view.
     func javascript(styles: [Decoration.Style.Id: HTMLDecorationTemplate]) -> String? {
         func serializeJSON(of decoration: Decoration) -> String? {
             guard let style = styles[decoration.style.id] else {

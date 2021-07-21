@@ -15,6 +15,11 @@ let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;
 
+/**
+ * Registers a list of additional supported Decoration Templates.
+ *
+ * Each template object is indexed by the style ID.
+ */
 export function registerTemplates(newStyles) {
   var stylesheet = "";
 
@@ -32,6 +37,9 @@ export function registerTemplates(newStyles) {
   }
 }
 
+/**
+ * Returns an instance of DecorationGroup for the given group name.
+ */
 export function getDecorations(groupName) {
   var group = groups.get(groupName);
   if (!group) {
@@ -42,6 +50,10 @@ export function getDecorations(groupName) {
   return group;
 }
 
+/**
+ * Handles click events on a Decoration.
+ * Returns whether a decoration matched this event.
+ */
 export function handleDecorationClickEvent(event) {
   if (groups.size === 0) {
     return false;
@@ -79,6 +91,9 @@ export function handleDecorationClickEvent(event) {
   return true;
 }
 
+/**
+ * Creates a DecorationGroup object from a unique HTML ID and its name.
+ */
 export function DecorationGroup(groupId, groupName) {
   var items = [];
   var lastItemId = 0;
@@ -93,6 +108,9 @@ export function DecorationGroup(groupId, groupName) {
     activable = true;
   }
 
+  /**
+   * Adds a new decoration to the group.
+   */
   function add(decoration) {
     let id = groupId + "-" + lastItemId++;
 
@@ -107,6 +125,9 @@ export function DecorationGroup(groupId, groupName) {
     layout(item);
   }
 
+  /**
+   * Removes the decoration with given ID from the group.
+   */
   function remove(decorationId) {
     let index = items.findIndex((i) => i.decoration.id === decorationId);
     if (index === -1) {
@@ -122,21 +143,35 @@ export function DecorationGroup(groupId, groupName) {
     }
   }
 
+  /**
+   * Notifies that the given decoration was modified and needs to be updated.
+   */
   function update(decoration) {
     remove(decoration.id);
     add(decoration);
   }
 
+  /**
+   * Removes all decorations from this group.
+   */
   function clear() {
     clearContainer();
     items.length = 0;
   }
 
+  /**
+   * Recreates the decoration elements.
+   *
+   * To be called after reflowing the resource, for example.
+   */
   function requestLayout() {
     clearContainer();
     items.forEach((item) => layout(item));
   }
 
+  /**
+   * Layouts a single Decoration item.
+   */
   function layout(item) {
     let groupContainer = requireContainer();
 
@@ -245,6 +280,9 @@ export function DecorationGroup(groupId, groupName) {
     }
   }
 
+  /**
+   * Returns the group container element, after making sure it exists.
+   */
   function requireContainer() {
     if (!container) {
       container = document.createElement("div");
@@ -256,6 +294,9 @@ export function DecorationGroup(groupId, groupName) {
     return container;
   }
 
+  /**
+   * Removes the group container.
+   */
   function clearContainer() {
     if (container) {
       container.remove();
@@ -278,7 +319,7 @@ export function DecorationGroup(groupId, groupName) {
 window.addEventListener(
   "load",
   function () {
-    // on page load
+    // Will relayout all the decorations when the document body is resized.
     const body = document.body;
     var lastSize = { width: 0, height: 0 };
     const observer = new ResizeObserver(() => {

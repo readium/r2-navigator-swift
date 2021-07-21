@@ -8,6 +8,9 @@ import { log as logNative } from "./utils";
 
 const debug = false;
 
+/**
+ * Converts a DOMRect into a JSON object understandable by the native side.
+ */
 export function toNativeRect(rect) {
   const pixelRatio = 1; //window.devicePixelRatio;
   const width = rect.width * pixelRatio;
