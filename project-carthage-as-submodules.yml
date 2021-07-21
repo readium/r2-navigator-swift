@@ -12,7 +12,10 @@ targets:
       - path: r2-navigator-swift
         excludes:
           - EPUB/Assets
+          - EPUB/Scripts
       - path: r2-navigator-swift/EPUB/Assets
+        type: folder
+      - path: r2-navigator-swift/EPUB/Scripts
         type: folder
     dependencies:
       - framework: Fuzi.framework

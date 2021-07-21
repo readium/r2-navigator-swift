@@ -41,12 +41,17 @@
       "sources" : [
         {
           "excludes" : [
-            "EPUB\/Assets"
+            "EPUB\/Assets",
+            "EPUB\/Scripts"
           ],
           "path" : "r2-navigator-swift"
         },
         {
           "path" : "r2-navigator-swift\/EPUB\/Assets",
+          "type" : "folder"
+        },
+        {
+          "path" : "r2-navigator-swift\/EPUB\/Scripts",
           "type" : "folder"
         }
       ],
@@ -5325,7 +5330,6 @@ r2-navigator-swift/EPUB/Scripts/README.md
 r2-navigator-swift/EPUB/Scripts/src
 r2-navigator-swift/EPUB/Scripts/src/decorator.js
 r2-navigator-swift/EPUB/Scripts/src/gestures.js
-r2-navigator-swift/EPUB/Scripts/src/highlight.js
 r2-navigator-swift/EPUB/Scripts/src/index-fixed-wrapper.js
 r2-navigator-swift/EPUB/Scripts/src/index-fixed.js
 r2-navigator-swift/EPUB/Scripts/src/index-reflowable.js
