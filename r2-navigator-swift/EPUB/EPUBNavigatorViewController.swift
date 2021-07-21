@@ -54,6 +54,9 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     }
 
     public struct Configuration {
+        /// Default user settings.
+        public var userSettings: UserSettings
+
         /// Editing actions which will be displayed in the default text selection menu.
         ///
         /// The default set of editing actions is `EditingAction.defaultActions`.
@@ -81,6 +84,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         public var debugState: Bool
 
         public init(
+            userSettings: UserSettings = UserSettings(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
@@ -91,6 +95,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             debugState: Bool = false
         ) {
+            self.userSettings = userSettings
             self.editingActions = editingActions
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
@@ -206,16 +211,21 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     /// Used to serve Readium CSS.
     private let resourcesURL: URL
 
-    public init(publication: Publication, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
+    public init(
+        publication: Publication,
+        initialLocation: Locator? = nil,
+        resourcesServer: ResourcesServer,
+        config: Configuration = .init()
+    ) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-        self.userSettings = UserSettings()
-        publication.userProperties.properties = self.userSettings.userProperties.properties
         self.readingProgression = publication.metadata.effectiveReadingProgression
         self.config = config
+        self.userSettings = config.userSettings
+        publication.userProperties.properties = userSettings.userProperties.properties
         self.paginationView = PaginationView(frame: .zero, preloadPreviousPositionCount: config.preloadPreviousPositionCount, preloadNextPositionCount: config.preloadNextPositionCount)
 
         self.resourcesURL = {
