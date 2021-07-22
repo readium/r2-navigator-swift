@@ -31,14 +31,22 @@ public protocol DecorableNavigator {
     /// - Parameter onActivated: Called when the user activates the decoration, e.g. with a click or tap.
     func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback?)
 
-    /// Called when the user activates the [decoration], e.g. with a click or tap.
-    ///
-    /// - Parameters:
-    ///   - decoration: Activated decoration.
-    ///   - group: Name of the group the decoration belongs to.
-    ///   - rect: Frame of the bounding rect for the decoration, in the coordinate of the navigator view. This is only
-    ///     useful in the context of a VisualNavigator.
-    typealias OnActivatedCallback = ((decoration: Decoration, group: String, rect: CGRect?)) -> Void
+    /// Called when the user activates a decoration, e.g. with a click or tap.
+    typealias OnActivatedCallback = (_ event: OnDecorationActivatedEvent) -> Void
+}
+
+/// Holds the metadata about a decoration activation interaction.
+public struct OnDecorationActivatedEvent {
+    /// Activated decoration.
+    public let decoration: Decoration
+    /// Name of the group the decoration belongs to.
+    public let group: String
+    /// Frame of the bounding rect for the decoration, in the coordinate of the navigator view. This is only useful in
+    /// the context of a VisualNavigator.
+    public let rect: CGRect?
+    /// Event point of the interaction, in the coordinate of the navigator view. This is only useful in the context of a
+    /// VisualNavigator.
+    public let point: CGPoint?
 }
 
 public extension DecorableNavigator {

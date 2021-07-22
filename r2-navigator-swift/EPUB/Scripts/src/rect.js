@@ -12,14 +12,31 @@ const debug = false;
  * Converts a DOMRect into a JSON object understandable by the native side.
  */
 export function toNativeRect(rect) {
-  const pixelRatio = 1; //window.devicePixelRatio;
-  const width = rect.width * pixelRatio;
-  const height = rect.height * pixelRatio;
-  const left = rect.left * pixelRatio;
-  const top = rect.top * pixelRatio;
+  let point = adjustPointToViewport({ x: rect.left, y: rect.top });
+
+  const width = rect.width;
+  const height = rect.height;
+  const left = point.x;
+  const top = point.y;
   const right = left + width;
   const bottom = top + height;
   return { width, height, left, top, right, bottom };
+}
+
+/**
+ * Adjusts the given coordinates to the viewport for FXL resources.
+ */
+export function adjustPointToViewport(point) {
+  let frameRect = frameElement?.getBoundingClientRect();
+  if (!frameRect) {
+    return point;
+  }
+
+  let topScrollingElement = window.top.document.documentElement;
+  return {
+    x: point.x + frameRect.x + topScrollingElement.scrollLeft,
+    y: point.y + frameRect.y + topScrollingElement.scrollTop,
+  };
 }
 
 export function getClientRectsNoOverlap(

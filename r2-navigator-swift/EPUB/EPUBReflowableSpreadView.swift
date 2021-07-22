@@ -118,10 +118,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
     
-    override func pointFromTap(_ data: TapData) -> CGPoint? {
-        convertPointToNavigatorSpace(CGPoint(x: data.clientX, y: data.clientY))
-    }
-
     override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         var point = point
         if isScrollEnabled {
@@ -141,6 +137,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         point.x += webView.frame.minX
         point.y += webView.frame.minY
         return point
+    }
+
+    override func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
+        var rect = rect
+        rect.origin = convertPointToNavigatorSpace(rect.origin)
+        return rect
     }
 
     /// MARK: - Location and progression

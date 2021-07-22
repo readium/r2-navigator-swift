@@ -19,10 +19,10 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
     
     /// Called when the user tapped on an internal link.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?)
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?)
 
     /// Called when the user tapped on a decoration.
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?)
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?, point: CGPoint?)
 
     /// Called when the text selection changes.
     func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect)
@@ -49,7 +49,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let scripts: [WKUserScript]
     let editingActions: EditingActionsController
 
-    private var lastTap: TapData? = nil
+    private var lastClick: ClickEvent? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -166,7 +166,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             }
         }
     }
-    
+
     /// Called from the JS code when logging a message.
     private func didLog(_ body: Any) {
         guard let body = body as? String else {
@@ -174,7 +174,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
         log(.debug, "JavaScript: \(body)")
     }
-    
+
     /// Called from the JS code when logging an error.
     private func didLogError(_ body: Any) {
         guard let error = body as? [String: Any],
@@ -183,7 +183,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
         message = "JavaScript: \(message)"
-        
+
         if let file = error["filename"] as? String, file != "/",
             let line = error["line"] as? Int, line != 0
         {
@@ -192,32 +192,33 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             self.log(.error, message)
         }
     }
-  
+
     /// Called from the JS code when a tap is detected.
     /// If the JS indicates the tap is being handled within the webview, don't take action,
     /// just save the tap data for use by webView(_ webView:decidePolicyFor:decisionHandler:)
     private func didTap(_ data: Any) {
-        let tapData = TapData(data: data)
-        lastTap = tapData
+        guard let clickEvent = ClickEvent(json: data) else {
+            return
+        }
+        lastClick = clickEvent
         
         // Ignores taps on interactive elements, or if the script prevents the default behavior.
-        if !tapData.defaultPrevented && tapData.interactiveElement == nil,
-            let point = pointFromTap(tapData)
-        {
+        if !clickEvent.defaultPrevented && clickEvent.interactiveElement == nil {
+            let point = convertPointToNavigatorSpace(clickEvent.point)
             delegate?.spreadView(self, didTapAt: point)
         }
-    }
-    
-    /// Converts the touch data returned by the JavaScript `tap` event into a point in the webview's coordinate space.
-    func pointFromTap(_ data: TapData) -> CGPoint? {
-        // To override in subclasses.
-        return nil
     }
 
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
     func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         // To override in subclasses.
         return point
+    }
+
+    /// Converts the given JavaScript rect into a rect in the webview's coordinate space.
+    func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
+        // To override in subclasses.
+        return rect
     }
 
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
@@ -382,8 +383,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        frame.origin = convertPointToNavigatorSpace(frame.origin)
-        delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName, frame: frame)
+        frame = convertRectToNavigatorSpace(frame)
+        let point = ClickEvent(json: decoration["click"])
+            .map { convertPointToNavigatorSpace($0.point) }
+        delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName, frame: frame, point: point)
     }
 
     
@@ -430,7 +433,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
                 // Check if url is internal or external
                 if let baseURL = publication.baseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href, tapData: self.lastTap)
+                    delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: self.lastClick)
                 } else {
                     delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
@@ -502,26 +505,23 @@ private extension EPUBSpreadView {
 }
 
 /// Produced by gestures.js
-struct TapData {
+struct ClickEvent {
     let defaultPrevented: Bool
-    let screenX: Int
-    let screenY: Int
-    let clientX: Int
-    let clientY: Int
+    let point: CGPoint
     let targetElement: String
     let interactiveElement: String?
     
     init(dict: [String: Any]) {
         self.defaultPrevented = dict["defaultPrevented"] as? Bool ?? false
-        self.screenX = dict["screenX"] as? Int ?? 0
-        self.screenY = dict["screenY"] as? Int ?? 0
-        self.clientX = dict["clientX"] as? Int ?? 0
-        self.clientY = dict["clientY"] as? Int ?? 0
+        self.point = CGPoint(x: dict["x"] as? Double ?? 0, y: dict["y"] as? Double ?? 0)
         self.targetElement = dict["targetElement"] as? String ?? ""
         self.interactiveElement = dict["interactiveElement"] as? String
     }
     
-    init(data: Any) {
-        self.init(dict: data as? [String: Any] ?? [String: Any]())
+    init?(json: Any?) {
+        guard let dict = json as? [String: Any] else {
+            return nil
+        }
+        self.init(dict: dict)
     }
 }

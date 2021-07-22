@@ -54,7 +54,7 @@ export function getDecorations(groupName) {
  * Handles click events on a Decoration.
  * Returns whether a decoration matched this event.
  */
-export function handleDecorationClickEvent(event) {
+export function handleDecorationClickEvent(event, clickEvent) {
   if (groups.size === 0) {
     return false;
   }
@@ -87,6 +87,7 @@ export function handleDecorationClickEvent(event) {
     id: target.item.decoration.id,
     group: target.group,
     rect: toNativeRect(target.item.range.getBoundingClientRect()),
+    click: clickEvent,
   });
   return true;
 }

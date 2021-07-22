@@ -5,6 +5,7 @@
 //
 
 import { handleDecorationClickEvent } from "./decorator";
+import { adjustPointToViewport } from "./rect";
 
 window.addEventListener("DOMContentLoaded", function () {
   // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
@@ -14,31 +15,32 @@ window.addEventListener("DOMContentLoaded", function () {
 });
 
 function onClick(event) {
-  if (!window.getSelection().isCollapsed) {
+  if (!getSelection().isCollapsed) {
     // There's an on-going selection, the tap will dismiss it so we don't forward it.
     return;
   }
 
-  if (handleDecorationClickEvent(event)) {
+  let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });
+  let clickEvent = {
+    defaultPrevented: event.defaultPrevented,
+    x: point.x,
+    y: point.y,
+    targetElement: event.target.outerHTML,
+    interactiveElement: nearestInteractiveElement(event.target),
+  };
+
+  if (handleDecorationClickEvent(event, clickEvent)) {
     return;
   }
 
   // Send the tap data over the JS bridge even if it's been handled
   // within the webview, so that it can be preserved and used
   // by the WKNavigationDelegate if needed.
-  webkit.messageHandlers.tap.postMessage({
-    defaultPrevented: event.defaultPrevented,
-    screenX: event.screenX,
-    screenY: event.screenY,
-    clientX: event.clientX,
-    clientY: event.clientY,
-    targetElement: event.target.outerHTML,
-    interactiveElement: nearestInteractiveElement(event.target),
-  });
+  webkit.messageHandlers.tap.postMessage(clickEvent);
 
   // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
-  //    event.stopPropagation();
-  //    event.preventDefault();
+  // event.stopPropagation();
+  // event.preventDefault();
 }
 
 // See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling

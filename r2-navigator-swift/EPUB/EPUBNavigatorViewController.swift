@@ -703,12 +703,11 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         delegate?.navigator(self, presentExternalURL: url)
     }
     
-    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, tapData: TapData?) {
-        
+    func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
         // Check to see if this was a noteref link and give delegate the opportunity to display it.
         if
-            let tapData = tapData,
-            let interactive = tapData.interactiveElement,
+            let clickEvent = clickEvent,
+            let interactive = clickEvent.interactiveElement,
             let (note, referrer) = getNoteData(anchor: interactive, href: href),
             let delegate = self.delegate
         {
@@ -777,7 +776,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?) {
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?, point: CGPoint?) {
         guard
             let callbacks = decorationCallbacks[group].takeIf({ !$0.isEmpty }),
             let decoration: Decoration = decorations[group]?
@@ -788,7 +787,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
 
         for callback in callbacks {
-            callback((decoration, group, frame))
+            callback(OnDecorationActivatedEvent(decoration: decoration, group: group, rect: frame, point: point))
         }
     }
 
