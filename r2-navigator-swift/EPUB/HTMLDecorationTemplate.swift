@@ -62,25 +62,40 @@ public struct HTMLDecorationTemplate {
         cornerRadius: Int = 3,
         alpha: Double = 0.3
     ) -> [Decoration.Style.Id: HTMLDecorationTemplate] {
-        [
-            .highlight: .highlight(defaultTint: defaultTint, padding: .init(top: 0, left: 1, bottom: 0, right: 1), cornerRadius: cornerRadius, alpha: alpha),
-            .underline: .underline(defaultTint: defaultTint, lineWeight: lineWeight, cornerRadius: cornerRadius),
+        let padding = UIEdgeInsets(top: 0, left: 1, bottom: 0, right: 1)
+        return [
+            .highlight: .highlight(defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha),
+            .underline: .underline(defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha),
         ]
     }
 
     /// Creates a new decoration template for the `highlight` style.
-    public static func highlight(defaultTint: UIColor, padding: UIEdgeInsets, cornerRadius: Int, alpha: Double) -> HTMLDecorationTemplate {
-        let className = makeUniqueClassName(key: "highlight")
+    public static func highlight(defaultTint: UIColor, padding: UIEdgeInsets, lineWeight: Int, cornerRadius: Int, alpha: Double) -> HTMLDecorationTemplate {
+        makeTemplate(asHighlight: true, defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha)
+    }
+
+    /// Creates a new decoration template for the `underline` style.
+    public static func underline(defaultTint: UIColor, padding: UIEdgeInsets, lineWeight: Int, cornerRadius: Int, alpha: Double) -> HTMLDecorationTemplate {
+        makeTemplate(asHighlight: false, defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha)
+    }
+
+    /// - Parameter asHighlight: When true, the non active style is of an highlight. Otherwise, it is an underline.
+    private static func makeTemplate(asHighlight: Bool, defaultTint: UIColor, padding: UIEdgeInsets, lineWeight: Int, cornerRadius: Int, alpha: Double) -> HTMLDecorationTemplate {
+        let className = makeUniqueClassName(key: asHighlight ? "highlight" : "underline")
         return HTMLDecorationTemplate(
             layout: .boxes,
             element: { decoration in
                 let config = decoration.style.config as! Decoration.Style.HighlightConfig
                 let tint = config.tint ?? defaultTint
-                var extraStyle = ""
-                if config.isActive {
-                    extraStyle += " border-bottom: 2px solid \(tint.cssValue());"
+                let isActive = config.isActive
+                var css = ""
+                if asHighlight || isActive {
+                    css += "background-color: \(tint.cssValue(alpha: alpha)) !important;"
                 }
-                return "<div class=\"\(className)\" style=\"background-color: \(tint.cssValue(alpha: alpha)) !important; \(extraStyle)\"/>"
+                if !asHighlight || isActive {
+                    css += "border-bottom: \(lineWeight)px solid \(tint.cssValue());"
+                }
+                return "<div class=\"\(className)\" style=\"\(css)\"/>"
             },
             stylesheet:
             """
@@ -91,29 +106,6 @@ public struct HTMLDecorationTemplate {
                 padding-bottom: \(padding.top + padding.bottom)px;
                 border-radius: \(cornerRadius)px;
                 box-sizing: border-box;
-            }
-            """
-        )
-    }
-
-    /// Creates a new decoration template for the `underline` style.
-    public static func underline(defaultTint: UIColor, lineWeight: Int, cornerRadius: Int) -> HTMLDecorationTemplate {
-        let className = makeUniqueClassName(key: "underline")
-        return HTMLDecorationTemplate(
-            layout: .boxes,
-            element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.HighlightConfig
-                let tint = config.tint ?? defaultTint
-                return "<div><span class=\"\(className)\" style=\"background-color: \(tint.cssValue())\"/></div>"
-            },
-            stylesheet:
-            """
-            .\(className) {
-                display: inline-block;
-                width: 100%;
-                height: \(lineWeight)px;
-                border-radius: \(cornerRadius)px;
-                vertical-align: sub;
             }
             """
         )
