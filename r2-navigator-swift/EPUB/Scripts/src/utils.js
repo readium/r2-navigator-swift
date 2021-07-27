@@ -100,20 +100,12 @@ export function isScrollModeEnabled() {
 
 // Scroll to the given TagId in document and snap.
 export function scrollToId(id) {
-  var element = document.getElementById(id);
+  let element = document.getElementById(id);
   if (!element) {
     return false;
   }
-  element.scrollIntoView();
 
-  if (!isScrollModeEnabled()) {
-    var currentOffset = window.scrollX;
-    var pageWidth = window.innerWidth;
-    // Adds half a page to make sure we don't snap to the previous page.
-    document.scrollingElement.scrollLeft = snapOffset(
-      currentOffset + pageWidth / 2
-    );
-  }
+  scrollToRect(element.getBoundingClientRect());
   return true;
 }
 
@@ -151,13 +143,17 @@ export function scrollToText(text) {
 }
 
 function scrollToRange(range) {
-  var rect = range.getBoundingClientRect();
+  scrollToRect(range.getBoundingClientRect());
+}
+
+function scrollToRect(rect) {
   if (isScrollModeEnabled()) {
     document.scrollingElement.scrollTop =
       rect.top + window.scrollY - window.innerHeight / 2;
   } else {
-    document.scrollingElement.scrollLeft = rect.left + window.scrollX;
-    snapCurrentPosition();
+    document.scrollingElement.scrollLeft = snapOffset(
+      rect.left + window.scrollX
+    );
   }
 }
 
