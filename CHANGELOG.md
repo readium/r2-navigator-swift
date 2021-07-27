@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
             @objc func highlight(_ sender: Any) {}
         }
+        ```
 * New `SelectableNavigator` protocol for navigators supporting user selection.
     * Get or clear the current selection.
     * Implement `navigator(_:canPerformAction:for:)` to validate each editing action for the current selection. For example, to make sure the selected text is not too large for a definition look up.
