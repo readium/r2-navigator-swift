@@ -17,11 +17,10 @@ public struct EditingAction: Hashable {
 
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        [copy, share, lookup]
+        [ share, lookup]
     }
 
     /// Copy the text selection.
-    public static let copy = EditingAction(kind: .native("copy:"))
 
     /// Look up the text selection in the dictionary.
     public static let lookup = EditingAction(kind: .native("_lookup:"))
@@ -135,7 +134,7 @@ final class EditingActionsController {
 
     /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
     var canCopy: Bool {
-        canPerformAction(.copy) && rights.canCopy
+        false
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
