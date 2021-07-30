@@ -52,10 +52,6 @@
         {
           "path" : "r2-navigator-swift\/EPUB\/Assets",
           "type" : "folder"
-        },
-        {
-          "path" : "r2-navigator-swift\/EPUB\/Scripts",
-          "type" : "folder"
         }
       ],
       "type" : "framework"

@@ -15,8 +15,6 @@ targets:
           - EPUB/Scripts
       - path: r2-navigator-swift/EPUB/Assets
         type: folder
-      - path: r2-navigator-swift/EPUB/Scripts
-        type: folder
     dependencies:
       - framework: Carthage/Build/Fuzi.xcframework
       - framework: Carthage/Build/Minizip.xcframework

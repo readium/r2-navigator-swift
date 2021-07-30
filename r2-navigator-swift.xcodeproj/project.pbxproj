@@ -20,7 +20,6 @@
 		4C04BD0CAEAADBBFA28E748B /* r2-navigator-swift.h in Headers */ = {isa = PBXBuildFile; fileRef = B10897217680341853FF818A /* r2-navigator-swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		53BF85FF4332776BD964F5E9 /* EditingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01A8B5993458A3D3782BF60 /* EditingAction.swift */; };
 		5803DDCD04EB4BF899902CA9 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B21569803AE9C0E2203616F /* SwiftSoup.xcframework */; };
-		586B241A5D2C407295090C43 /* Scripts in Resources */ = {isa = PBXBuildFile; fileRef = 1B317BEB1AF21AC0176CCCCF /* Scripts */; };
 		5FB02E95F9F310EE9AFD80EF /* PDFDocumentHolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3038E23CF2927A8CA8AFD040 /* PDFDocumentHolder.swift */; };
 		6B5A5527147E712F22954666 /* PaginationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445ECE8AECD921ADA1E4E637 /* PaginationView.swift */; };
 		73756BC83CDBF1632BB417ED /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D45E6BB56FDE61204428297D /* Localizable.strings */; };
@@ -52,7 +51,6 @@
 
 /* Begin PBXFileReference section */
 		0BAAF48CB489F2A4DA3DBA59 /* SelectableNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectableNavigator.swift; sourceTree = "<group>"; };
-		1B317BEB1AF21AC0176CCCCF /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Scripts; path = "r2-navigator-swift/EPUB/Scripts"; sourceTree = SOURCE_ROOT; };
 		1D49A01C71906BC8014D42BC /* DiffableDecoration+HTML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DiffableDecoration+HTML.swift"; sourceTree = "<group>"; };
 		2BB825199ABD0E5F79723533 /* WKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebView.swift; sourceTree = "<group>"; };
 		2C7DAFEE6D2F4E023F49E78A /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
@@ -115,7 +113,6 @@
 			isa = PBXGroup;
 			children = (
 				5D972CC66FB680A102534176 /* Assets */,
-				1B317BEB1AF21AC0176CCCCF /* Scripts */,
 				E2830D7CB56ECF76F017CD52 /* r2-navigator-swift */,
 				7876D2E3FAA4CE9468FFBE53 /* Frameworks */,
 				7A5C7ADC174BE3204FA1E3A8 /* Products */,
@@ -314,7 +311,6 @@
 			files = (
 				2D5851F84FBD14E2F515C70A /* Assets in Resources */,
 				73756BC83CDBF1632BB417ED /* Localizable.strings in Resources */,
-				586B241A5D2C407295090C43 /* Scripts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
