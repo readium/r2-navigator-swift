@@ -139,8 +139,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return progression
     }
     
-    override func cfi() -> String? {
-        return partialCfi
+    override func cfi() -> (String, String)? {
+        return partialCfis
     }
 
     override func spreadDidLoad() {
@@ -232,6 +232,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             go(toTagID: id, completion: completion)
         } else if let progression = locator.locations.progression {
             go(toProgression: progression, completion: completion)
+        } else if let startCfi = locator.locations.otherLocations["startCfi"] {
+            go(toPartialCfi: startCfi as! String, completion: completion)
         } else if let partialCfi = locator.locations.otherLocations["partialCfi"] {
             go(toPartialCfi: partialCfi as! String, completion: completion)
         } else {
@@ -279,8 +281,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var progression: Double?
     // To check if a progression change was cancelled or not.
     private var previousProgression: Double?
-    // Current partial cfi in the spine item.
-    private var partialCfi: String?
+    // Current partial cfis in the spine item.
+    private var partialCfis: (String, String)?
     
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
@@ -294,7 +296,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
     
     private func cfiDidChange(_ body: Any) {
-        partialCfi = body as? String
+        let jsonData = (body as! String).data(using: .utf8)!
+        let cfis: PartialCfis = try! JSONDecoder().decode(PartialCfis.self, from: jsonData)
+        partialCfis = (cfis.startCfi, cfis.endCfi)
     }
     
     @objc private func notifyPagesDidChange() {
@@ -432,4 +436,9 @@ private enum ReadiumCSSLayout: String {
         return "\(readiumCSSBasePath)ReadiumCSS-\(name).css"
     }
     
+}
+
+struct PartialCfis: Decodable {
+    let startCfi: String
+    let endCfi: String
 }

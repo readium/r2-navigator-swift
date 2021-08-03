@@ -441,7 +441,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         let link = spreadView.spread.leading
         let href = link.href
         let progression = spreadView.progression(in: href)
-        let partialCfi = spreadView.cfi()
+        let partialCfis = spreadView.cfi()
         
         // The positions are not always available, for example a Readium WebPub doesn't have any
         // unless a Publication Positions Web Service is provided.
@@ -456,14 +456,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
                 title: tableOfContentsTitleByHref[href],
                 locations: {
                     $0.progression = progression;
-                    $0.otherLocations["partialCfi"] = partialCfi;
+                    $0.otherLocations["startCfi"] = partialCfis?.0;
+                    $0.otherLocations["endCfi"] = partialCfis?.1;
                 }
             )
         } else {
             return Locator(link: link).copy(
                 locations: {
                     $0.progression = progression;
-                    $0.otherLocations["partialCfi"] = partialCfi;
+                    $0.otherLocations["startCfi"] = partialCfis?.0;
+                    $0.otherLocations["endCfi"] = partialCfis?.1;
                 }
             )
         }

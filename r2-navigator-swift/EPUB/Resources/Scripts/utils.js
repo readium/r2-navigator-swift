@@ -28,7 +28,7 @@ var readium = (function() {
 
     // Position in range [0 - 1].
     function update(position) {
-        getPartialCfi();
+        getPartialCfis();
         var positionString = position.toString()
         webkit.messageHandlers.progressionChanged.postMessage(positionString);
     }
@@ -42,8 +42,8 @@ var readium = (function() {
       };
     }
 
-    var getPartialCfi = debounce(50, function() {
-        webkit.messageHandlers.cfiChanged.postMessage(getFirstVisiblePartialCfi(getFrameRect()));
+    var getPartialCfis = debounce(50, function() {
+        webkit.messageHandlers.cfiChanged.postMessage(JSON.stringify(getFirstAndLastVisiblePartialCfis(getFrameRect())));
     });
 
     window.addEventListener('scroll', function(e) {

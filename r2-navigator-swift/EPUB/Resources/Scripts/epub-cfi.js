@@ -1235,7 +1235,7 @@ function isRectVisible(rect, frameRect) {
   return intersectRect(rect, frameRect);
 }
 
-function computeCharacterOffset(textNode, frameRect) {
+function getTextVisibleRatio(textNode, frameRect) {
   const range = document.createRange();
   range.selectNode(textNode);
   let textTotalSurface = 0, textVisibleSurface = 0;
@@ -1247,8 +1247,7 @@ function computeCharacterOffset(textNode, frameRect) {
     }
   });
 
-  const ratio = 1 - (textVisibleSurface / textTotalSurface);
-  return Math.round(textNode.wholeText.length * ratio);
+  return textVisibleSurface / textTotalSurface;
 }
 
 function isNodeElementVisible(node, frameRect) {
@@ -1294,33 +1293,52 @@ function findVisibleElements(viewport) {
 
   while (treeWalker.nextNode()) {
     const node = treeWalker.currentNode;
-
     if (isNodeElementVisible(node, viewport)) {
       visibleElements.push(node);
-      if (node.nodeType === Node.TEXT_NODE) {
-        break;
-      }
     }
   }
 
   return visibleElements;
 }
 
-function getFirstVisiblePartialCfi(viewport) {
+function getFirstAndLastVisiblePartialCfis(viewport) {
   const elements = findVisibleElements(viewport);
   if (elements.length === 0) {
     return null;
   }
 
   let cfiElementFrom = null;
-  const textNode = elements.find(el => el.nodeType === Node.TEXT_NODE);
-  if (textNode) {
+  const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
+  if (textNodes.length > 0) {
+    const firstTextNode = textNodes[0];
+    const textOffset = Math.round(firstTextNode.wholeText.length * (1 - getTextVisibleRatio(firstTextNode, viewport)));
     cfiElementFrom = document.createRange();
-    cfiElementFrom.setStart(textNode, computeCharacterOffset(textNode, viewport));
+    cfiElementFrom.setStart(firstTextNode, textOffset);
   } else {
-    cfiElementFrom = elements.pop();
+    cfiElementFrom = elements.unshift();
   }
 
-  const cfi = new EpubCFI(cfiElementFrom, '/6/2').toString();
-  return cfi.substring(13, cfi.length - 1);
+  let cfiElementTo = null;
+  const lastTextNode = textNodes.pop();
+  if (lastTextNode) {
+    const textOffset = Math.round(lastTextNode.wholeText.length * getTextVisibleRatio(lastTextNode, viewport));
+    cfiElementTo = document.createRange();
+    cfiElementTo.setStart(lastTextNode, textOffset);
+  } else {
+    cfiElementTo = elements.pop();
+  }
+
+  return {
+    startCfi: getPartialCfiFromElement(cfiElementFrom),
+    endCfi: getPartialCfiFromElement(cfiElementTo)
+  }
+}
+
+function getPartialCfiFromElement(element) {
+  try {
+    const epubCfi = new EpubCFI(element, '/6/2').toString();
+    return epubCfi.substring(13, epubCfi.length - 1);
+  } catch(error) {
+    return null;
+  }
 }

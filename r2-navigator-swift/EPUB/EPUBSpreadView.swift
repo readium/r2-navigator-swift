@@ -282,7 +282,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Current cfi in the resource .
-    func cfi() -> String? {
+    func cfi() -> (String, String)? {
         // To be overridden in subclasses if the resource supports a progression.
         return nil
     }
