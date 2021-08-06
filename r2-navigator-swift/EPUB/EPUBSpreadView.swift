@@ -49,6 +49,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let userSettings: UserSettings
     let editingActions: EditingActionsController
     
+    // Current partial cfis in the spine item.
+    private var partialCfis: (String?, String?)
+
     private var lastTap: TapData? = nil
 
     /// If YES, the content will be faded in once loaded.
@@ -282,9 +285,29 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Current cfi in the resource .
-    func cfi() -> (String, String)? {
-        // To be overridden in subclasses if the resource supports a progression.
-        return nil
+    func cfi() -> (String?, String?) {
+        return partialCfis
+    }
+
+    /// Current partial cfis in the resource .
+    func getCurrentPartialCfis(completion: @escaping ((String?, String?)) -> Void) {
+        evaluateScript("readium.getCurrentPartialCfis();") { (result, err) in
+            if (err != nil) {
+                print("getCurrentPartialCfis error: \(String(describing: err)).")
+                self.partialCfis = (nil, nil)
+            } else {
+                let jsonData = (result as! String).data(using: .utf8)!
+                do {
+                    let cfis: PartialCfis = try JSONDecoder().decode(PartialCfis.self, from: jsonData)
+                    self.partialCfis = (cfis.startCfi, cfis.endCfi)
+                } catch {
+                    print("CFI parsing error: \(error).")
+                    self.partialCfis = (nil, nil)
+                }
+            }
+
+            completion(self.partialCfis)
+        }
     }
 
     func go(to location: PageLocation, completion: (() -> Void)?) {

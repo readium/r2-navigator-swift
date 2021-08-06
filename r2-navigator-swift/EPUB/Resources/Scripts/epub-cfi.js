@@ -1315,7 +1315,7 @@ function getFirstAndLastVisiblePartialCfis(viewport) {
     cfiElementFrom = document.createRange();
     cfiElementFrom.setStart(firstTextNode, textOffset);
   } else {
-    cfiElementFrom = elements.unshift();
+    cfiElementFrom = elements[0];
   }
 
   let cfiElementTo = null;

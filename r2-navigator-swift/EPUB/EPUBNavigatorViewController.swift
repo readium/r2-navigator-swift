@@ -456,16 +456,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
                 title: tableOfContentsTitleByHref[href],
                 locations: {
                     $0.progression = progression;
-                    $0.otherLocations["startCfi"] = partialCfis?.0;
-                    $0.otherLocations["endCfi"] = partialCfis?.1;
+                    $0.otherLocations["startCfi"] = partialCfis.0;
+                    $0.otherLocations["endCfi"] = partialCfis.1;
                 }
             )
         } else {
             return Locator(link: link).copy(
                 locations: {
                     $0.progression = progression;
-                    $0.otherLocations["startCfi"] = partialCfis?.0;
-                    $0.otherLocations["endCfi"] = partialCfis?.1;
+                    $0.otherLocations["startCfi"] = partialCfis.0;
+                    $0.otherLocations["endCfi"] = partialCfis.1;
                 }
             )
         }
@@ -480,17 +480,28 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         when: { [weak self] in self?.state == .idle },
         pollingInterval: 0.1
     ) { [weak self] in
-        guard
-            let self = self,
-            let delegate = self.delegate,
-            let location = self.currentLocation,
-            location != self.notifiedCurrentLocation
-        else {
-            return
-        }
+        self?.getCurrentSpreadViewPartialCfis {(_, _) in
+            guard
+                let self = self,
+                let delegate = self.delegate,
+                let location = self.currentLocation,
+                location != self.notifiedCurrentLocation
+            else {
+                return
+            }
 
-        self.notifiedCurrentLocation = location
-        delegate.navigator(self, locationDidChange: location)
+            self.notifiedCurrentLocation = location
+            delegate.navigator(self, locationDidChange: location)
+        }
+    }
+
+    private func getCurrentSpreadViewPartialCfis(completion: @escaping ((String?, String?)) -> Void = {_ in }) {
+        let spreadView = paginationView.currentView as? EPUBSpreadView;
+        if (spreadView == nil) {
+            completion((nil, nil))
+        } else {
+            spreadView?.getCurrentPartialCfis(completion: completion)
+        }
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {

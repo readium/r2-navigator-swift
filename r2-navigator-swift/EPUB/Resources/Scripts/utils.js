@@ -28,7 +28,6 @@ var readium = (function() {
 
     // Position in range [0 - 1].
     function update(position) {
-        getPartialCfis();
         var positionString = position.toString()
         webkit.messageHandlers.progressionChanged.postMessage(positionString);
     }
@@ -42,9 +41,9 @@ var readium = (function() {
       };
     }
 
-    var getPartialCfis = debounce(50, function() {
-        webkit.messageHandlers.cfiChanged.postMessage(JSON.stringify(getFirstAndLastVisiblePartialCfis(getFrameRect())));
-    });
+    function getCurrentPartialCfis() {
+        return JSON.stringify(getFirstAndLastVisiblePartialCfis(getFrameRect()));
+    }
 
     window.addEventListener('scroll', function(e) {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
@@ -273,6 +272,7 @@ var readium = (function() {
         'scrollRight': scrollRight,
         'scrollToPartialCfi': scrollToPartialCfi,
         'setProperty': setProperty,
+        'getCurrentPartialCfis': getCurrentPartialCfis,
         'removeProperty': removeProperty
     };
 

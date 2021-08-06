@@ -139,10 +139,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return progression
     }
     
-    override func cfi() -> (String, String)? {
-        return partialCfis
-    }
-
     override func spreadDidLoad() {
         // FIXME: Better solution for delaying scrolling to pending location
         // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
@@ -281,8 +277,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var progression: Double?
     // To check if a progression change was cancelled or not.
     private var previousProgression: Double?
-    // Current partial cfis in the spine item.
-    private var partialCfis: (String, String)?
     
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
@@ -293,12 +287,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             previousProgression = progression
         }
         progression = newProgression
-    }
-    
-    private func cfiDidChange(_ body: Any) {
-        let jsonData = (body as! String).data(using: .utf8)!
-        let cfis: PartialCfis = try! JSONDecoder().decode(PartialCfis.self, from: jsonData)
-        partialCfis = (cfis.startCfi, cfis.endCfi)
     }
     
     @objc private func notifyPagesDidChange() {
@@ -315,7 +303,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func registerJSMessages() {
         super.registerJSMessages()
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
-        registerJSMessage(named: "cfiChanged") { [weak self] in self?.cfiDidChange($0) }
     }
     
     private static let reflowableScript = loadScript(named: "reflowable")
@@ -439,6 +426,6 @@ private enum ReadiumCSSLayout: String {
 }
 
 struct PartialCfis: Decodable {
-    let startCfi: String
-    let endCfi: String
+    let startCfi: String?
+    let endCfi: String?
 }
