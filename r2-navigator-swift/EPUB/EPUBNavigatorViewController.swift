@@ -594,7 +594,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         if decorations.isEmpty {
             for (_, pageView) in paginationView.loadedViews {
                 (pageView as? EPUBSpreadView)?.evaluateScript(
-                    "readium.getDecorations('\(group)').clear();"
+                    // The updates command are using `requestAnimationFrame()`, so we need it for
+                    // `clear()` as well otherwise we might recreate a highlight after it has been
+                    // cleared.
+                    "requestAnimationFrame(function () { readium.getDecorations('\(group)').clear(); });"
                 )
             }
 
