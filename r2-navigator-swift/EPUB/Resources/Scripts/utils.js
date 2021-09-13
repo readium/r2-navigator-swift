@@ -45,6 +45,10 @@ var readium = (function() {
         return JSON.stringify(getFirstAndLastVisiblePartialCfis(getFrameRect()));
     }
 
+    function getCurrentVisibleText() {
+        return getVisibleText(getFrameRect());
+    }
+
     window.addEventListener('scroll', function(e) {
         last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
         // Using Math.abs because for RTL books, the value will be negative.
@@ -273,6 +277,7 @@ var readium = (function() {
         'scrollToPartialCfi': scrollToPartialCfi,
         'setProperty': setProperty,
         'getCurrentPartialCfis': getCurrentPartialCfis,
+        'getCurrentVisibleText': getCurrentVisibleText,
         'removeProperty': removeProperty
     };
 

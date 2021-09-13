@@ -52,6 +52,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // Current partial cfis in the spine item.
     private var partialCfis: (String?, String?)
 
+    // Current visible text on screen
+    private var currentVisibleText: String?
+
     private var lastTap: TapData? = nil
 
     /// If YES, the content will be faded in once loaded.
@@ -289,6 +292,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         return partialCfis
     }
 
+    func visibleText() -> String? {
+        return currentVisibleText
+    }
+
     /// Current partial cfis in the resource .
     func getCurrentPartialCfis(completion: @escaping ((String?, String?)) -> Void) {
         evaluateScript("readium.getCurrentPartialCfis();") { (result, err) in
@@ -307,6 +314,19 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             }
 
             completion(self.partialCfis)
+        }
+    }
+
+    func getCurrentVisibleText(completion: @escaping (String?) -> Void) {
+        evaluateScript("readium.getCurrentVisibleText();") { (result, err) in
+            if (err != nil) {
+                print("getCurrentVisibleText error: \(String(describing: err)).")
+                self.currentVisibleText = nil
+            } else {
+                self.currentVisibleText = result as? String
+            }
+
+            completion(self.currentVisibleText)
         }
     }
 

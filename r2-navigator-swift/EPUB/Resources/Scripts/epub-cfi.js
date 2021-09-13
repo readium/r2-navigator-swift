@@ -1301,6 +1301,47 @@ function findVisibleElements(viewport) {
   return visibleElements;
 }
 
+/**
+ * Get the current visible text from the screen
+ *
+ * @param viewport
+ * @returns {string|null}
+ */
+function getVisibleText(viewport) {
+  const elements = findVisibleElements(viewport);
+  if (elements.length === 0) {
+    return null;
+  }
+
+  const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
+  let fullVisibleText;
+
+  if (textNodes.length === 0)
+    return "";
+
+  const firstTextNode = textNodes[0];
+
+  // Offset from which where text is visible on screen
+  const visibleTextOffset = Math.round(firstTextNode.wholeText.length * (1 - getTextVisibleRatio(firstTextNode, viewport)));
+
+  // Retrieving visible text
+  fullVisibleText = Array.from(textNodes)
+      .slice(0, 5)
+      .map(text => text.textContent)
+      .join(' ')
+      .substring(visibleTextOffset);
+
+  // Offset to remove truncated words
+  const cleanStartOffset = fullVisibleText.indexOf(' ') + 1;
+  fullVisibleText = fullVisibleText.substring(cleanStartOffset, 250);
+
+  // End offset to remove truncated words
+  const cleanEndOffset = fullVisibleText.lastIndexOf(' ');
+
+  // Return cleaned visible text
+  return fullVisibleText.substring(0, cleanEndOffset);
+}
+
 function getFirstAndLastVisiblePartialCfis(viewport) {
   const elements = findVisibleElements(viewport);
   if (elements.length === 0) {
