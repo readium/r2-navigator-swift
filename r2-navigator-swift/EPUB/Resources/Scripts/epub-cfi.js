@@ -1302,17 +1302,38 @@ function findVisibleElements(viewport) {
 }
 
 /**
- * Get the current visible text from the screen
+ * Return current infos on current page cfi
+ * and current page text
  *
  * @param viewport
- * @returns {string|null}
+ * @returns {{cfis: object|null, visibleText: string|null}}
  */
-function getVisibleText(viewport) {
+function processExtraLocationInfos(viewport) {
   const elements = findVisibleElements(viewport);
+
+  const extraLocationInfos = {
+    cfis: null,
+    visibleText: null
+  };
+
   if (elements.length === 0) {
-    return null;
+    return extraLocationInfos;
   }
 
+  extraLocationInfos.cfis = getFirstAndLastVisiblePartialCfis(viewport, elements);
+  extraLocationInfos.visibleText = getVisibleText(viewport, elements)
+
+  return extraLocationInfos;
+}
+
+/**
+ * Return current text on screen
+ *
+ * @param viewport
+ * @param elements
+ * @returns {string}
+ */
+function getVisibleText(viewport, elements) {
   const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
   let fullVisibleText;
 
@@ -1342,12 +1363,14 @@ function getVisibleText(viewport) {
   return fullVisibleText.substring(0, cleanEndOffset);
 }
 
-function getFirstAndLastVisiblePartialCfis(viewport) {
-  const elements = findVisibleElements(viewport);
-  if (elements.length === 0) {
-    return null;
-  }
-
+/**
+ * Return current page cfi, start page and end page
+ *
+ * @param viewport
+ * @param elements
+ * @returns {{startCfi: string, endCfi: string}}
+ */
+function getFirstAndLastVisiblePartialCfis(viewport, elements) {
   let cfiElementFrom = null;
   const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
   if (textNodes.length > 0) {

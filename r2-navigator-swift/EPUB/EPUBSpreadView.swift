@@ -296,37 +296,26 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         return currentVisibleText
     }
 
-    /// Current partial cfis in the resource .
-    func getCurrentPartialCfis(completion: @escaping ((String?, String?)) -> Void) {
-        evaluateScript("readium.getCurrentPartialCfis();") { (result, err) in
+    func getExtraLocationInfos(completion: @escaping () -> Void) {
+        evaluateScript("readium.getExtraLocationInfos();") { (result, err) in
             if (err != nil) {
-                print("getCurrentPartialCfis error: \(String(describing: err)).")
+                print("getExtraLocationInfos error: \(String(describing: err)).")
                 self.partialCfis = (nil, nil)
+                self.currentVisibleText = nil
             } else {
                 let jsonData = (result as! String).data(using: .utf8)!
                 do {
-                    let cfis: PartialCfis = try JSONDecoder().decode(PartialCfis.self, from: jsonData)
-                    self.partialCfis = (cfis.startCfi, cfis.endCfi)
+                    let locationInfos: ExtraLocationInfos = try JSONDecoder().decode(ExtraLocationInfos.self, from: jsonData)
+                    self.partialCfis = (locationInfos.cfis.startCfi, locationInfos.cfis.endCfi)
+                    self.currentVisibleText = locationInfos.visibleText
                 } catch {
                     print("CFI parsing error: \(error).")
                     self.partialCfis = (nil, nil)
+                self.currentVisibleText = nil
                 }
             }
 
-            completion(self.partialCfis)
-        }
-    }
-
-    func getCurrentVisibleText(completion: @escaping (String?) -> Void) {
-        evaluateScript("readium.getCurrentVisibleText();") { (result, err) in
-            if (err != nil) {
-                print("getCurrentVisibleText error: \(String(describing: err)).")
-                self.currentVisibleText = nil
-            } else {
-                self.currentVisibleText = result as? String
-            }
-
-            completion(self.currentVisibleText)
+            completion()
         }
     }
 

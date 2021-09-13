@@ -425,7 +425,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         }
     }
 
-    
     // MARK: - Navigator
     
     public var currentLocation: Locator? {
@@ -443,6 +442,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         let progression = spreadView.progression(in: href)
         let partialCfis = spreadView.cfi()
         let visibleText = spreadView.visibleText()
+
 
         // The positions are not always available, for example a Readium WebPub doesn't have any
         // unless a Publication Positions Web Service is provided.
@@ -487,16 +487,15 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         when: { [weak self] in self?.state == .idle },
         pollingInterval: 0.1
     ) { [weak self] in
-        self?.getCurrentSpreadViewPartialCfis {(_, _) in
-            self?.getCurrentSpreadViewVisibleText {_ in
-                guard
-                    let self = self,
-                    let delegate = self.delegate,
-                    let location = self.currentLocation,
-                    location != self.notifiedCurrentLocation
-                else {
-                    return
-                }
+        self?.getExtraLocationInfos {
+            guard
+                let self = self,
+                let delegate = self.delegate,
+                let location = self.currentLocation,
+                location != self.notifiedCurrentLocation
+            else {
+                return
+            }
 
                 self.notifiedCurrentLocation = location
                 delegate.navigator(self, locationDidChange: location)
@@ -504,21 +503,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         }
     }
 
-    private func getCurrentSpreadViewPartialCfis(completion: @escaping ((String?, String?)) -> Void = {_ in }) {
+    private func getExtraLocationInfos(completion: @escaping () -> Void = {}) {
         let spreadView = paginationView.currentView as? EPUBSpreadView;
         if (spreadView == nil) {
-            completion((nil, nil))
+            completion()
         } else {
-            spreadView?.getCurrentPartialCfis(completion: completion)
-        }
-    }
-
-    private func getCurrentSpreadViewVisibleText(completion: @escaping (String?) -> Void = {_ in }) {
-        let spreadView = paginationView.currentView as? EPUBSpreadView;
-        if (spreadView == nil) {
-            completion(nil)
-        } else {
-            spreadView?.getCurrentVisibleText(completion: completion)
+            spreadView?.getExtraLocationInfos(completion: completion)
         }
     }
 
