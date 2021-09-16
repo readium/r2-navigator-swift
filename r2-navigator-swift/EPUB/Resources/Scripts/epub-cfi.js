@@ -1301,12 +1301,76 @@ function findVisibleElements(viewport) {
   return visibleElements;
 }
 
-function getFirstAndLastVisiblePartialCfis(viewport) {
+/**
+ * Return current infos on current page cfi
+ * and current page text
+ *
+ * @param viewport
+ * @returns {{cfis: object|null, visibleText: string|null}}
+ */
+function processExtraLocationInfos(viewport) {
   const elements = findVisibleElements(viewport);
+
+  const extraLocationInfos = {
+    cfis: null,
+    visibleText: null
+  };
+
   if (elements.length === 0) {
-    return null;
+    return extraLocationInfos;
   }
 
+  extraLocationInfos.cfis = getFirstAndLastVisiblePartialCfis(viewport, elements);
+  extraLocationInfos.visibleText = getVisibleText(viewport, elements)
+
+  return extraLocationInfos;
+}
+
+/**
+ * Return current text on screen
+ *
+ * @param viewport
+ * @param elements
+ * @returns {string}
+ */
+function getVisibleText(viewport, elements) {
+  const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
+  let fullVisibleText;
+
+  if (textNodes.length === 0)
+    return "";
+
+  const firstTextNode = textNodes[0];
+
+  // Offset from which where text is visible on screen
+  const visibleTextOffset = Math.round(firstTextNode.wholeText.length * (1 - getTextVisibleRatio(firstTextNode, viewport)));
+
+  // Retrieving visible text
+  fullVisibleText = Array.from(textNodes)
+      .slice(0, 5)
+      .map(text => text.textContent)
+      .join(' ')
+      .substring(visibleTextOffset);
+
+  // Offset to remove truncated words
+  const cleanStartOffset = fullVisibleText.indexOf(' ') + 1;
+  fullVisibleText = fullVisibleText.substring(cleanStartOffset, 250);
+
+  // End offset to remove truncated words
+  const cleanEndOffset = fullVisibleText.lastIndexOf(' ');
+
+  // Return cleaned visible text
+  return fullVisibleText.substring(0, cleanEndOffset);
+}
+
+/**
+ * Return current page cfi, start page and end page
+ *
+ * @param viewport
+ * @param elements
+ * @returns {{startCfi: string, endCfi: string}}
+ */
+function getFirstAndLastVisiblePartialCfis(viewport, elements) {
   let cfiElementFrom = null;
   const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
   if (textNodes.length > 0) {

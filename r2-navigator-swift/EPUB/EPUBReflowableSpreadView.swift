@@ -429,3 +429,8 @@ struct PartialCfis: Decodable {
     let startCfi: String?
     let endCfi: String?
 }
+
+struct ExtraLocationInfos: Decodable {
+    let cfis: PartialCfis
+    let visibleText: String?
+}

@@ -41,8 +41,8 @@ var readium = (function() {
       };
     }
 
-    function getCurrentPartialCfis() {
-        return JSON.stringify(getFirstAndLastVisiblePartialCfis(getFrameRect()));
+    function getExtraLocationInfos() {
+        return JSON.stringify(processExtraLocationInfos(getFrameRect()));
     }
 
     window.addEventListener('scroll', function(e) {
@@ -272,7 +272,7 @@ var readium = (function() {
         'scrollRight': scrollRight,
         'scrollToPartialCfi': scrollToPartialCfi,
         'setProperty': setProperty,
-        'getCurrentPartialCfis': getCurrentPartialCfis,
+        'getExtraLocationInfos': getExtraLocationInfos,
         'removeProperty': removeProperty
     };
 
