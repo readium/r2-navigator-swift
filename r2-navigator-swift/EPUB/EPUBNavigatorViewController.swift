@@ -497,9 +497,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
                 return
             }
 
-                self.notifiedCurrentLocation = location
-                delegate.navigator(self, locationDidChange: location)
-            }
+            self.notifiedCurrentLocation = location
+            delegate.navigator(self, locationDidChange: location)
         }
     }
 
