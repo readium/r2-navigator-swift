@@ -11,7 +11,10 @@ import { TextRange } from "./vendor/hypothesis/anchoring/text-range";
 const debug = true;
 
 export function getCurrentSelection() {
-  const href = readium.link?.href;
+  if (!readium.link) {
+    return null;
+  }
+  const href = readium.link.href;
   if (!href) {
     return null;
   }
