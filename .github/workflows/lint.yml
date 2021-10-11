@@ -25,4 +25,4 @@ jobs:
       - name: Check if bundled scripts are up-to-date
         run: |
             make scripts
-            git diff --exit-code --name-only r2-navigator-swift/EPUB/Assets/Static/scripts
+            git diff --exit-code --name-only r2-navigator-swift/EPUB/Assets/Static/scripts/*.js
