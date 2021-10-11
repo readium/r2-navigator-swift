@@ -1234,7 +1234,7 @@ function search(text, pattern, maxErrors) {
     var matches = findMatchEnds(text, pattern, maxErrors);
     return findMatchStarts(text, pattern, matches);
 }
-exports.default = search;
+exports["default"] = search;
 
 
 /***/ }),
@@ -1388,1985 +1388,6 @@ var defineProperties = function (object, map) {
 defineProperties.supportsDescriptors = !!supportsDescriptors;
 
 module.exports = defineProperties;
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2020/IsArray.js":
-/*!**************************************************!*\
-  !*** ./node_modules/es-abstract/2020/IsArray.js ***!
-  \**************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Array = GetIntrinsic('%Array%');
-
-// eslint-disable-next-line global-require
-var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isarray
-
-module.exports = $Array.isArray || function IsArray(argument) {
-	return toStr(argument) === '[object Array]';
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/AdvanceStringIndex.js":
-/*!*************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/AdvanceStringIndex.js ***!
-  \*************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var CodePointAt = __webpack_require__(/*! ./CodePointAt */ "./node_modules/es-abstract/2021/CodePointAt.js");
-var IsIntegralNumber = __webpack_require__(/*! ./IsIntegralNumber */ "./node_modules/es-abstract/2021/IsIntegralNumber.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-// https://ecma-international.org/ecma-262/12.0/#sec-advancestringindex
-
-module.exports = function AdvanceStringIndex(S, index, unicode) {
-	if (Type(S) !== 'String') {
-		throw new $TypeError('Assertion failed: `S` must be a String');
-	}
-	if (!IsIntegralNumber(index) || index < 0 || index > MAX_SAFE_INTEGER) {
-		throw new $TypeError('Assertion failed: `length` must be an integer >= 0 and <= 2**53');
-	}
-	if (Type(unicode) !== 'Boolean') {
-		throw new $TypeError('Assertion failed: `unicode` must be a Boolean');
-	}
-	if (!unicode) {
-		return index + 1;
-	}
-	var length = S.length;
-	if ((index + 1) >= length) {
-		return index + 1;
-	}
-	var cp = CodePointAt(S, index);
-	return index + cp['[[CodeUnitCount]]'];
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/Call.js":
-/*!***********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Call.js ***!
-  \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
-
-var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('%Function.prototype.apply%');
-
-// https://ecma-international.org/ecma-262/6.0/#sec-call
-
-module.exports = function Call(F, V) {
-	var argumentsList = arguments.length > 2 ? arguments[2] : [];
-	if (!IsArray(argumentsList)) {
-		throw new $TypeError('Assertion failed: optional `argumentsList`, if provided, must be a List');
-	}
-	return $apply(F, V, argumentsList);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/CodePointAt.js":
-/*!******************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CodePointAt.js ***!
-  \******************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
-var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
-var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
-
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-var UTF16SurrogatePairToCodePoint = __webpack_require__(/*! ./UTF16SurrogatePairToCodePoint */ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js");
-
-var $charAt = callBound('String.prototype.charAt');
-var $charCodeAt = callBound('String.prototype.charCodeAt');
-
-// https://ecma-international.org/ecma-262/12.0/#sec-codepointat
-
-module.exports = function CodePointAt(string, position) {
-	if (Type(string) !== 'String') {
-		throw new $TypeError('Assertion failed: `string` must be a String');
-	}
-	var size = string.length;
-	if (position < 0 || position >= size) {
-		throw new $TypeError('Assertion failed: `position` must be >= 0, and < the length of `string`');
-	}
-	var first = $charCodeAt(string, position);
-	var cp = $charAt(string, position);
-	var firstIsLeading = isLeadingSurrogate(first);
-	var firstIsTrailing = isTrailingSurrogate(first);
-	if (!firstIsLeading && !firstIsTrailing) {
-		return {
-			'[[CodePoint]]': cp,
-			'[[CodeUnitCount]]': 1,
-			'[[IsUnpairedSurrogate]]': false
-		};
-	}
-	if (firstIsTrailing || (position + 1 === size)) {
-		return {
-			'[[CodePoint]]': cp,
-			'[[CodeUnitCount]]': 1,
-			'[[IsUnpairedSurrogate]]': true
-		};
-	}
-	var second = $charCodeAt(string, position + 1);
-	if (!isTrailingSurrogate(second)) {
-		return {
-			'[[CodePoint]]': cp,
-			'[[CodeUnitCount]]': 1,
-			'[[IsUnpairedSurrogate]]': true
-		};
-	}
-
-	return {
-		'[[CodePoint]]': UTF16SurrogatePairToCodePoint(first, second),
-		'[[CodeUnitCount]]': 2,
-		'[[IsUnpairedSurrogate]]': false
-	};
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/CreateIterResultObject.js":
-/*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CreateIterResultObject.js ***!
-  \*****************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-createiterresultobject
-
-module.exports = function CreateIterResultObject(value, done) {
-	if (Type(done) !== 'Boolean') {
-		throw new $TypeError('Assertion failed: Type(done) is not Boolean');
-	}
-	return {
-		value: value,
-		done: done
-	};
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/CreateMethodProperty.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CreateMethodProperty.js ***!
-  \***************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
-
-var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
-var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-createmethodproperty
-
-module.exports = function CreateMethodProperty(O, P, V) {
-	if (Type(O) !== 'Object') {
-		throw new $TypeError('Assertion failed: Type(O) is not Object');
-	}
-
-	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
-	}
-
-	var newDesc = {
-		'[[Configurable]]': true,
-		'[[Enumerable]]': false,
-		'[[Value]]': V,
-		'[[Writable]]': true
-	};
-	return DefineOwnProperty(
-		IsDataDescriptor,
-		SameValue,
-		FromPropertyDescriptor,
-		O,
-		P,
-		newDesc
-	);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/CreateRegExpStringIterator.js":
-/*!*********************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CreateRegExpStringIterator.js ***!
-  \*********************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
-
-var $TypeError = GetIntrinsic('%TypeError%');
-var IteratorPrototype = GetIntrinsic('%IteratorPrototype%', true);
-var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
-
-var AdvanceStringIndex = __webpack_require__(/*! ./AdvanceStringIndex */ "./node_modules/es-abstract/2021/AdvanceStringIndex.js");
-var CreateIterResultObject = __webpack_require__(/*! ./CreateIterResultObject */ "./node_modules/es-abstract/2021/CreateIterResultObject.js");
-var CreateMethodProperty = __webpack_require__(/*! ./CreateMethodProperty */ "./node_modules/es-abstract/2021/CreateMethodProperty.js");
-var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
-var OrdinaryObjectCreate = __webpack_require__(/*! ./OrdinaryObjectCreate */ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js");
-var RegExpExec = __webpack_require__(/*! ./RegExpExec */ "./node_modules/es-abstract/2021/RegExpExec.js");
-var Set = __webpack_require__(/*! ./Set */ "./node_modules/es-abstract/2021/Set.js");
-var ToLength = __webpack_require__(/*! ./ToLength */ "./node_modules/es-abstract/2021/ToLength.js");
-var ToString = __webpack_require__(/*! ./ToString */ "./node_modules/es-abstract/2021/ToString.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-var SLOT = __webpack_require__(/*! internal-slot */ "./node_modules/internal-slot/index.js");
-
-var RegExpStringIterator = function RegExpStringIterator(R, S, global, fullUnicode) {
-	if (Type(S) !== 'String') {
-		throw new $TypeError('`S` must be a string');
-	}
-	if (Type(global) !== 'Boolean') {
-		throw new $TypeError('`global` must be a boolean');
-	}
-	if (Type(fullUnicode) !== 'Boolean') {
-		throw new $TypeError('`fullUnicode` must be a boolean');
-	}
-	SLOT.set(this, '[[IteratingRegExp]]', R);
-	SLOT.set(this, '[[IteratedString]]', S);
-	SLOT.set(this, '[[Global]]', global);
-	SLOT.set(this, '[[Unicode]]', fullUnicode);
-	SLOT.set(this, '[[Done]]', false);
-};
-
-if (IteratorPrototype) {
-	RegExpStringIterator.prototype = OrdinaryObjectCreate(IteratorPrototype);
-}
-
-var RegExpStringIteratorNext = function next() {
-	var O = this; // eslint-disable-line no-invalid-this
-	if (Type(O) !== 'Object') {
-		throw new $TypeError('receiver must be an object');
-	}
-	if (
-		!(O instanceof RegExpStringIterator)
-        || !SLOT.has(O, '[[IteratingRegExp]]')
-        || !SLOT.has(O, '[[IteratedString]]')
-        || !SLOT.has(O, '[[Global]]')
-        || !SLOT.has(O, '[[Unicode]]')
-        || !SLOT.has(O, '[[Done]]')
-	) {
-		throw new $TypeError('"this" value must be a RegExpStringIterator instance');
-	}
-	if (SLOT.get(O, '[[Done]]')) {
-		return CreateIterResultObject(undefined, true);
-	}
-	var R = SLOT.get(O, '[[IteratingRegExp]]');
-	var S = SLOT.get(O, '[[IteratedString]]');
-	var global = SLOT.get(O, '[[Global]]');
-	var fullUnicode = SLOT.get(O, '[[Unicode]]');
-	var match = RegExpExec(R, S);
-	if (match === null) {
-		SLOT.set(O, '[[Done]]', true);
-		return CreateIterResultObject(undefined, true);
-	}
-	if (global) {
-		var matchStr = ToString(Get(match, '0'));
-		if (matchStr === '') {
-			var thisIndex = ToLength(Get(R, 'lastIndex'));
-			var nextIndex = AdvanceStringIndex(S, thisIndex, fullUnicode);
-			Set(R, 'lastIndex', nextIndex, true);
-		}
-		return CreateIterResultObject(match, false);
-	}
-	SLOT.set(O, '[[Done]]', true);
-	return CreateIterResultObject(match, false);
-};
-CreateMethodProperty(RegExpStringIterator.prototype, 'next', RegExpStringIteratorNext);
-
-if (hasSymbols) {
-	if (Symbol.toStringTag) {
-		if ($defineProperty) {
-			$defineProperty(RegExpStringIterator.prototype, Symbol.toStringTag, {
-				configurable: true,
-				enumerable: false,
-				value: 'RegExp String Iterator',
-				writable: false
-			});
-		} else {
-			RegExpStringIterator.prototype[Symbol.toStringTag] = 'RegExp String Iterator';
-		}
-	}
-
-	if (Symbol.iterator && typeof RegExpStringIterator.prototype[Symbol.iterator] !== 'function') {
-		var iteratorFn = function SymbolIterator() {
-			return this;
-		};
-		CreateMethodProperty(RegExpStringIterator.prototype, Symbol.iterator, iteratorFn);
-	}
-}
-
-// https://262.ecma-international.org/11.0/#sec-createregexpstringiterator
-module.exports = function CreateRegExpStringIterator(R, S, global, fullUnicode) {
-	// assert R.global === global && R.unicode === fullUnicode?
-	return new RegExpStringIterator(R, S, global, fullUnicode);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/DefinePropertyOrThrow.js ***!
-  \****************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var isPropertyDescriptor = __webpack_require__(/*! ../helpers/isPropertyDescriptor */ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js");
-var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
-
-var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
-var IsAccessorDescriptor = __webpack_require__(/*! ./IsAccessorDescriptor */ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js");
-var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
-var ToPropertyDescriptor = __webpack_require__(/*! ./ToPropertyDescriptor */ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-definepropertyorthrow
-
-module.exports = function DefinePropertyOrThrow(O, P, desc) {
-	if (Type(O) !== 'Object') {
-		throw new $TypeError('Assertion failed: Type(O) is not Object');
-	}
-
-	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
-	}
-
-	var Desc = isPropertyDescriptor({
-		Type: Type,
-		IsDataDescriptor: IsDataDescriptor,
-		IsAccessorDescriptor: IsAccessorDescriptor
-	}, desc) ? desc : ToPropertyDescriptor(desc);
-	if (!isPropertyDescriptor({
-		Type: Type,
-		IsDataDescriptor: IsDataDescriptor,
-		IsAccessorDescriptor: IsAccessorDescriptor
-	}, Desc)) {
-		throw new $TypeError('Assertion failed: Desc is not a valid Property Descriptor');
-	}
-
-	return DefineOwnProperty(
-		IsDataDescriptor,
-		SameValue,
-		FromPropertyDescriptor,
-		O,
-		P,
-		Desc
-	);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js":
-/*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/FromPropertyDescriptor.js ***!
-  \*****************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
-
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-frompropertydescriptor
-
-module.exports = function FromPropertyDescriptor(Desc) {
-	if (typeof Desc === 'undefined') {
-		return Desc;
-	}
-
-	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
-
-	var obj = {};
-	if ('[[Value]]' in Desc) {
-		obj.value = Desc['[[Value]]'];
-	}
-	if ('[[Writable]]' in Desc) {
-		obj.writable = Desc['[[Writable]]'];
-	}
-	if ('[[Get]]' in Desc) {
-		obj.get = Desc['[[Get]]'];
-	}
-	if ('[[Set]]' in Desc) {
-		obj.set = Desc['[[Set]]'];
-	}
-	if ('[[Enumerable]]' in Desc) {
-		obj.enumerable = Desc['[[Enumerable]]'];
-	}
-	if ('[[Configurable]]' in Desc) {
-		obj.configurable = Desc['[[Configurable]]'];
-	}
-	return obj;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/Get.js":
-/*!**********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Get.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
-
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-/**
- * 7.3.1 Get (O, P) - https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
- * 1. Assert: Type(O) is Object.
- * 2. Assert: IsPropertyKey(P) is true.
- * 3. Return O.[[Get]](P, O).
- */
-
-module.exports = function Get(O, P) {
-	// 7.3.1.1
-	if (Type(O) !== 'Object') {
-		throw new $TypeError('Assertion failed: Type(O) is not Object');
-	}
-	// 7.3.1.2
-	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true, got ' + inspect(P));
-	}
-	// 7.3.1.3
-	return O[P];
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/GetMethod.js":
-/*!****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/GetMethod.js ***!
-  \****************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var GetV = __webpack_require__(/*! ./GetV */ "./node_modules/es-abstract/2021/GetV.js");
-var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-
-/**
- * 7.3.9 - https://ecma-international.org/ecma-262/6.0/#sec-getmethod
- * 1. Assert: IsPropertyKey(P) is true.
- * 2. Let func be GetV(O, P).
- * 3. ReturnIfAbrupt(func).
- * 4. If func is either undefined or null, return undefined.
- * 5. If IsCallable(func) is false, throw a TypeError exception.
- * 6. Return func.
- */
-
-module.exports = function GetMethod(O, P) {
-	// 7.3.9.1
-	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
-	}
-
-	// 7.3.9.2
-	var func = GetV(O, P);
-
-	// 7.3.9.4
-	if (func == null) {
-		return void 0;
-	}
-
-	// 7.3.9.5
-	if (!IsCallable(func)) {
-		throw new $TypeError(P + 'is not a function');
-	}
-
-	// 7.3.9.6
-	return func;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/GetV.js":
-/*!***********************************************!*\
-  !*** ./node_modules/es-abstract/2021/GetV.js ***!
-  \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2021/ToObject.js");
-
-/**
- * 7.3.2 GetV (V, P)
- * 1. Assert: IsPropertyKey(P) is true.
- * 2. Let O be ToObject(V).
- * 3. ReturnIfAbrupt(O).
- * 4. Return O.[[Get]](P, V).
- */
-
-module.exports = function GetV(V, P) {
-	// 7.3.2.1
-	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
-	}
-
-	// 7.3.2.2-3
-	var O = ToObject(V);
-
-	// 7.3.2.4
-	return O[P];
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsAccessorDescriptor.js ***!
-  \***************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
-
-var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
-
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isaccessordescriptor
-
-module.exports = function IsAccessorDescriptor(Desc) {
-	if (typeof Desc === 'undefined') {
-		return false;
-	}
-
-	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
-
-	if (!has(Desc, '[[Get]]') && !has(Desc, '[[Set]]')) {
-		return false;
-	}
-
-	return true;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsArray.js":
-/*!**************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsArray.js ***!
-  \**************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Array = GetIntrinsic('%Array%');
-
-// eslint-disable-next-line global-require
-var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isarray
-
-module.exports = $Array.isArray || function IsArray(argument) {
-	return toStr(argument) === '[object Array]';
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsCallable.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsCallable.js ***!
-  \*****************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-// http://262.ecma-international.org/5.1/#sec-9.11
-
-module.exports = __webpack_require__(/*! is-callable */ "./node_modules/is-callable/index.js");
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsConstructor.js":
-/*!********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsConstructor.js ***!
-  \********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! ../GetIntrinsic.js */ "./node_modules/es-abstract/GetIntrinsic.js");
-
-var $construct = GetIntrinsic('%Reflect.construct%', true);
-
-var DefinePropertyOrThrow = __webpack_require__(/*! ./DefinePropertyOrThrow */ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js");
-try {
-	DefinePropertyOrThrow({}, '', { '[[Get]]': function () {} });
-} catch (e) {
-	// Accessor properties aren't supported
-	DefinePropertyOrThrow = null;
-}
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isconstructor
-
-if (DefinePropertyOrThrow && $construct) {
-	var isConstructorMarker = {};
-	var badArrayLike = {};
-	DefinePropertyOrThrow(badArrayLike, 'length', {
-		'[[Get]]': function () {
-			throw isConstructorMarker;
-		},
-		'[[Enumerable]]': true
-	});
-
-	module.exports = function IsConstructor(argument) {
-		try {
-			// `Reflect.construct` invokes `IsConstructor(target)` before `Get(args, 'length')`:
-			$construct(argument, badArrayLike);
-		} catch (err) {
-			return err === isConstructorMarker;
-		}
-	};
-} else {
-	module.exports = function IsConstructor(argument) {
-		// unfortunately there's no way to truly check this without try/catch `new argument` in old environments
-		return typeof argument === 'function' && !!argument.prototype;
-	};
-}
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsDataDescriptor.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsDataDescriptor.js ***!
-  \***********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
-
-var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
-
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isdatadescriptor
-
-module.exports = function IsDataDescriptor(Desc) {
-	if (typeof Desc === 'undefined') {
-		return false;
-	}
-
-	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
-
-	if (!has(Desc, '[[Value]]') && !has(Desc, '[[Writable]]')) {
-		return false;
-	}
-
-	return true;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsIntegralNumber.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsIntegralNumber.js ***!
-  \***********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2021/abs.js");
-var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2021/floor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
-var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
-
-// https://tc39.es/ecma262/#sec-isintegralnumber
-
-module.exports = function IsIntegralNumber(argument) {
-	if (Type(argument) !== 'Number' || $isNaN(argument) || !$isFinite(argument)) {
-		return false;
-	}
-	var absValue = abs(argument);
-	return floor(absValue) === absValue;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsPropertyKey.js":
-/*!********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsPropertyKey.js ***!
-  \********************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// https://ecma-international.org/ecma-262/6.0/#sec-ispropertykey
-
-module.exports = function IsPropertyKey(argument) {
-	return typeof argument === 'string' || typeof argument === 'symbol';
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/IsRegExp.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsRegExp.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $match = GetIntrinsic('%Symbol.match%', true);
-
-var hasRegExpMatcher = __webpack_require__(/*! is-regex */ "./node_modules/is-regex/index.js");
-
-var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isregexp
-
-module.exports = function IsRegExp(argument) {
-	if (!argument || typeof argument !== 'object') {
-		return false;
-	}
-	if ($match) {
-		var isRegExp = argument[$match];
-		if (typeof isRegExp !== 'undefined') {
-			return ToBoolean(isRegExp);
-		}
-	}
-	return hasRegExpMatcher(argument);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/OrdinaryObjectCreate.js ***!
-  \***************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $ObjectCreate = GetIntrinsic('%Object.create%', true);
-var $TypeError = GetIntrinsic('%TypeError%');
-var $SyntaxError = GetIntrinsic('%SyntaxError%');
-
-var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-var hasProto = !({ __proto__: null } instanceof Object);
-
-// https://262.ecma-international.org/6.0/#sec-objectcreate
-
-module.exports = function OrdinaryObjectCreate(proto) {
-	if (proto !== null && Type(proto) !== 'Object') {
-		throw new $TypeError('Assertion failed: `proto` must be null or an object');
-	}
-	var additionalInternalSlotsList = arguments.length < 2 ? [] : arguments[1];
-	if (!IsArray(additionalInternalSlotsList)) {
-		throw new $TypeError('Assertion failed: `additionalInternalSlotsList` must be an Array');
-	}
-	// var internalSlotsList = ['[[Prototype]]', '[[Extensible]]'];
-	if (additionalInternalSlotsList.length > 0) {
-		throw new $SyntaxError('es-abstract does not yet support internal slots');
-		// internalSlotsList.push(...additionalInternalSlotsList);
-	}
-	// var O = MakeBasicObject(internalSlotsList);
-	// setProto(O, proto);
-	// return O;
-
-	if ($ObjectCreate) {
-		return $ObjectCreate(proto);
-	}
-	if (hasProto) {
-		return { __proto__: proto };
-	}
-
-	if (proto === null) {
-		throw new $SyntaxError('native Object.create support is required to create null objects');
-	}
-	var T = function T() {};
-	T.prototype = proto;
-	return new T();
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/RegExpExec.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/RegExpExec.js ***!
-  \*****************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var regexExec = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('RegExp.prototype.exec');
-
-var Call = __webpack_require__(/*! ./Call */ "./node_modules/es-abstract/2021/Call.js");
-var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
-var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-regexpexec
-
-module.exports = function RegExpExec(R, S) {
-	if (Type(R) !== 'Object') {
-		throw new $TypeError('Assertion failed: `R` must be an Object');
-	}
-	if (Type(S) !== 'String') {
-		throw new $TypeError('Assertion failed: `S` must be a String');
-	}
-	var exec = Get(R, 'exec');
-	if (IsCallable(exec)) {
-		var result = Call(exec, R, [S]);
-		if (result === null || Type(result) === 'Object') {
-			return result;
-		}
-		throw new $TypeError('"exec" method must return `null` or an Object');
-	}
-	return regexExec(R, S);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/RequireObjectCoercible.js":
-/*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/RequireObjectCoercible.js ***!
-  \*****************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-module.exports = __webpack_require__(/*! ../5/CheckObjectCoercible */ "./node_modules/es-abstract/5/CheckObjectCoercible.js");
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/SameValue.js":
-/*!****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/SameValue.js ***!
-  \****************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
-
-// http://262.ecma-international.org/5.1/#sec-9.12
-
-module.exports = function SameValue(x, y) {
-	if (x === y) { // 0 === -0, but they are not identical.
-		if (x === 0) { return 1 / x === 1 / y; }
-		return true;
-	}
-	return $isNaN(x) && $isNaN(y);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/Set.js":
-/*!**********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Set.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// IE 9 does not throw in strict mode when writability/configurability/extensibility is violated
-var noThrowOnStrictViolation = (function () {
-	try {
-		delete [].length;
-		return true;
-	} catch (e) {
-		return false;
-	}
-}());
-
-// https://ecma-international.org/ecma-262/6.0/#sec-set-o-p-v-throw
-
-module.exports = function Set(O, P, V, Throw) {
-	if (Type(O) !== 'Object') {
-		throw new $TypeError('Assertion failed: `O` must be an Object');
-	}
-	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: `P` must be a Property Key');
-	}
-	if (Type(Throw) !== 'Boolean') {
-		throw new $TypeError('Assertion failed: `Throw` must be a Boolean');
-	}
-	if (Throw) {
-		O[P] = V; // eslint-disable-line no-param-reassign
-		if (noThrowOnStrictViolation && !SameValue(O[P], V)) {
-			throw new $TypeError('Attempted to assign to readonly property.');
-		}
-		return true;
-	}
-	try {
-		O[P] = V; // eslint-disable-line no-param-reassign
-		return noThrowOnStrictViolation ? SameValue(O[P], V) : true;
-	} catch (e) {
-		return false;
-	}
-
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/SpeciesConstructor.js":
-/*!*************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/SpeciesConstructor.js ***!
-  \*************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $species = GetIntrinsic('%Symbol.species%', true);
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var IsConstructor = __webpack_require__(/*! ./IsConstructor */ "./node_modules/es-abstract/2021/IsConstructor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-speciesconstructor
-
-module.exports = function SpeciesConstructor(O, defaultConstructor) {
-	if (Type(O) !== 'Object') {
-		throw new $TypeError('Assertion failed: Type(O) is not Object');
-	}
-	var C = O.constructor;
-	if (typeof C === 'undefined') {
-		return defaultConstructor;
-	}
-	if (Type(C) !== 'Object') {
-		throw new $TypeError('O.constructor is not an Object');
-	}
-	var S = $species ? C[$species] : void 0;
-	if (S == null) {
-		return defaultConstructor;
-	}
-	if (IsConstructor(S)) {
-		return S;
-	}
-	throw new $TypeError('no constructor found');
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToBoolean.js":
-/*!****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToBoolean.js ***!
-  \****************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// http://262.ecma-international.org/5.1/#sec-9.2
-
-module.exports = function ToBoolean(value) { return !!value; };
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js":
-/*!**************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToIntegerOrInfinity.js ***!
-  \**************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var ES5ToInteger = __webpack_require__(/*! ../5/ToInteger */ "./node_modules/es-abstract/5/ToInteger.js");
-
-var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/2021/ToNumber.js");
-
-// https://www.ecma-international.org/ecma-262/11.0/#sec-tointeger
-
-module.exports = function ToInteger(value) {
-	var number = ToNumber(value);
-	if (number !== 0) {
-		number = ES5ToInteger(number);
-	}
-	return number === 0 ? 0 : number;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToLength.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToLength.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
-
-var ToIntegerOrInfinity = __webpack_require__(/*! ./ToIntegerOrInfinity */ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js");
-
-module.exports = function ToLength(argument) {
-	var len = ToIntegerOrInfinity(argument);
-	if (len <= 0) { return 0; } // includes converting -0 to +0
-	if (len > MAX_SAFE_INTEGER) { return MAX_SAFE_INTEGER; }
-	return len;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToNumber.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToNumber.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-var $Number = GetIntrinsic('%Number%');
-var $RegExp = GetIntrinsic('%RegExp%');
-var $parseInteger = GetIntrinsic('%parseInt%');
-
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
-var regexTester = __webpack_require__(/*! ../helpers/regexTester */ "./node_modules/es-abstract/helpers/regexTester.js");
-var isPrimitive = __webpack_require__(/*! ../helpers/isPrimitive */ "./node_modules/es-abstract/helpers/isPrimitive.js");
-
-var $strSlice = callBound('String.prototype.slice');
-var isBinary = regexTester(/^0b[01]+$/i);
-var isOctal = regexTester(/^0o[0-7]+$/i);
-var isInvalidHexLiteral = regexTester(/^[-+]0x[0-9a-f]+$/i);
-var nonWS = ['\u0085', '\u200b', '\ufffe'].join('');
-var nonWSregex = new $RegExp('[' + nonWS + ']', 'g');
-var hasNonWS = regexTester(nonWSregex);
-
-// whitespace from: https://es5.github.io/#x15.5.4.20
-// implementation from https://github.com/es-shims/es5-shim/blob/v3.4.0/es5-shim.js#L1304-L1324
-var ws = [
-	'\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003',
-	'\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028',
-	'\u2029\uFEFF'
-].join('');
-var trimRegex = new RegExp('(^[' + ws + ']+)|([' + ws + ']+$)', 'g');
-var $replace = callBound('String.prototype.replace');
-var $trim = function (value) {
-	return $replace(value, trimRegex, '');
-};
-
-var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/2021/ToPrimitive.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-tonumber
-
-module.exports = function ToNumber(argument) {
-	var value = isPrimitive(argument) ? argument : ToPrimitive(argument, $Number);
-	if (typeof value === 'symbol') {
-		throw new $TypeError('Cannot convert a Symbol value to a number');
-	}
-	if (typeof value === 'bigint') {
-		throw new $TypeError('Conversion from \'BigInt\' to \'number\' is not allowed.');
-	}
-	if (typeof value === 'string') {
-		if (isBinary(value)) {
-			return ToNumber($parseInteger($strSlice(value, 2), 2));
-		} else if (isOctal(value)) {
-			return ToNumber($parseInteger($strSlice(value, 2), 8));
-		} else if (hasNonWS(value) || isInvalidHexLiteral(value)) {
-			return NaN;
-		}
-		var trimmed = $trim(value);
-		if (trimmed !== value) {
-			return ToNumber(trimmed);
-		}
-
-	}
-	return $Number(value);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToObject.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToObject.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Object = GetIntrinsic('%Object%');
-
-var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2021/RequireObjectCoercible.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-toobject
-
-module.exports = function ToObject(value) {
-	RequireObjectCoercible(value);
-	return $Object(value);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToPrimitive.js":
-/*!******************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToPrimitive.js ***!
-  \******************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var toPrimitive = __webpack_require__(/*! es-to-primitive/es2015 */ "./node_modules/es-to-primitive/es2015.js");
-
-// https://ecma-international.org/ecma-262/6.0/#sec-toprimitive
-
-module.exports = function ToPrimitive(input) {
-	if (arguments.length > 1) {
-		return toPrimitive(input, arguments[1]);
-	}
-	return toPrimitive(input);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToPropertyDescriptor.js ***!
-  \***************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
-var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
-
-// https://262.ecma-international.org/5.1/#sec-8.10.5
-
-module.exports = function ToPropertyDescriptor(Obj) {
-	if (Type(Obj) !== 'Object') {
-		throw new $TypeError('ToPropertyDescriptor requires an object');
-	}
-
-	var desc = {};
-	if (has(Obj, 'enumerable')) {
-		desc['[[Enumerable]]'] = ToBoolean(Obj.enumerable);
-	}
-	if (has(Obj, 'configurable')) {
-		desc['[[Configurable]]'] = ToBoolean(Obj.configurable);
-	}
-	if (has(Obj, 'value')) {
-		desc['[[Value]]'] = Obj.value;
-	}
-	if (has(Obj, 'writable')) {
-		desc['[[Writable]]'] = ToBoolean(Obj.writable);
-	}
-	if (has(Obj, 'get')) {
-		var getter = Obj.get;
-		if (typeof getter !== 'undefined' && !IsCallable(getter)) {
-			throw new $TypeError('getter must be a function');
-		}
-		desc['[[Get]]'] = getter;
-	}
-	if (has(Obj, 'set')) {
-		var setter = Obj.set;
-		if (typeof setter !== 'undefined' && !IsCallable(setter)) {
-			throw new $TypeError('setter must be a function');
-		}
-		desc['[[Set]]'] = setter;
-	}
-
-	if ((has(desc, '[[Get]]') || has(desc, '[[Set]]')) && (has(desc, '[[Value]]') || has(desc, '[[Writable]]'))) {
-		throw new $TypeError('Invalid property descriptor. Cannot both specify accessors and a value or writable attribute');
-	}
-	return desc;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToString.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToString.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $String = GetIntrinsic('%String%');
-var $TypeError = GetIntrinsic('%TypeError%');
-
-// https://ecma-international.org/ecma-262/6.0/#sec-tostring
-
-module.exports = function ToString(argument) {
-	if (typeof argument === 'symbol') {
-		throw new $TypeError('Cannot convert a Symbol value to a string');
-	}
-	return $String(argument);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/Type.js":
-/*!***********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Type.js ***!
-  \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var ES5Type = __webpack_require__(/*! ../5/Type */ "./node_modules/es-abstract/5/Type.js");
-
-// https://262.ecma-international.org/11.0/#sec-ecmascript-data-types-and-values
-
-module.exports = function Type(x) {
-	if (typeof x === 'symbol') {
-		return 'Symbol';
-	}
-	if (typeof x === 'bigint') {
-		return 'BigInt';
-	}
-	return ES5Type(x);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js":
-/*!************************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js ***!
-  \************************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-var $fromCharCode = GetIntrinsic('%String.fromCharCode%');
-
-var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
-var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
-
-// https://tc39.es/ecma262/2020/#sec-utf16decodesurrogatepair
-
-module.exports = function UTF16DecodeSurrogatePair(lead, trail) {
-	if (!isLeadingSurrogate(lead) || !isTrailingSurrogate(trail)) {
-		throw new $TypeError('Assertion failed: `lead` must be a leading surrogate char code, and `trail` must be a trailing surrogate char code');
-	}
-	// var cp = (lead - 0xD800) * 0x400 + (trail - 0xDC00) + 0x10000;
-	return $fromCharCode(lead) + $fromCharCode(trail);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/abs.js":
-/*!**********************************************!*\
-  !*** ./node_modules/es-abstract/2021/abs.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $abs = GetIntrinsic('%Math.abs%');
-
-// http://262.ecma-international.org/5.1/#sec-5.2
-
-module.exports = function abs(x) {
-	return $abs(x);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/floor.js":
-/*!************************************************!*\
-  !*** ./node_modules/es-abstract/2021/floor.js ***!
-  \************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// var modulo = require('./modulo');
-var $floor = Math.floor;
-
-// http://262.ecma-international.org/5.1/#sec-5.2
-
-module.exports = function floor(x) {
-	// return x - modulo(x, 1);
-	return $floor(x);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/CheckObjectCoercible.js":
-/*!************************************************************!*\
-  !*** ./node_modules/es-abstract/5/CheckObjectCoercible.js ***!
-  \************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-
-// http://262.ecma-international.org/5.1/#sec-9.10
-
-module.exports = function CheckObjectCoercible(value, optMessage) {
-	if (value == null) {
-		throw new $TypeError(optMessage || ('Cannot call method on ' + value));
-	}
-	return value;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/ToInteger.js":
-/*!*************************************************!*\
-  !*** ./node_modules/es-abstract/5/ToInteger.js ***!
-  \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/5/abs.js");
-var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/5/floor.js");
-var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/5/ToNumber.js");
-
-var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
-var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
-var $sign = __webpack_require__(/*! ../helpers/sign */ "./node_modules/es-abstract/helpers/sign.js");
-
-// http://262.ecma-international.org/5.1/#sec-9.4
-
-module.exports = function ToInteger(value) {
-	var number = ToNumber(value);
-	if ($isNaN(number)) { return 0; }
-	if (number === 0 || !$isFinite(number)) { return number; }
-	return $sign(number) * floor(abs(number));
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/ToNumber.js":
-/*!************************************************!*\
-  !*** ./node_modules/es-abstract/5/ToNumber.js ***!
-  \************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/5/ToPrimitive.js");
-
-// http://262.ecma-international.org/5.1/#sec-9.3
-
-module.exports = function ToNumber(value) {
-	var prim = ToPrimitive(value, Number);
-	if (typeof prim !== 'string') {
-		return +prim; // eslint-disable-line no-implicit-coercion
-	}
-
-	// eslint-disable-next-line no-control-regex
-	var trimmed = prim.replace(/^[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+|[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+$/g, '');
-	if ((/^0[ob]|^[+-]0x/).test(trimmed)) {
-		return NaN;
-	}
-
-	return +trimmed; // eslint-disable-line no-implicit-coercion
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/ToPrimitive.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/5/ToPrimitive.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-// http://262.ecma-international.org/5.1/#sec-9.1
-
-module.exports = __webpack_require__(/*! es-to-primitive/es5 */ "./node_modules/es-to-primitive/es5.js");
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/Type.js":
-/*!********************************************!*\
-  !*** ./node_modules/es-abstract/5/Type.js ***!
-  \********************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// https://262.ecma-international.org/5.1/#sec-8
-
-module.exports = function Type(x) {
-	if (x === null) {
-		return 'Null';
-	}
-	if (typeof x === 'undefined') {
-		return 'Undefined';
-	}
-	if (typeof x === 'function' || typeof x === 'object') {
-		return 'Object';
-	}
-	if (typeof x === 'number') {
-		return 'Number';
-	}
-	if (typeof x === 'boolean') {
-		return 'Boolean';
-	}
-	if (typeof x === 'string') {
-		return 'String';
-	}
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/abs.js":
-/*!*******************************************!*\
-  !*** ./node_modules/es-abstract/5/abs.js ***!
-  \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $abs = GetIntrinsic('%Math.abs%');
-
-// http://262.ecma-international.org/5.1/#sec-5.2
-
-module.exports = function abs(x) {
-	return $abs(x);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/floor.js":
-/*!*********************************************!*\
-  !*** ./node_modules/es-abstract/5/floor.js ***!
-  \*********************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// var modulo = require('./modulo');
-var $floor = Math.floor;
-
-// http://262.ecma-international.org/5.1/#sec-5.2
-
-module.exports = function floor(x) {
-	// return x - modulo(x, 1);
-	return $floor(x);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/GetIntrinsic.js":
-/*!**************************************************!*\
-  !*** ./node_modules/es-abstract/GetIntrinsic.js ***!
-  \**************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-// TODO: remove, semver-major
-
-module.exports = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/DefineOwnProperty.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/DefineOwnProperty.js ***!
-  \***************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
-
-if ($defineProperty) {
-	try {
-		$defineProperty({}, 'a', { value: 1 });
-	} catch (e) {
-		// IE 8 has a broken defineProperty
-		$defineProperty = null;
-	}
-}
-
-// node v0.6 has a bug where array lengths can be Set but not Defined
-var hasArrayLengthDefineBug = Object.defineProperty && Object.defineProperty([], 'length', { value: 1 }).length === 0;
-
-// eslint-disable-next-line global-require
-var isArray = hasArrayLengthDefineBug && __webpack_require__(/*! ../2020/IsArray */ "./node_modules/es-abstract/2020/IsArray.js"); // this does not depend on any other AOs.
-
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
-
-var $isEnumerable = callBound('Object.prototype.propertyIsEnumerable');
-
-// eslint-disable-next-line max-params
-module.exports = function DefineOwnProperty(IsDataDescriptor, SameValue, FromPropertyDescriptor, O, P, desc) {
-	if (!$defineProperty) {
-		if (!IsDataDescriptor(desc)) {
-			// ES3 does not support getters/setters
-			return false;
-		}
-		if (!desc['[[Configurable]]'] || !desc['[[Writable]]']) {
-			return false;
-		}
-
-		// fallback for ES3
-		if (P in O && $isEnumerable(O, P) !== !!desc['[[Enumerable]]']) {
-			// a non-enumerable existing property
-			return false;
-		}
-
-		// property does not exist at all, or exists but is enumerable
-		var V = desc['[[Value]]'];
-		// eslint-disable-next-line no-param-reassign
-		O[P] = V; // will use [[Define]]
-		return SameValue(O[P], V);
-	}
-	if (
-		hasArrayLengthDefineBug
-		&& P === 'length'
-		&& '[[Value]]' in desc
-		&& isArray(O)
-		&& O.length !== desc['[[Value]]']
-	) {
-		// eslint-disable-next-line no-param-reassign
-		O.length = desc['[[Value]]'];
-		return O.length === desc['[[Value]]'];
-	}
-
-	$defineProperty(O, P, FromPropertyDescriptor(desc));
-	return true;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/assertRecord.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/assertRecord.js ***!
-  \**********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $TypeError = GetIntrinsic('%TypeError%');
-var $SyntaxError = GetIntrinsic('%SyntaxError%');
-
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
-
-var predicates = {
-	// https://262.ecma-international.org/6.0/#sec-property-descriptor-specification-type
-	'Property Descriptor': function isPropertyDescriptor(Type, Desc) {
-		if (Type(Desc) !== 'Object') {
-			return false;
-		}
-		var allowed = {
-			'[[Configurable]]': true,
-			'[[Enumerable]]': true,
-			'[[Get]]': true,
-			'[[Set]]': true,
-			'[[Value]]': true,
-			'[[Writable]]': true
-		};
-
-		for (var key in Desc) { // eslint-disable-line
-			if (has(Desc, key) && !allowed[key]) {
-				return false;
-			}
-		}
-
-		var isData = has(Desc, '[[Value]]');
-		var IsAccessor = has(Desc, '[[Get]]') || has(Desc, '[[Set]]');
-		if (isData && IsAccessor) {
-			throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
-		}
-		return true;
-	}
-};
-
-module.exports = function assertRecord(Type, recordType, argumentName, value) {
-	var predicate = predicates[recordType];
-	if (typeof predicate !== 'function') {
-		throw new $SyntaxError('unknown record type: ' + recordType);
-	}
-	if (!predicate(Type, value)) {
-		throw new $TypeError(argumentName + ' must be a ' + recordType);
-	}
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/isFinite.js":
-/*!******************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/isFinite.js ***!
-  \******************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-var $isNaN = Number.isNaN || function (a) { return a !== a; };
-
-module.exports = Number.isFinite || function (x) { return typeof x === 'number' && !$isNaN(x) && x !== Infinity && x !== -Infinity; };
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/isLeadingSurrogate.js ***!
-  \****************************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = function isLeadingSurrogate(charCode) {
-	return typeof charCode === 'number' && charCode >= 0xD800 && charCode <= 0xDBFF;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/isNaN.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/isNaN.js ***!
-  \***************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = Number.isNaN || function isNaN(a) {
-	return a !== a;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/isPrimitive.js":
-/*!*********************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/isPrimitive.js ***!
-  \*********************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = function isPrimitive(value) {
-	return value === null || (typeof value !== 'function' && typeof value !== 'object');
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js":
-/*!******************************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/isPropertyDescriptor.js ***!
-  \******************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
-var $TypeError = GetIntrinsic('%TypeError%');
-
-module.exports = function IsPropertyDescriptor(ES, Desc) {
-	if (ES.Type(Desc) !== 'Object') {
-		return false;
-	}
-	var allowed = {
-		'[[Configurable]]': true,
-		'[[Enumerable]]': true,
-		'[[Get]]': true,
-		'[[Set]]': true,
-		'[[Value]]': true,
-		'[[Writable]]': true
-	};
-
-	for (var key in Desc) { // eslint-disable-line no-restricted-syntax
-		if (has(Desc, key) && !allowed[key]) {
-			return false;
-		}
-	}
-
-	if (ES.IsDataDescriptor(Desc) && ES.IsAccessorDescriptor(Desc)) {
-		throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
-	}
-	return true;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js":
-/*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/isTrailingSurrogate.js ***!
-  \*****************************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = function isTrailingSurrogate(charCode) {
-	return typeof charCode === 'number' && charCode >= 0xDC00 && charCode <= 0xDFFF;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/maxSafeInteger.js":
-/*!************************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/maxSafeInteger.js ***!
-  \************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Math = GetIntrinsic('%Math%');
-var $Number = GetIntrinsic('%Number%');
-
-module.exports = $Number.MAX_SAFE_INTEGER || $Math.pow(2, 53) - 1;
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/regexTester.js":
-/*!*********************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/regexTester.js ***!
-  \*********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $test = GetIntrinsic('RegExp.prototype.test');
-
-var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
-
-module.exports = function regexTester(regex) {
-	return callBind($test, regex);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/helpers/sign.js":
-/*!**************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/sign.js ***!
-  \**************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = function sign(number) {
-	return number >= 0 ? 1 : -1;
-};
 
 
 /***/ }),
@@ -7029,7 +5050,7 @@ function search(text, str, maxErrors) {
 
   // If there are no exact matches, do a more expensive search for matches
   // with errors.
-  return (0,approx_string_match__WEBPACK_IMPORTED_MODULE_0__.default)(text, str, maxErrors);
+  return (0,approx_string_match__WEBPACK_IMPORTED_MODULE_0__["default"])(text, str, maxErrors);
 }
 
 /**
@@ -7959,6 +5980,1985 @@ function nodeFromXPath(xpath, root = document.body) {
 /***/ (() => {
 
 /* (ignored) */
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2020/IsArray.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/2020/IsArray.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Array = GetIntrinsic('%Array%');
+
+// eslint-disable-next-line global-require
+var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isarray
+
+module.exports = $Array.isArray || function IsArray(argument) {
+	return toStr(argument) === '[object Array]';
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/AdvanceStringIndex.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/AdvanceStringIndex.js ***!
+  \*************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var CodePointAt = __webpack_require__(/*! ./CodePointAt */ "./node_modules/es-abstract/2021/CodePointAt.js");
+var IsIntegralNumber = __webpack_require__(/*! ./IsIntegralNumber */ "./node_modules/es-abstract/2021/IsIntegralNumber.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+// https://ecma-international.org/ecma-262/12.0/#sec-advancestringindex
+
+module.exports = function AdvanceStringIndex(S, index, unicode) {
+	if (Type(S) !== 'String') {
+		throw new $TypeError('Assertion failed: `S` must be a String');
+	}
+	if (!IsIntegralNumber(index) || index < 0 || index > MAX_SAFE_INTEGER) {
+		throw new $TypeError('Assertion failed: `length` must be an integer >= 0 and <= 2**53');
+	}
+	if (Type(unicode) !== 'Boolean') {
+		throw new $TypeError('Assertion failed: `unicode` must be a Boolean');
+	}
+	if (!unicode) {
+		return index + 1;
+	}
+	var length = S.length;
+	if ((index + 1) >= length) {
+		return index + 1;
+	}
+	var cp = CodePointAt(S, index);
+	return index + cp['[[CodeUnitCount]]'];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Call.js":
+/*!***********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Call.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
+
+var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('%Function.prototype.apply%');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-call
+
+module.exports = function Call(F, V) {
+	var argumentsList = arguments.length > 2 ? arguments[2] : [];
+	if (!IsArray(argumentsList)) {
+		throw new $TypeError('Assertion failed: optional `argumentsList`, if provided, must be a List');
+	}
+	return $apply(F, V, argumentsList);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CodePointAt.js":
+/*!******************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CodePointAt.js ***!
+  \******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
+var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var UTF16SurrogatePairToCodePoint = __webpack_require__(/*! ./UTF16SurrogatePairToCodePoint */ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js");
+
+var $charAt = callBound('String.prototype.charAt');
+var $charCodeAt = callBound('String.prototype.charCodeAt');
+
+// https://ecma-international.org/ecma-262/12.0/#sec-codepointat
+
+module.exports = function CodePointAt(string, position) {
+	if (Type(string) !== 'String') {
+		throw new $TypeError('Assertion failed: `string` must be a String');
+	}
+	var size = string.length;
+	if (position < 0 || position >= size) {
+		throw new $TypeError('Assertion failed: `position` must be >= 0, and < the length of `string`');
+	}
+	var first = $charCodeAt(string, position);
+	var cp = $charAt(string, position);
+	var firstIsLeading = isLeadingSurrogate(first);
+	var firstIsTrailing = isTrailingSurrogate(first);
+	if (!firstIsLeading && !firstIsTrailing) {
+		return {
+			'[[CodePoint]]': cp,
+			'[[CodeUnitCount]]': 1,
+			'[[IsUnpairedSurrogate]]': false
+		};
+	}
+	if (firstIsTrailing || (position + 1 === size)) {
+		return {
+			'[[CodePoint]]': cp,
+			'[[CodeUnitCount]]': 1,
+			'[[IsUnpairedSurrogate]]': true
+		};
+	}
+	var second = $charCodeAt(string, position + 1);
+	if (!isTrailingSurrogate(second)) {
+		return {
+			'[[CodePoint]]': cp,
+			'[[CodeUnitCount]]': 1,
+			'[[IsUnpairedSurrogate]]': true
+		};
+	}
+
+	return {
+		'[[CodePoint]]': UTF16SurrogatePairToCodePoint(first, second),
+		'[[CodeUnitCount]]': 2,
+		'[[IsUnpairedSurrogate]]': false
+	};
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CreateIterResultObject.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CreateIterResultObject.js ***!
+  \*****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-createiterresultobject
+
+module.exports = function CreateIterResultObject(value, done) {
+	if (Type(done) !== 'Boolean') {
+		throw new $TypeError('Assertion failed: Type(done) is not Boolean');
+	}
+	return {
+		value: value,
+		done: done
+	};
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CreateMethodProperty.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CreateMethodProperty.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
+
+var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
+var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-createmethodproperty
+
+module.exports = function CreateMethodProperty(O, P, V) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	var newDesc = {
+		'[[Configurable]]': true,
+		'[[Enumerable]]': false,
+		'[[Value]]': V,
+		'[[Writable]]': true
+	};
+	return DefineOwnProperty(
+		IsDataDescriptor,
+		SameValue,
+		FromPropertyDescriptor,
+		O,
+		P,
+		newDesc
+	);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CreateRegExpStringIterator.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CreateRegExpStringIterator.js ***!
+  \*********************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var IteratorPrototype = GetIntrinsic('%IteratorPrototype%', true);
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+var AdvanceStringIndex = __webpack_require__(/*! ./AdvanceStringIndex */ "./node_modules/es-abstract/2021/AdvanceStringIndex.js");
+var CreateIterResultObject = __webpack_require__(/*! ./CreateIterResultObject */ "./node_modules/es-abstract/2021/CreateIterResultObject.js");
+var CreateMethodProperty = __webpack_require__(/*! ./CreateMethodProperty */ "./node_modules/es-abstract/2021/CreateMethodProperty.js");
+var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
+var OrdinaryObjectCreate = __webpack_require__(/*! ./OrdinaryObjectCreate */ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js");
+var RegExpExec = __webpack_require__(/*! ./RegExpExec */ "./node_modules/es-abstract/2021/RegExpExec.js");
+var Set = __webpack_require__(/*! ./Set */ "./node_modules/es-abstract/2021/Set.js");
+var ToLength = __webpack_require__(/*! ./ToLength */ "./node_modules/es-abstract/2021/ToLength.js");
+var ToString = __webpack_require__(/*! ./ToString */ "./node_modules/es-abstract/2021/ToString.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var SLOT = __webpack_require__(/*! internal-slot */ "./node_modules/internal-slot/index.js");
+
+var RegExpStringIterator = function RegExpStringIterator(R, S, global, fullUnicode) {
+	if (Type(S) !== 'String') {
+		throw new $TypeError('`S` must be a string');
+	}
+	if (Type(global) !== 'Boolean') {
+		throw new $TypeError('`global` must be a boolean');
+	}
+	if (Type(fullUnicode) !== 'Boolean') {
+		throw new $TypeError('`fullUnicode` must be a boolean');
+	}
+	SLOT.set(this, '[[IteratingRegExp]]', R);
+	SLOT.set(this, '[[IteratedString]]', S);
+	SLOT.set(this, '[[Global]]', global);
+	SLOT.set(this, '[[Unicode]]', fullUnicode);
+	SLOT.set(this, '[[Done]]', false);
+};
+
+if (IteratorPrototype) {
+	RegExpStringIterator.prototype = OrdinaryObjectCreate(IteratorPrototype);
+}
+
+var RegExpStringIteratorNext = function next() {
+	var O = this; // eslint-disable-line no-invalid-this
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('receiver must be an object');
+	}
+	if (
+		!(O instanceof RegExpStringIterator)
+        || !SLOT.has(O, '[[IteratingRegExp]]')
+        || !SLOT.has(O, '[[IteratedString]]')
+        || !SLOT.has(O, '[[Global]]')
+        || !SLOT.has(O, '[[Unicode]]')
+        || !SLOT.has(O, '[[Done]]')
+	) {
+		throw new $TypeError('"this" value must be a RegExpStringIterator instance');
+	}
+	if (SLOT.get(O, '[[Done]]')) {
+		return CreateIterResultObject(undefined, true);
+	}
+	var R = SLOT.get(O, '[[IteratingRegExp]]');
+	var S = SLOT.get(O, '[[IteratedString]]');
+	var global = SLOT.get(O, '[[Global]]');
+	var fullUnicode = SLOT.get(O, '[[Unicode]]');
+	var match = RegExpExec(R, S);
+	if (match === null) {
+		SLOT.set(O, '[[Done]]', true);
+		return CreateIterResultObject(undefined, true);
+	}
+	if (global) {
+		var matchStr = ToString(Get(match, '0'));
+		if (matchStr === '') {
+			var thisIndex = ToLength(Get(R, 'lastIndex'));
+			var nextIndex = AdvanceStringIndex(S, thisIndex, fullUnicode);
+			Set(R, 'lastIndex', nextIndex, true);
+		}
+		return CreateIterResultObject(match, false);
+	}
+	SLOT.set(O, '[[Done]]', true);
+	return CreateIterResultObject(match, false);
+};
+CreateMethodProperty(RegExpStringIterator.prototype, 'next', RegExpStringIteratorNext);
+
+if (hasSymbols) {
+	if (Symbol.toStringTag) {
+		if ($defineProperty) {
+			$defineProperty(RegExpStringIterator.prototype, Symbol.toStringTag, {
+				configurable: true,
+				enumerable: false,
+				value: 'RegExp String Iterator',
+				writable: false
+			});
+		} else {
+			RegExpStringIterator.prototype[Symbol.toStringTag] = 'RegExp String Iterator';
+		}
+	}
+
+	if (Symbol.iterator && typeof RegExpStringIterator.prototype[Symbol.iterator] !== 'function') {
+		var iteratorFn = function SymbolIterator() {
+			return this;
+		};
+		CreateMethodProperty(RegExpStringIterator.prototype, Symbol.iterator, iteratorFn);
+	}
+}
+
+// https://262.ecma-international.org/11.0/#sec-createregexpstringiterator
+module.exports = function CreateRegExpStringIterator(R, S, global, fullUnicode) {
+	// assert R.global === global && R.unicode === fullUnicode?
+	return new RegExpStringIterator(R, S, global, fullUnicode);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/DefinePropertyOrThrow.js ***!
+  \****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var isPropertyDescriptor = __webpack_require__(/*! ../helpers/isPropertyDescriptor */ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js");
+var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
+
+var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
+var IsAccessorDescriptor = __webpack_require__(/*! ./IsAccessorDescriptor */ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js");
+var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
+var ToPropertyDescriptor = __webpack_require__(/*! ./ToPropertyDescriptor */ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-definepropertyorthrow
+
+module.exports = function DefinePropertyOrThrow(O, P, desc) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	var Desc = isPropertyDescriptor({
+		Type: Type,
+		IsDataDescriptor: IsDataDescriptor,
+		IsAccessorDescriptor: IsAccessorDescriptor
+	}, desc) ? desc : ToPropertyDescriptor(desc);
+	if (!isPropertyDescriptor({
+		Type: Type,
+		IsDataDescriptor: IsDataDescriptor,
+		IsAccessorDescriptor: IsAccessorDescriptor
+	}, Desc)) {
+		throw new $TypeError('Assertion failed: Desc is not a valid Property Descriptor');
+	}
+
+	return DefineOwnProperty(
+		IsDataDescriptor,
+		SameValue,
+		FromPropertyDescriptor,
+		O,
+		P,
+		Desc
+	);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/FromPropertyDescriptor.js ***!
+  \*****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-frompropertydescriptor
+
+module.exports = function FromPropertyDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return Desc;
+	}
+
+	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
+
+	var obj = {};
+	if ('[[Value]]' in Desc) {
+		obj.value = Desc['[[Value]]'];
+	}
+	if ('[[Writable]]' in Desc) {
+		obj.writable = Desc['[[Writable]]'];
+	}
+	if ('[[Get]]' in Desc) {
+		obj.get = Desc['[[Get]]'];
+	}
+	if ('[[Set]]' in Desc) {
+		obj.set = Desc['[[Set]]'];
+	}
+	if ('[[Enumerable]]' in Desc) {
+		obj.enumerable = Desc['[[Enumerable]]'];
+	}
+	if ('[[Configurable]]' in Desc) {
+		obj.configurable = Desc['[[Configurable]]'];
+	}
+	return obj;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Get.js":
+/*!**********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Get.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
+
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+/**
+ * 7.3.1 Get (O, P) - https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
+ * 1. Assert: Type(O) is Object.
+ * 2. Assert: IsPropertyKey(P) is true.
+ * 3. Return O.[[Get]](P, O).
+ */
+
+module.exports = function Get(O, P) {
+	// 7.3.1.1
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+	// 7.3.1.2
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true, got ' + inspect(P));
+	}
+	// 7.3.1.3
+	return O[P];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/GetMethod.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/GetMethod.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var GetV = __webpack_require__(/*! ./GetV */ "./node_modules/es-abstract/2021/GetV.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+
+/**
+ * 7.3.9 - https://ecma-international.org/ecma-262/6.0/#sec-getmethod
+ * 1. Assert: IsPropertyKey(P) is true.
+ * 2. Let func be GetV(O, P).
+ * 3. ReturnIfAbrupt(func).
+ * 4. If func is either undefined or null, return undefined.
+ * 5. If IsCallable(func) is false, throw a TypeError exception.
+ * 6. Return func.
+ */
+
+module.exports = function GetMethod(O, P) {
+	// 7.3.9.1
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	// 7.3.9.2
+	var func = GetV(O, P);
+
+	// 7.3.9.4
+	if (func == null) {
+		return void 0;
+	}
+
+	// 7.3.9.5
+	if (!IsCallable(func)) {
+		throw new $TypeError(P + 'is not a function');
+	}
+
+	// 7.3.9.6
+	return func;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/GetV.js":
+/*!***********************************************!*\
+  !*** ./node_modules/es-abstract/2021/GetV.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2021/ToObject.js");
+
+/**
+ * 7.3.2 GetV (V, P)
+ * 1. Assert: IsPropertyKey(P) is true.
+ * 2. Let O be ToObject(V).
+ * 3. ReturnIfAbrupt(O).
+ * 4. Return O.[[Get]](P, V).
+ */
+
+module.exports = function GetV(V, P) {
+	// 7.3.2.1
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	// 7.3.2.2-3
+	var O = ToObject(V);
+
+	// 7.3.2.4
+	return O[P];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsAccessorDescriptor.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isaccessordescriptor
+
+module.exports = function IsAccessorDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return false;
+	}
+
+	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
+
+	if (!has(Desc, '[[Get]]') && !has(Desc, '[[Set]]')) {
+		return false;
+	}
+
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsArray.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsArray.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Array = GetIntrinsic('%Array%');
+
+// eslint-disable-next-line global-require
+var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isarray
+
+module.exports = $Array.isArray || function IsArray(argument) {
+	return toStr(argument) === '[object Array]';
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsCallable.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsCallable.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.11
+
+module.exports = __webpack_require__(/*! is-callable */ "./node_modules/is-callable/index.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsConstructor.js":
+/*!********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsConstructor.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! ../GetIntrinsic.js */ "./node_modules/es-abstract/GetIntrinsic.js");
+
+var $construct = GetIntrinsic('%Reflect.construct%', true);
+
+var DefinePropertyOrThrow = __webpack_require__(/*! ./DefinePropertyOrThrow */ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js");
+try {
+	DefinePropertyOrThrow({}, '', { '[[Get]]': function () {} });
+} catch (e) {
+	// Accessor properties aren't supported
+	DefinePropertyOrThrow = null;
+}
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isconstructor
+
+if (DefinePropertyOrThrow && $construct) {
+	var isConstructorMarker = {};
+	var badArrayLike = {};
+	DefinePropertyOrThrow(badArrayLike, 'length', {
+		'[[Get]]': function () {
+			throw isConstructorMarker;
+		},
+		'[[Enumerable]]': true
+	});
+
+	module.exports = function IsConstructor(argument) {
+		try {
+			// `Reflect.construct` invokes `IsConstructor(target)` before `Get(args, 'length')`:
+			$construct(argument, badArrayLike);
+		} catch (err) {
+			return err === isConstructorMarker;
+		}
+	};
+} else {
+	module.exports = function IsConstructor(argument) {
+		// unfortunately there's no way to truly check this without try/catch `new argument` in old environments
+		return typeof argument === 'function' && !!argument.prototype;
+	};
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsDataDescriptor.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsDataDescriptor.js ***!
+  \***********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isdatadescriptor
+
+module.exports = function IsDataDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return false;
+	}
+
+	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
+
+	if (!has(Desc, '[[Value]]') && !has(Desc, '[[Writable]]')) {
+		return false;
+	}
+
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsIntegralNumber.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsIntegralNumber.js ***!
+  \***********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2021/abs.js");
+var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2021/floor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
+
+// https://tc39.es/ecma262/#sec-isintegralnumber
+
+module.exports = function IsIntegralNumber(argument) {
+	if (Type(argument) !== 'Number' || $isNaN(argument) || !$isFinite(argument)) {
+		return false;
+	}
+	var absValue = abs(argument);
+	return floor(absValue) === absValue;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsPropertyKey.js":
+/*!********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsPropertyKey.js ***!
+  \********************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// https://ecma-international.org/ecma-262/6.0/#sec-ispropertykey
+
+module.exports = function IsPropertyKey(argument) {
+	return typeof argument === 'string' || typeof argument === 'symbol';
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsRegExp.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsRegExp.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $match = GetIntrinsic('%Symbol.match%', true);
+
+var hasRegExpMatcher = __webpack_require__(/*! is-regex */ "./node_modules/is-regex/index.js");
+
+var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isregexp
+
+module.exports = function IsRegExp(argument) {
+	if (!argument || typeof argument !== 'object') {
+		return false;
+	}
+	if ($match) {
+		var isRegExp = argument[$match];
+		if (typeof isRegExp !== 'undefined') {
+			return ToBoolean(isRegExp);
+		}
+	}
+	return hasRegExpMatcher(argument);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/OrdinaryObjectCreate.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $ObjectCreate = GetIntrinsic('%Object.create%', true);
+var $TypeError = GetIntrinsic('%TypeError%');
+var $SyntaxError = GetIntrinsic('%SyntaxError%');
+
+var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var hasProto = !({ __proto__: null } instanceof Object);
+
+// https://262.ecma-international.org/6.0/#sec-objectcreate
+
+module.exports = function OrdinaryObjectCreate(proto) {
+	if (proto !== null && Type(proto) !== 'Object') {
+		throw new $TypeError('Assertion failed: `proto` must be null or an object');
+	}
+	var additionalInternalSlotsList = arguments.length < 2 ? [] : arguments[1];
+	if (!IsArray(additionalInternalSlotsList)) {
+		throw new $TypeError('Assertion failed: `additionalInternalSlotsList` must be an Array');
+	}
+	// var internalSlotsList = ['[[Prototype]]', '[[Extensible]]'];
+	if (additionalInternalSlotsList.length > 0) {
+		throw new $SyntaxError('es-abstract does not yet support internal slots');
+		// internalSlotsList.push(...additionalInternalSlotsList);
+	}
+	// var O = MakeBasicObject(internalSlotsList);
+	// setProto(O, proto);
+	// return O;
+
+	if ($ObjectCreate) {
+		return $ObjectCreate(proto);
+	}
+	if (hasProto) {
+		return { __proto__: proto };
+	}
+
+	if (proto === null) {
+		throw new $SyntaxError('native Object.create support is required to create null objects');
+	}
+	var T = function T() {};
+	T.prototype = proto;
+	return new T();
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/RegExpExec.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/RegExpExec.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var regexExec = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('RegExp.prototype.exec');
+
+var Call = __webpack_require__(/*! ./Call */ "./node_modules/es-abstract/2021/Call.js");
+var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-regexpexec
+
+module.exports = function RegExpExec(R, S) {
+	if (Type(R) !== 'Object') {
+		throw new $TypeError('Assertion failed: `R` must be an Object');
+	}
+	if (Type(S) !== 'String') {
+		throw new $TypeError('Assertion failed: `S` must be a String');
+	}
+	var exec = Get(R, 'exec');
+	if (IsCallable(exec)) {
+		var result = Call(exec, R, [S]);
+		if (result === null || Type(result) === 'Object') {
+			return result;
+		}
+		throw new $TypeError('"exec" method must return `null` or an Object');
+	}
+	return regexExec(R, S);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/RequireObjectCoercible.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/RequireObjectCoercible.js ***!
+  \*****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+module.exports = __webpack_require__(/*! ../5/CheckObjectCoercible */ "./node_modules/es-abstract/5/CheckObjectCoercible.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/SameValue.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/SameValue.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+
+// http://262.ecma-international.org/5.1/#sec-9.12
+
+module.exports = function SameValue(x, y) {
+	if (x === y) { // 0 === -0, but they are not identical.
+		if (x === 0) { return 1 / x === 1 / y; }
+		return true;
+	}
+	return $isNaN(x) && $isNaN(y);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Set.js":
+/*!**********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Set.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// IE 9 does not throw in strict mode when writability/configurability/extensibility is violated
+var noThrowOnStrictViolation = (function () {
+	try {
+		delete [].length;
+		return true;
+	} catch (e) {
+		return false;
+	}
+}());
+
+// https://ecma-international.org/ecma-262/6.0/#sec-set-o-p-v-throw
+
+module.exports = function Set(O, P, V, Throw) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: `O` must be an Object');
+	}
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: `P` must be a Property Key');
+	}
+	if (Type(Throw) !== 'Boolean') {
+		throw new $TypeError('Assertion failed: `Throw` must be a Boolean');
+	}
+	if (Throw) {
+		O[P] = V; // eslint-disable-line no-param-reassign
+		if (noThrowOnStrictViolation && !SameValue(O[P], V)) {
+			throw new $TypeError('Attempted to assign to readonly property.');
+		}
+		return true;
+	}
+	try {
+		O[P] = V; // eslint-disable-line no-param-reassign
+		return noThrowOnStrictViolation ? SameValue(O[P], V) : true;
+	} catch (e) {
+		return false;
+	}
+
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/SpeciesConstructor.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/SpeciesConstructor.js ***!
+  \*************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $species = GetIntrinsic('%Symbol.species%', true);
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsConstructor = __webpack_require__(/*! ./IsConstructor */ "./node_modules/es-abstract/2021/IsConstructor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-speciesconstructor
+
+module.exports = function SpeciesConstructor(O, defaultConstructor) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+	var C = O.constructor;
+	if (typeof C === 'undefined') {
+		return defaultConstructor;
+	}
+	if (Type(C) !== 'Object') {
+		throw new $TypeError('O.constructor is not an Object');
+	}
+	var S = $species ? C[$species] : void 0;
+	if (S == null) {
+		return defaultConstructor;
+	}
+	if (IsConstructor(S)) {
+		return S;
+	}
+	throw new $TypeError('no constructor found');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToBoolean.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToBoolean.js ***!
+  \****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.2
+
+module.exports = function ToBoolean(value) { return !!value; };
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToIntegerOrInfinity.js ***!
+  \**************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var ES5ToInteger = __webpack_require__(/*! ../5/ToInteger */ "./node_modules/es-abstract/5/ToInteger.js");
+
+var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/2021/ToNumber.js");
+
+// https://www.ecma-international.org/ecma-262/11.0/#sec-tointeger
+
+module.exports = function ToInteger(value) {
+	var number = ToNumber(value);
+	if (number !== 0) {
+		number = ES5ToInteger(number);
+	}
+	return number === 0 ? 0 : number;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToLength.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToLength.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
+
+var ToIntegerOrInfinity = __webpack_require__(/*! ./ToIntegerOrInfinity */ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js");
+
+module.exports = function ToLength(argument) {
+	var len = ToIntegerOrInfinity(argument);
+	if (len <= 0) { return 0; } // includes converting -0 to +0
+	if (len > MAX_SAFE_INTEGER) { return MAX_SAFE_INTEGER; }
+	return len;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToNumber.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToNumber.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $Number = GetIntrinsic('%Number%');
+var $RegExp = GetIntrinsic('%RegExp%');
+var $parseInteger = GetIntrinsic('%parseInt%');
+
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var regexTester = __webpack_require__(/*! ../helpers/regexTester */ "./node_modules/es-abstract/helpers/regexTester.js");
+var isPrimitive = __webpack_require__(/*! ../helpers/isPrimitive */ "./node_modules/es-abstract/helpers/isPrimitive.js");
+
+var $strSlice = callBound('String.prototype.slice');
+var isBinary = regexTester(/^0b[01]+$/i);
+var isOctal = regexTester(/^0o[0-7]+$/i);
+var isInvalidHexLiteral = regexTester(/^[-+]0x[0-9a-f]+$/i);
+var nonWS = ['\u0085', '\u200b', '\ufffe'].join('');
+var nonWSregex = new $RegExp('[' + nonWS + ']', 'g');
+var hasNonWS = regexTester(nonWSregex);
+
+// whitespace from: https://es5.github.io/#x15.5.4.20
+// implementation from https://github.com/es-shims/es5-shim/blob/v3.4.0/es5-shim.js#L1304-L1324
+var ws = [
+	'\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003',
+	'\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028',
+	'\u2029\uFEFF'
+].join('');
+var trimRegex = new RegExp('(^[' + ws + ']+)|([' + ws + ']+$)', 'g');
+var $replace = callBound('String.prototype.replace');
+var $trim = function (value) {
+	return $replace(value, trimRegex, '');
+};
+
+var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/2021/ToPrimitive.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-tonumber
+
+module.exports = function ToNumber(argument) {
+	var value = isPrimitive(argument) ? argument : ToPrimitive(argument, $Number);
+	if (typeof value === 'symbol') {
+		throw new $TypeError('Cannot convert a Symbol value to a number');
+	}
+	if (typeof value === 'bigint') {
+		throw new $TypeError('Conversion from \'BigInt\' to \'number\' is not allowed.');
+	}
+	if (typeof value === 'string') {
+		if (isBinary(value)) {
+			return ToNumber($parseInteger($strSlice(value, 2), 2));
+		} else if (isOctal(value)) {
+			return ToNumber($parseInteger($strSlice(value, 2), 8));
+		} else if (hasNonWS(value) || isInvalidHexLiteral(value)) {
+			return NaN;
+		}
+		var trimmed = $trim(value);
+		if (trimmed !== value) {
+			return ToNumber(trimmed);
+		}
+
+	}
+	return $Number(value);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToObject.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToObject.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Object = GetIntrinsic('%Object%');
+
+var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2021/RequireObjectCoercible.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-toobject
+
+module.exports = function ToObject(value) {
+	RequireObjectCoercible(value);
+	return $Object(value);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToPrimitive.js":
+/*!******************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToPrimitive.js ***!
+  \******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var toPrimitive = __webpack_require__(/*! es-to-primitive/es2015 */ "./node_modules/es-to-primitive/es2015.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-toprimitive
+
+module.exports = function ToPrimitive(input) {
+	if (arguments.length > 1) {
+		return toPrimitive(input, arguments[1]);
+	}
+	return toPrimitive(input);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToPropertyDescriptor.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+
+// https://262.ecma-international.org/5.1/#sec-8.10.5
+
+module.exports = function ToPropertyDescriptor(Obj) {
+	if (Type(Obj) !== 'Object') {
+		throw new $TypeError('ToPropertyDescriptor requires an object');
+	}
+
+	var desc = {};
+	if (has(Obj, 'enumerable')) {
+		desc['[[Enumerable]]'] = ToBoolean(Obj.enumerable);
+	}
+	if (has(Obj, 'configurable')) {
+		desc['[[Configurable]]'] = ToBoolean(Obj.configurable);
+	}
+	if (has(Obj, 'value')) {
+		desc['[[Value]]'] = Obj.value;
+	}
+	if (has(Obj, 'writable')) {
+		desc['[[Writable]]'] = ToBoolean(Obj.writable);
+	}
+	if (has(Obj, 'get')) {
+		var getter = Obj.get;
+		if (typeof getter !== 'undefined' && !IsCallable(getter)) {
+			throw new $TypeError('getter must be a function');
+		}
+		desc['[[Get]]'] = getter;
+	}
+	if (has(Obj, 'set')) {
+		var setter = Obj.set;
+		if (typeof setter !== 'undefined' && !IsCallable(setter)) {
+			throw new $TypeError('setter must be a function');
+		}
+		desc['[[Set]]'] = setter;
+	}
+
+	if ((has(desc, '[[Get]]') || has(desc, '[[Set]]')) && (has(desc, '[[Value]]') || has(desc, '[[Writable]]'))) {
+		throw new $TypeError('Invalid property descriptor. Cannot both specify accessors and a value or writable attribute');
+	}
+	return desc;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToString.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToString.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $String = GetIntrinsic('%String%');
+var $TypeError = GetIntrinsic('%TypeError%');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-tostring
+
+module.exports = function ToString(argument) {
+	if (typeof argument === 'symbol') {
+		throw new $TypeError('Cannot convert a Symbol value to a string');
+	}
+	return $String(argument);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Type.js":
+/*!***********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Type.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var ES5Type = __webpack_require__(/*! ../5/Type */ "./node_modules/es-abstract/5/Type.js");
+
+// https://262.ecma-international.org/11.0/#sec-ecmascript-data-types-and-values
+
+module.exports = function Type(x) {
+	if (typeof x === 'symbol') {
+		return 'Symbol';
+	}
+	if (typeof x === 'bigint') {
+		return 'BigInt';
+	}
+	return ES5Type(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js ***!
+  \************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $fromCharCode = GetIntrinsic('%String.fromCharCode%');
+
+var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
+var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
+
+// https://tc39.es/ecma262/2020/#sec-utf16decodesurrogatepair
+
+module.exports = function UTF16DecodeSurrogatePair(lead, trail) {
+	if (!isLeadingSurrogate(lead) || !isTrailingSurrogate(trail)) {
+		throw new $TypeError('Assertion failed: `lead` must be a leading surrogate char code, and `trail` must be a trailing surrogate char code');
+	}
+	// var cp = (lead - 0xD800) * 0x400 + (trail - 0xDC00) + 0x10000;
+	return $fromCharCode(lead) + $fromCharCode(trail);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/abs.js":
+/*!**********************************************!*\
+  !*** ./node_modules/es-abstract/2021/abs.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $abs = GetIntrinsic('%Math.abs%');
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function abs(x) {
+	return $abs(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/floor.js":
+/*!************************************************!*\
+  !*** ./node_modules/es-abstract/2021/floor.js ***!
+  \************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// var modulo = require('./modulo');
+var $floor = Math.floor;
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function floor(x) {
+	// return x - modulo(x, 1);
+	return $floor(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/CheckObjectCoercible.js":
+/*!************************************************************!*\
+  !*** ./node_modules/es-abstract/5/CheckObjectCoercible.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+// http://262.ecma-international.org/5.1/#sec-9.10
+
+module.exports = function CheckObjectCoercible(value, optMessage) {
+	if (value == null) {
+		throw new $TypeError(optMessage || ('Cannot call method on ' + value));
+	}
+	return value;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/ToInteger.js":
+/*!*************************************************!*\
+  !*** ./node_modules/es-abstract/5/ToInteger.js ***!
+  \*************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/5/abs.js");
+var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/5/floor.js");
+var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/5/ToNumber.js");
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
+var $sign = __webpack_require__(/*! ../helpers/sign */ "./node_modules/es-abstract/helpers/sign.js");
+
+// http://262.ecma-international.org/5.1/#sec-9.4
+
+module.exports = function ToInteger(value) {
+	var number = ToNumber(value);
+	if ($isNaN(number)) { return 0; }
+	if (number === 0 || !$isFinite(number)) { return number; }
+	return $sign(number) * floor(abs(number));
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/ToNumber.js":
+/*!************************************************!*\
+  !*** ./node_modules/es-abstract/5/ToNumber.js ***!
+  \************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/5/ToPrimitive.js");
+
+// http://262.ecma-international.org/5.1/#sec-9.3
+
+module.exports = function ToNumber(value) {
+	var prim = ToPrimitive(value, Number);
+	if (typeof prim !== 'string') {
+		return +prim; // eslint-disable-line no-implicit-coercion
+	}
+
+	// eslint-disable-next-line no-control-regex
+	var trimmed = prim.replace(/^[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+|[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+$/g, '');
+	if ((/^0[ob]|^[+-]0x/).test(trimmed)) {
+		return NaN;
+	}
+
+	return +trimmed; // eslint-disable-line no-implicit-coercion
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/ToPrimitive.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/5/ToPrimitive.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.1
+
+module.exports = __webpack_require__(/*! es-to-primitive/es5 */ "./node_modules/es-to-primitive/es5.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/Type.js":
+/*!********************************************!*\
+  !*** ./node_modules/es-abstract/5/Type.js ***!
+  \********************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// https://262.ecma-international.org/5.1/#sec-8
+
+module.exports = function Type(x) {
+	if (x === null) {
+		return 'Null';
+	}
+	if (typeof x === 'undefined') {
+		return 'Undefined';
+	}
+	if (typeof x === 'function' || typeof x === 'object') {
+		return 'Object';
+	}
+	if (typeof x === 'number') {
+		return 'Number';
+	}
+	if (typeof x === 'boolean') {
+		return 'Boolean';
+	}
+	if (typeof x === 'string') {
+		return 'String';
+	}
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/abs.js":
+/*!*******************************************!*\
+  !*** ./node_modules/es-abstract/5/abs.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $abs = GetIntrinsic('%Math.abs%');
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function abs(x) {
+	return $abs(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/floor.js":
+/*!*********************************************!*\
+  !*** ./node_modules/es-abstract/5/floor.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// var modulo = require('./modulo');
+var $floor = Math.floor;
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function floor(x) {
+	// return x - modulo(x, 1);
+	return $floor(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/GetIntrinsic.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/GetIntrinsic.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// TODO: remove, semver-major
+
+module.exports = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/DefineOwnProperty.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/DefineOwnProperty.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = null;
+	}
+}
+
+// node v0.6 has a bug where array lengths can be Set but not Defined
+var hasArrayLengthDefineBug = Object.defineProperty && Object.defineProperty([], 'length', { value: 1 }).length === 0;
+
+// eslint-disable-next-line global-require
+var isArray = hasArrayLengthDefineBug && __webpack_require__(/*! ../2020/IsArray */ "./node_modules/es-abstract/2020/IsArray.js"); // this does not depend on any other AOs.
+
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+
+var $isEnumerable = callBound('Object.prototype.propertyIsEnumerable');
+
+// eslint-disable-next-line max-params
+module.exports = function DefineOwnProperty(IsDataDescriptor, SameValue, FromPropertyDescriptor, O, P, desc) {
+	if (!$defineProperty) {
+		if (!IsDataDescriptor(desc)) {
+			// ES3 does not support getters/setters
+			return false;
+		}
+		if (!desc['[[Configurable]]'] || !desc['[[Writable]]']) {
+			return false;
+		}
+
+		// fallback for ES3
+		if (P in O && $isEnumerable(O, P) !== !!desc['[[Enumerable]]']) {
+			// a non-enumerable existing property
+			return false;
+		}
+
+		// property does not exist at all, or exists but is enumerable
+		var V = desc['[[Value]]'];
+		// eslint-disable-next-line no-param-reassign
+		O[P] = V; // will use [[Define]]
+		return SameValue(O[P], V);
+	}
+	if (
+		hasArrayLengthDefineBug
+		&& P === 'length'
+		&& '[[Value]]' in desc
+		&& isArray(O)
+		&& O.length !== desc['[[Value]]']
+	) {
+		// eslint-disable-next-line no-param-reassign
+		O.length = desc['[[Value]]'];
+		return O.length === desc['[[Value]]'];
+	}
+
+	$defineProperty(O, P, FromPropertyDescriptor(desc));
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/assertRecord.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/assertRecord.js ***!
+  \**********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $SyntaxError = GetIntrinsic('%SyntaxError%');
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var predicates = {
+	// https://262.ecma-international.org/6.0/#sec-property-descriptor-specification-type
+	'Property Descriptor': function isPropertyDescriptor(Type, Desc) {
+		if (Type(Desc) !== 'Object') {
+			return false;
+		}
+		var allowed = {
+			'[[Configurable]]': true,
+			'[[Enumerable]]': true,
+			'[[Get]]': true,
+			'[[Set]]': true,
+			'[[Value]]': true,
+			'[[Writable]]': true
+		};
+
+		for (var key in Desc) { // eslint-disable-line
+			if (has(Desc, key) && !allowed[key]) {
+				return false;
+			}
+		}
+
+		var isData = has(Desc, '[[Value]]');
+		var IsAccessor = has(Desc, '[[Get]]') || has(Desc, '[[Set]]');
+		if (isData && IsAccessor) {
+			throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
+		}
+		return true;
+	}
+};
+
+module.exports = function assertRecord(Type, recordType, argumentName, value) {
+	var predicate = predicates[recordType];
+	if (typeof predicate !== 'function') {
+		throw new $SyntaxError('unknown record type: ' + recordType);
+	}
+	if (!predicate(Type, value)) {
+		throw new $TypeError(argumentName + ' must be a ' + recordType);
+	}
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isFinite.js":
+/*!******************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isFinite.js ***!
+  \******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var $isNaN = Number.isNaN || function (a) { return a !== a; };
+
+module.exports = Number.isFinite || function (x) { return typeof x === 'number' && !$isNaN(x) && x !== Infinity && x !== -Infinity; };
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isLeadingSurrogate.js ***!
+  \****************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isLeadingSurrogate(charCode) {
+	return typeof charCode === 'number' && charCode >= 0xD800 && charCode <= 0xDBFF;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isNaN.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isNaN.js ***!
+  \***************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = Number.isNaN || function isNaN(a) {
+	return a !== a;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isPrimitive.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isPrimitive.js ***!
+  \*********************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isPrimitive(value) {
+	return value === null || (typeof value !== 'function' && typeof value !== 'object');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isPropertyDescriptor.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var $TypeError = GetIntrinsic('%TypeError%');
+
+module.exports = function IsPropertyDescriptor(ES, Desc) {
+	if (ES.Type(Desc) !== 'Object') {
+		return false;
+	}
+	var allowed = {
+		'[[Configurable]]': true,
+		'[[Enumerable]]': true,
+		'[[Get]]': true,
+		'[[Set]]': true,
+		'[[Value]]': true,
+		'[[Writable]]': true
+	};
+
+	for (var key in Desc) { // eslint-disable-line no-restricted-syntax
+		if (has(Desc, key) && !allowed[key]) {
+			return false;
+		}
+	}
+
+	if (ES.IsDataDescriptor(Desc) && ES.IsAccessorDescriptor(Desc)) {
+		throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
+	}
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isTrailingSurrogate.js ***!
+  \*****************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isTrailingSurrogate(charCode) {
+	return typeof charCode === 'number' && charCode >= 0xDC00 && charCode <= 0xDFFF;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/maxSafeInteger.js":
+/*!************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/maxSafeInteger.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Math = GetIntrinsic('%Math%');
+var $Number = GetIntrinsic('%Number%');
+
+module.exports = $Number.MAX_SAFE_INTEGER || $Math.pow(2, 53) - 1;
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/regexTester.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/regexTester.js ***!
+  \*********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $test = GetIntrinsic('RegExp.prototype.test');
+
+var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
+
+module.exports = function regexTester(regex) {
+	return callBind($test, regex);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/sign.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/sign.js ***!
+  \**************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function sign(number) {
+	return number >= 0 ? 1 : -1;
+};
+
 
 /***/ })
 
