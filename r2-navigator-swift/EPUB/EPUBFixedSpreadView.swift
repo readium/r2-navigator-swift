@@ -78,6 +78,13 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
               {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
               {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
             );
+            var iframe = document.querySelector('#page');
+            iframe.addEventListener('load', function () {
+               var doc = iframe.contentWindow.document;
+               var style = doc.createElement('style');
+               style.innerHTML = "img {-webkit-touch-callout: none; -webkit-user-select: none; user-select: none;}";
+               doc.head.appendChild(style);
+            });
         """)
     }
     
