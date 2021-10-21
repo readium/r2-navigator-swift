@@ -2,10 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
-**Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with
+**Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with
 *caution.
 
 <!--## [Unreleased]-->
+
+## [2.1.0]
+
+### Added
+
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-navigator-swift/pull/176)).
+* EPUB navigator:
+    * The EPUB navigator is now able to navigate to a `Locator` using its `text` context. This is useful for search results or highlights missing precise locations.
+    * New `EPUBNavigatorViewController.evaluateJavaScript()` API to run a JavaScript on the currently visible HTML resource.
+    * New `userSettings` property for `EPUBNavigatorViewController.Configuration` to set the default user settings values (contributed by [@ettore](https://github.com/readium/r2-navigator-swift/pull/191)).
+    * You can provide custom editing actions for the text selection menu (contributed by [@cbaltzer](https://github.com/readium/r2-navigator-swift/pull/181)).
+        1. Create a custom action with, for example: `EditingAction(title: "Highlight", action: #selector(highlight:))`
+        2. Then, implement the selector in one of your classes in the responder chain. Typically, in the `UIViewController` wrapping the navigator view controller.
+        ```swift
+        class EPUBViewController: UIViewController {
+            init(publication: Publication) {
+                var config = EPUBNavigatorViewController.Configuration()
+                config.editingActions.append(EditingAction(title: "Highlight", action: #selector(highlight)))
+                let navigator = EPUBNavigatorViewController(publication: publication, config: config)
+            }
+
+            @objc func highlight(_ sender: Any) {}
+        }
+        ```
+* New `SelectableNavigator` protocol for navigators supporting user selection.
+    * Get or clear the current selection.
+    * Implement `navigator(_:canPerformAction:for:)` to validate each editing action for the current selection. For example, to make sure the selected text is not too large for a definition look up.
+    * Implement `navigator(_:shouldShowMenuForSelection:)` to override the default edit menu (`UIMenuController`) with a custom selection pop-up.
+* (*alpha*) A new navigator for audiobooks.
+  * The navigator is chromeless, so you will need to provide your own user interface.
+
+### Deprecated
+
+* Removed `navigator(_:userContentController:didReceive:)` which is actually not needed since you can provide your own `WKScriptMessageHandler` to `WKUserContentController`.
+
+### Fixed
+
+* Fixed receiving `EPUBNavigatorDelegate.navigator(_:setupUserScripts:)` for the first web view.
+* [r2-testapp-swift#343](https://github.com/readium/r2-testapp-swift/issues/343) Fixed hiding "Share" editing action (contributed by [@rocxteady](https://github.com/readium/r2-navigator-swift/pull/149)).
+
 
 ## [2.0.0]
 
@@ -82,3 +122,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.0.0-beta.1]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
 [2.0.0-beta.2]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-beta.1...2.0.0-beta.2
 [2.0.0]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-beta.2...2.0.0
+[2.1.0]: https://github.com/readium/r2-navigator-swift/compare/2.0.0...2.1.0

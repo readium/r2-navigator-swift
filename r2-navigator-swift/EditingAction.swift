@@ -1,81 +1,133 @@
 //
-//  EditingAction.swift
-//  r2-navigator-swift
-//
-//  Created by Aferdita Muriqi, Mickaël Menu on 03.04.19.
-//
 //  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import UIKit
 import R2Shared
 
+/// An `EditingAction` is an item in the text selection menu.
+///
+/// iOS provides default actions for copy, share, etc. (see `UIMenuController`), but you can provide custom actions
+/// with `EditingAction(title: "Highlight", action: #selector(highlight:))`. Then, implement the selector in one of your
+/// classes in the responder chain. Typically, in the `UIViewController` wrapping the navigator view controller.
+public struct EditingAction: Hashable {
 
-public enum EditingAction: String {
-    case copy = "copy:"
-    case share = "shareSelection:"
-    case lookup = "_lookup:"
-    
+    /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        return [copy, share, lookup]
+        [copy, share, lookup]
+    }
+
+    /// Copy the text selection.
+    public static let copy = EditingAction(kind: .native("copy:"))
+
+    /// Look up the text selection in the dictionary.
+    public static let lookup = EditingAction(kind: .native("_lookup:"))
+
+    /// Share the text selection.
+    ///
+    /// Implementation detail: We use a custom share action to make sure the user is allowed to share the content. We
+    /// can't override the native _share: action since it is private.
+    public static let share = EditingAction(title: R2NavigatorLocalizedString("EditingAction.share"), action: #selector(EPUBSpreadView.shareSelection))
+
+    /// Create a custom editing action.
+    ///
+    /// You need to implement the selector in one of your classes in the responder chain. Typically, in the
+    /// `UIViewController` wrapping the navigator view controller.
+    public init(title: String, action: Selector) {
+        self.init(kind: .custom(UIMenuItem(title: title, action: action)))
+    }
+
+    enum Kind: Hashable {
+        case native(String)
+        case custom(UIMenuItem)
+    }
+
+    let kind: Kind
+
+    init(kind: Kind) {
+        self.kind = kind
+    }
+
+    var action: Selector {
+        switch kind {
+        case .native(let action):
+            return Selector(action)
+        case .custom(let item):
+            return item.action
+        }
+    }
+
+    var menuItem: UIMenuItem? {
+        switch kind {
+        case .native:
+            return nil
+        case .custom(let item):
+            return item
+        }
     }
 }
 
-
 protocol EditingActionsControllerDelegate: AnyObject {
-    
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController)
-    
+    func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool
+    func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool
 }
 
 
 /// Handles the authorization and check of editing actions.
 final class EditingActionsController {
-    
-    public weak var delegate: EditingActionsControllerDelegate?
+
+    weak var delegate: EditingActionsControllerDelegate?
 
     private let actions: [EditingAction]
     private let rights: UserRights
+    private var isEnabled = true
 
     init(actions: [EditingAction], rights: UserRights) {
         self.actions = actions
         self.rights = rights
     }
 
-    func canPerformAction(_ action: Selector) -> Bool {
-        for editingAction in self.actions {
-            if action == Selector(editingAction.rawValue) {
-                return true
-            }
-        }
-        return false
-    }
-    
-    
-    // MARK: - Selection
-    
     /// Current user selection contents and frame in the publication view.
-    private var selection: (text: String, frame: CGRect)?
-    
-    /// Peeks into the available selection contents authorized for copy.
-    /// To be used only when required to have the contents before actually using it (eg. Share dialog). To consume the actual copy, use `copy()`.
-    var selectionAuthorizedForCopy: (text: String, frame: CGRect)? {
-        guard
-            let selection = selection,
-            rights.canCopy(text: selection.text) else
-        {
-            return nil
+    var selection: Selection? {
+        didSet {
+            if let selection = selection {
+                isEnabled = delegate?.editingActions(self, shouldShowMenuForSelection: selection) ?? true
+            } else {
+                isEnabled = false
+            }
+            updateSharedMenuController()
         }
-        
-        return selection
     }
-    
-    /// To be called when the user selection changed.
-    func selectionDidChange(_ selection: (text: String, frame: CGRect)?) {
-        self.selection = selection
+
+    func canPerformAction(_ selector: Selector) -> Bool {
+        guard
+            isEnabled,
+            let selection = selection,
+            let action = actions.first(where: { $0.action == selector })
+        else {
+            return false
+        }
+
+        return delegate?.editingActions(self, canPerformAction: action, for: selection) ?? true
+    }
+
+    func canPerformAction(_ action: EditingAction) -> Bool {
+        canPerformAction(action.action)
+    }
+
+    func updateSharedMenuController() {
+        var items: [UIMenuItem] = []
+        if isEnabled, let selection = selection {
+            items = actions
+                .filter { delegate?.editingActions(self, canPerformAction: $0, for: selection) ?? true }
+                .compactMap { $0.menuItem }
+        }
+        UIMenuController.shared.menuItems = items
+        UIMenuController.shared.update()
     }
 
     
@@ -83,12 +135,12 @@ final class EditingActionsController {
 
     /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
     var canCopy: Bool {
-        return actions.contains(.copy) && rights.canCopy
+        canPerformAction(.copy) && rights.canCopy
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
     func copy() {
-        guard let text = selection?.text else {
+        guard let text = selection?.locator.text.highlight else {
             return
         }
         guard rights.copy(text: text) else {
@@ -104,21 +156,26 @@ final class EditingActionsController {
     
     /// Builds a UIActivityViewController to share the authorized contents of the user selection.
     func makeShareViewController(from contentsView: UIView) -> UIActivityViewController? {
-        guard canCopy else {
+        // Peeks into the available selection contents authorized for copy.
+        guard
+            let selection = selection,
+            let text = selection.locator.text.highlight
+        else {
+            return nil
+        }
+        guard canCopy, rights.canCopy(text: text) else {
             delegate?.editingActionsDidPreventCopy(self)
             return nil
         }
-        guard let selection = selectionAuthorizedForCopy else {
-            return nil
-        }
-        let viewController = UIActivityViewController(activityItems: [selection.text], applicationActivities: nil)
+
+        let viewController = UIActivityViewController(activityItems: [text], applicationActivities: nil)
         viewController.completionWithItemsHandler = { _, completed, _, _ in
             if (completed) {
                 self.copy()
             }
         }
         viewController.popoverPresentationController?.sourceView = contentsView
-        viewController.popoverPresentationController?.sourceRect = selection.frame
+        viewController.popoverPresentationController?.sourceRect = selection.frame ?? .zero
         return viewController
     }
     
