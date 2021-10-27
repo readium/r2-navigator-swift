@@ -310,7 +310,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     func getExtraLocationInfos(completion: @escaping () -> Void) {
-        evaluateScript("readium.getExtraLocationInfos();") { result in
+        evaluateScript("readium.getExtraLocationInfos()") { result in
             switch result {
                 case .success(let data):
                     let jsonData = (data as! String).data(using: .utf8)!
@@ -444,7 +444,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: - Scripts
     
     class func loadScript(named name: String) -> String {
-        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Static/scripts")
+        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "assets/Static/scripts")
             .flatMap { try? String(contentsOf: $0) }!
     }
 }

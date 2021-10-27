@@ -5528,11 +5528,13 @@ window.readium = {
   // utils
   scrollToId: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToId,
   scrollToPosition: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToPosition,
+  scrollToPartialCfi: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToPartialCfi,
   scrollToText: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToText,
   scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollLeft,
   scrollRight: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollRight,
   setProperty: _utils__WEBPACK_IMPORTED_MODULE_1__.setProperty,
   removeProperty: _utils__WEBPACK_IMPORTED_MODULE_1__.removeProperty,
+  getExtraLocationInfos: _utils__WEBPACK_IMPORTED_MODULE_1__.getExtraLocationInfos,
 
   // decoration
   registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_2__.registerTemplates,

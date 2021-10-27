@@ -8,10 +8,12 @@
 
 import "./gestures";
 import {
+  getExtraLocationInfos,
   removeProperty,
   scrollLeft,
   scrollRight,
   scrollToId,
+  scrollToPartialCfi,
   scrollToPosition,
   scrollToText,
   setProperty,
@@ -23,11 +25,13 @@ window.readium = {
   // utils
   scrollToId: scrollToId,
   scrollToPosition: scrollToPosition,
+  scrollToPartialCfi: scrollToPartialCfi,
   scrollToText: scrollToText,
   scrollLeft: scrollLeft,
   scrollRight: scrollRight,
   setProperty: setProperty,
   removeProperty: removeProperty,
+  getExtraLocationInfos: getExtraLocationInfos,
 
   // decoration
   registerDecorationTemplates: registerTemplates,

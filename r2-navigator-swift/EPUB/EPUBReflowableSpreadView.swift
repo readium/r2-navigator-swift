@@ -302,7 +302,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     /// Scrolls at the partial CFI `partialCfi`.
     private func go(toPartialCfi partialCfi: String, completion: @escaping (Bool) -> Void) {
-        evaluateScript("readium.scrollToPartialCfi(\'\(partialCfi)\');") { _, _ in completion(true) }
+        evaluateScript("readium.scrollToPartialCfi(\'\(partialCfi)\');") { _ in completion(true) }
     }
 
     /// Scrolls at the snippet matching the given text context.

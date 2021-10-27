@@ -231,7 +231,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         self.resourcesURL = {
             do {
                 return try resourcesServer.serve(
-                    Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
+                    Bundle.module.resourceURL!.appendingPathComponent("assets/Static"),
                     at: "/r2-navigator/epub"
                 )
             } catch {
