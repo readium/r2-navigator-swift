@@ -177,7 +177,7 @@ const DOCUMENT_NODE = 9;
  @param {string | object} [base]
  @param {string} [ignoreClass] class to ignore when parsing DOM
  */
-class EpubCFI {
+export class EpubCFI {
   constructor(cfiFrom, base, ignoreClass) {
     var type;
 
@@ -1308,7 +1308,7 @@ function findVisibleElements(viewport) {
  * @param viewport
  * @returns {{cfis: object|null, visibleText: string|null}}
  */
-function processExtraLocationInfos(viewport) {
+export function processExtraLocationInfos(viewport) {
   const elements = findVisibleElements(viewport);
 
   const extraLocationInfos = {

@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "R2 Navigator"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => 'https://github.com/readium/r2-navigator-swift.git', :tag => '2.1.0' }
+  s.source        = { :git => "https://github.com/readium/r2-navigator-swift.git", :branch => "fix/js-ios12" }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc  = true
   s.resources     = ['r2-navigator-swift/Resources/**', 'r2-navigator-swift/EPUB/Assets']
@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
   s.platform      = :ios
   s.ios.deployment_target = "10.0"
   s.dependency 'R2Shared'
+  s.dependency 'DifferenceKit'
   s.dependency 'SwiftSoup', '~> 2.3'
 
 end
