@@ -7,6 +7,7 @@
 import Foundation
 import UIKit
 import WebKit
+import R2Shared
 
 
 /// A view rendering a spread of resources with a fixed layout.
@@ -16,6 +17,15 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     private var isWrapperLoaded = false
     /// URL to load in the iframe once the wrapper page is loaded.
     private var urlToLoad: URL?
+    
+    private static let fixedScript = loadScript(named: "readium-fixed")
+    
+    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+        var scripts = scripts
+        scripts.append(WKUserScript(source: Self.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        
+        super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+    }
     
     override func setupWebView() {
         super.setupWebView()
@@ -35,7 +45,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         
         // Loads the wrapper page into the web view.
         let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
-        if let wrapperPageURL = Bundle(for: type(of: self)).url(forResource: spreadFile, withExtension: "html"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
+        if let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
             webView.loadHTMLString(wrapperPage, baseURL: publication.baseURL)
         }
@@ -51,18 +61,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         super.safeAreaInsetsDidChange()
         layoutSpread()
     }
-    
-    override func loadSpread() {
-        guard isWrapperLoaded else {
-            return
-        }
-        webView.evaluateJavaScript("spread.load(\(spread.jsonString(for: publication)));")
-    }
-
-    override func spreadDidLoad() {
-        super.spreadDidLoad()
-        goToCompletions.complete()
-    }
 
     /// Layouts the resource to fit its content in the bounds.
     private func layoutSpread() {
@@ -72,11 +70,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
         let insets = notchAreaInsets
         let viewportSize = bounds.inset(by: insets).size
-        
+
         webView.evaluateJavaScript("""
             spread.setViewport(
-              {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
-              {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
+                {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
+                {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
             );
             var iframe = document.querySelector('#page');
             iframe.addEventListener('load', function () {
@@ -87,17 +85,42 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             });
         """)
     }
-    
-    override func pointFromTap(_ data: TapData) -> CGPoint? {
-        let x = data.screenX
-        let y = data.screenY
 
-        return CGPoint(
-            x: CGFloat(x) * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
-            y: CGFloat(y) * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
+    override func loadSpread() {
+        guard isWrapperLoaded else {
+            return
+        }
+        super.evaluateScript("spread.load(\(spread.jsonString(for: publication)));")
+    }
+
+    override func spreadDidLoad() {
+        super.spreadDidLoad()
+        goToCompletions.complete()
+    }
+
+    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> ())?) {
+        let href = href ?? ""
+        let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
+        super.evaluateScript(script, completion: completion)
+    }
+
+    override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
+        CGPoint(
+            x: point.x * scrollView.zoomScale - scrollView.contentOffset.x + webView.frame.minX,
+            y: point.y * scrollView.zoomScale - scrollView.contentOffset.y + webView.frame.minY
         )
     }
-    
+
+    override func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
+        var rect = rect
+        rect.origin = convertPointToNavigatorSpace(rect.origin)
+        rect.size = CGSize(
+            width: rect.width * scrollView.zoomScale,
+            height: rect.height * scrollView.zoomScale
+        )
+        return rect
+    }
+
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         super.webView(webView, didFinish: navigation)
         
@@ -123,16 +146,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         } else {
             goToCompletions.add(completion)
         }
-    }
-
-    /// MARK: - Scripts
-    
-    private static let fixedScript = loadScript(named: "fixed")
-    
-    override func makeScripts() -> [WKUserScript] {
-        var scripts = super.makeScripts()
-        scripts.append(WKUserScript(source: EPUBFixedSpreadView.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        return scripts
     }
 
 }

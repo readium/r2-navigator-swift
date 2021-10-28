@@ -89,16 +89,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
-        
-        UIMenuController.shared.menuItems = [
-            UIMenuItem(
-                title: R2NavigatorLocalizedString("EditingAction.share"),
-                action: #selector(shareSelection)
-            )
-        ]
-        
-        if let locator = initialLocation ?? publication.positions.first {
+
+        editingActions.updateSharedMenuController()
+
+        if let locator = initialLocation {
             go(to: locator)
+        } else if let link = publication.readingOrder.first {
+            go(to: link)
+        } else {
+            log(.error, "No initial location and empty reading order")
         }
     }
     
@@ -235,18 +234,22 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     // MARK: - User Selection
 
     @objc func selectionDidChange(_ note: Notification) {
-        guard let selection = pdfView.currentSelection,
+        guard
+            let locator = currentLocation,
+            let selection = pdfView.currentSelection,
             let text = selection.string,
-            let page = selection.pages.first else
-        {
-            editingActions.selectionDidChange(nil)
+            let page = selection.pages.first
+        else {
+            editingActions.selection = nil
             return
         }
         
-        let frame = pdfView.convert(selection.bounds(for: page), from: page)
-            // Makes it slightly bigger to have more room when displaying a popover.
-            .insetBy(dx: -8, dy: -8)
-        editingActions.selectionDidChange((text: text, frame: frame))
+        editingActions.selection = Selection(
+            locator: locator.copy(text: { $0.highlight = text }),
+            frame: pdfView.convert(selection.bounds(for: page), from: page)
+                // Makes it slightly bigger to have more room when displaying a popover.
+                .insetBy(dx: -8, dy: -8)
+        )
     }
 
     @objc private func shareSelection(_ sender: Any?) {
@@ -343,7 +346,14 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
     }
-    
+
+    func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
+        true
+    }
+
+    func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
+        true
+    }
 }
 
 @available(iOS 11.0, *)

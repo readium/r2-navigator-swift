@@ -22,98 +22,192 @@ public class UserSettings {
     private let textAlignmentValues = ["justify", "start"]
     private let columnCountValues = ["auto", "1", "2"]
     
-    private var fontSize: Float = 100
-    private var fontOverride = false
-    private var fontFamily = 0
-    private var appearance = 0
-    private var verticalScroll = false
-    private var hyphens = false
+    private var fontSize: Float
+    private var fontOverride: Bool
+    private var fontFamily: Int
+    private var appearance: Int
+    private var verticalScroll: Bool
+    private var hyphens: Bool
     
-    private var publisherDefaults = true
-    private var textAlignment = 0
-    private var columnCount = 0
-    private var wordSpacing: Float = 0
-    private var letterSpacing: Float = 0
-    private var pageMargins: Float = 1
-    private var lineHeight: Float = 1.5
+    private var publisherDefaults: Bool
+    private var textAlignment: Int
+    private var columnCount: Int
+    private var wordSpacing: Float
+    private var letterSpacing: Float
+    private var pageMargins: Float
+    private var lineHeight: Float
+    private var paragraphMargins: Float?
     
     public let userProperties = UserProperties()
     
     private let userDefaults = UserDefaults.standard
 
-    internal init() {
-        
+    /// Designated initializer.
+    ///
+    /// - Important: For each parameter, if a corresponding value is found in
+    /// `UserDefaults`, that value will be used instead of the passed-in value.
+    ///
+    /// - Note: When VoiceOver is enabled, depending on how the EPUB is
+    /// formatted, moving to the next paragraph (swipe right) may bring
+    /// the reading point to the end of the chapter instead of the next
+    /// paragraph. This is a bug in WKWebView that can be worked around
+    /// by setting the `paragraphMargins` parameter to 0.5 or more.
+    ///
+    /// - Parameters:
+    ///   - hyphens: Whether words should be hyphenated by default.
+    ///   - fontSize: The default font size as a `%` value.
+    ///   - fontFamily: Index for the default font family. The list of font
+    ///   families is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.fontFamily` in the `userProperties` property.
+    ///   - appearance: Index for the default appearance. The list of
+    ///  appearances is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.appearance` in the `userProperties` property.
+    ///   - verticalScroll: Whether vertical scroll should be enabled by default.
+    ///   - publisherDefaults: Whether the publisher's EPUB formatting choices
+    ///   should be enabled by default.
+    ///   - textAlignment: Index for the default text alignment. The list of
+    ///  usable alignments is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.textAlignment` in the `userProperties` property.
+    ///   - columnCount: Index for the default column count. The list of
+    ///  usable values is configurable by adding/removing objects matching
+    ///   `ReadiumCSSReference.columnCount` in the `userProperties` property.
+    ///   - wordSpacing: The default word spacing as an `em` value.
+    ///   - letterSpacing: The default letter spacing as a `rem` value.
+    ///   - pageMargins: The default page margin value.
+    ///   - lineHeight: The default line height.
+    ///   - paragraphMargins: The default margin top and bottom `em` value to
+    ///   separate paragraphs. Passing `nil` will prevent Readium to forcibly
+    ///   modify paragraph spacing, ignoring what was previously set in
+    ///   UserDefaults. For most EPUBs, in order for this setting to work
+    ///   it may be required that `publisherDefaults` is set to `false`.
+    public init(
+        hyphens: Bool = false,
+        fontSize: Float = 100,
+        fontFamily: Int = 0,
+        appearance: Int = 0,
+        verticalScroll: Bool = false,
+        publisherDefaults: Bool = true,
+        textAlignment: Int = 0,
+        columnCount: Int = 0,
+        wordSpacing: Float = 0,
+        letterSpacing: Float = 0,
+        pageMargins: Float = 1,
+        lineHeight: Float = 1.5,
+        paragraphMargins: Float? = nil
+    ) {
+
+        /// Check if a given key is set in the UserDefaults.
+        func isKeyPresentInUserDefaults(key: ReadiumCSSName) -> Bool {
+            UserDefaults.standard.object(forKey: key.rawValue) != nil
+        }
+
         /// Load settings from UserDefaults
         
         // hyphens
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.hyphens) {
-            hyphens = userDefaults.bool(forKey: ReadiumCSSName.hyphens.rawValue)
+            self.hyphens = userDefaults.bool(forKey: ReadiumCSSName.hyphens.rawValue)
         } else {
-            hyphens = false
+            self.hyphens = hyphens
         }
         
         // Font size
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontSize) {
-            fontSize = userDefaults.float(forKey: ReadiumCSSName.fontSize.rawValue)
+            self.fontSize = userDefaults.float(forKey: ReadiumCSSName.fontSize.rawValue)
+        } else {
+            self.fontSize = fontSize
         }
 
         // Font family
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontFamily) {
-            fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontFamily.rawValue)
+            self.fontFamily = userDefaults.integer(forKey: ReadiumCSSName.fontFamily.rawValue)
+        } else {
+            self.fontFamily = fontFamily
         }
         
         // Font override
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.fontOverride) {
-            fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
-        } else if fontFamily != 0 {
-            fontOverride = true
+            self.fontOverride = userDefaults.bool(forKey: ReadiumCSSName.fontOverride.rawValue)
+        } else {
+            self.fontOverride = (fontFamily != 0)
         }
         
         // Appearance
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.appearance) {
-            appearance = userDefaults.integer(forKey: ReadiumCSSName.appearance.rawValue)
+            self.appearance = userDefaults.integer(forKey: ReadiumCSSName.appearance.rawValue)
+        } else {
+            self.appearance = appearance
         }
         
         // Vertical scroll
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.scroll) {
-            verticalScroll = userDefaults.bool(forKey: ReadiumCSSName.scroll.rawValue)
+            self.verticalScroll = userDefaults.bool(forKey: ReadiumCSSName.scroll.rawValue)
+        } else {
+            self.verticalScroll = verticalScroll
         }
         
         // Publisher default system
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.publisherDefault) {
-            publisherDefaults = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
+            self.publisherDefaults = userDefaults.bool(forKey: ReadiumCSSName.publisherDefault.rawValue)
+        } else {
+            self.publisherDefaults = publisherDefaults
         }
         
         // Text alignment
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.textAlignment) {
-            textAlignment = userDefaults.integer(forKey: ReadiumCSSName.textAlignment.rawValue)
+            self.textAlignment = userDefaults.integer(forKey: ReadiumCSSName.textAlignment.rawValue)
+        } else {
+            self.textAlignment = textAlignment
         }
         
         // Column count
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.columnCount) {
-            columnCount = userDefaults.integer(forKey: ReadiumCSSName.columnCount.rawValue)
+            self.columnCount = userDefaults.integer(forKey: ReadiumCSSName.columnCount.rawValue)
+        } else {
+            self.columnCount = columnCount
         }
         
         // Word spacing
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.wordSpacing) {
-            wordSpacing = userDefaults.float(forKey: ReadiumCSSName.wordSpacing.rawValue)
+            self.wordSpacing = userDefaults.float(forKey: ReadiumCSSName.wordSpacing.rawValue)
+        } else {
+            self.wordSpacing = wordSpacing
         }
         
         // Letter spacing
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.letterSpacing) {
-            letterSpacing = userDefaults.float(forKey: ReadiumCSSName.letterSpacing.rawValue)
+            self.letterSpacing = userDefaults.float(forKey: ReadiumCSSName.letterSpacing.rawValue)
+        } else {
+            self.letterSpacing = letterSpacing
         }
         
         // Page margins
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.pageMargins) {
-            pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
+            self.pageMargins = userDefaults.float(forKey: ReadiumCSSName.pageMargins.rawValue)
+        } else {
+            self.pageMargins = pageMargins
         }
         
         // Line height
         if isKeyPresentInUserDefaults(key: ReadiumCSSName.lineHeight) {
-            lineHeight = userDefaults.float(forKey: ReadiumCSSName.lineHeight.rawValue)
+            self.lineHeight = userDefaults.float(forKey: ReadiumCSSName.lineHeight.rawValue)
+        } else {
+            self.lineHeight = lineHeight
         }
         
+        // Paragraph Margins
+        // A nil `paragraphMargins` input parameter provides a way for client
+        // apps to opt out of setting a value for paragraph spacing, which is
+        // something that may not always be desirable. A use case is using
+        // this parameter to work around WKWebView bugs with VoiceOver
+        // (e.g. https://github.com/readium/r2-navigator-swift/issues/197 )
+        // but when VoiceOver is not active it may be desirable to not change
+        // paragraph spacing at all.
+        if paragraphMargins != nil, isKeyPresentInUserDefaults(key: ReadiumCSSName.paragraphMargins) {
+            self.paragraphMargins = userDefaults.float(forKey: ReadiumCSSName.paragraphMargins.rawValue)
+        } else {
+            self.paragraphMargins = paragraphMargins
+        }
+
         buildCssProperties()
         
     }
@@ -218,6 +312,16 @@ public class UserSettings {
                                         reference: ReadiumCSSReference.lineHeight.rawValue,
                                         name: ReadiumCSSName.lineHeight.rawValue)
         
+        // Paragraph margins
+        if let paragraphMargins = paragraphMargins {
+            userProperties.addIncrementable(nValue: paragraphMargins,
+                                            min: 0,
+                                            max: 2,
+                                            step: 0.1,
+                                            suffix: "em",
+                                            reference: ReadiumCSSReference.paragraphMargins.rawValue,
+                                            name: ReadiumCSSName.paragraphMargins.rawValue)
+        }
     }
     
     // Save settings to UserDefaults
@@ -272,15 +376,11 @@ public class UserSettings {
         if let currentLineHeight = userProperties.getProperty(reference: ReadiumCSSReference.lineHeight.rawValue) as? Incrementable {
             userDefaults.set(currentLineHeight.value, forKey: ReadiumCSSName.lineHeight.rawValue)
         }
+
+        if let currentParagraphMargins = userProperties.getProperty(reference: ReadiumCSSReference.paragraphMargins.rawValue) as? Incrementable {
+            userDefaults.set(currentParagraphMargins.value, forKey: ReadiumCSSName.paragraphMargins.rawValue)
+        }
         
     }
-    
-    /// Check if a given key is set in the UserDefaults.
-    ///
-    /// - Parameter key: The key name.
-    /// - Returns: A boolean value indicating if the value is present.
-    private func isKeyPresentInUserDefaults(key: ReadiumCSSName) -> Bool {
-        return UserDefaults.standard.object(forKey: key.rawValue) != nil
-    }
-    
+
 }
