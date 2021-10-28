@@ -41,7 +41,8 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         }
 
         // If we don't use a custom scheme, the `AVAssetResourceLoaderDelegate` methods will never be called.
-        components.scheme = schemePrefix + (components.scheme ?? "")
+        // Vivlio: if we use the custom scheme, the player plays nothing at all…
+        // components.scheme = schemePrefix + (components.scheme ?? "")
         guard let url = components.url else {
             throw AssetError.invalidHREF(link.href)
         }
