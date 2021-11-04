@@ -7,6 +7,17 @@ All notable changes to this project will be documented in this file.
 
 <!--## [Unreleased]-->
 
+## [2.2.0]
+
+### Added
+
+* A new `translate` EPUB and PDF editing action is available for iOS 15.
+
+### Fixed
+
+* Fixed turning pages of an EPUB reflowable resource with an odd number of columns. A virtual blank trailing column is appended to the resource when displayed as two columns.
+
+
 ## [2.1.0]
 
 ### Added
@@ -126,3 +137,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.0.0-beta.2]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-beta.1...2.0.0-beta.2
 [2.0.0]: https://github.com/readium/r2-navigator-swift/compare/2.0.0-beta.2...2.0.0
 [2.1.0]: https://github.com/readium/r2-navigator-swift/compare/2.0.0...2.1.0
+[2.2.0]: https://github.com/readium/r2-navigator-swift/compare/2.1.0...2.2.0
