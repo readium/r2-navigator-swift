@@ -46,7 +46,8 @@ export function hasPlaceholder(container) {
  * @param {HTMLElement} container
  */
 export function removePlaceholder(container) {
-  container.querySelector(placeholderSelector)?.remove();
+  var placeholder = container.querySelector(placeholderSelector);
+  placeholder && placeholder.remove();
 }
 
 /**

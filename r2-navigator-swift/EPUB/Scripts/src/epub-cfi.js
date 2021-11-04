@@ -18,7 +18,11 @@ function extend(target) {
   sources.forEach(function (source) {
     if (!source) return;
     Object.getOwnPropertyNames(source).forEach(function (propName) {
-      Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+      Object.defineProperty(
+        target,
+        propName,
+        Object.getOwnPropertyDescriptor(source, propName)
+      );
     });
   });
   return target;
@@ -129,7 +133,10 @@ class RangeObject {
   }
 
   selectNodeContents(referenceNode) {
-    const endIndex = (referenceNode.nodeType === 3) ? referenceNode.textContent.length : parent.childNodes.length;
+    const endIndex =
+      referenceNode.nodeType === 3
+        ? referenceNode.textContent.length
+        : parent.childNodes.length;
     this.setStart(referenceNode, 0);
     this.setEnd(referenceNode, endIndex);
   }
@@ -148,7 +155,9 @@ class RangeObject {
   }
 
   _checkCollapsed() {
-    this.collapsed = this.startContainer === this.endContainer && this.startOffset === this.endOffset;
+    this.collapsed =
+      this.startContainer === this.endContainer &&
+      this.startOffset === this.endOffset;
   }
 
   toString() {
@@ -205,7 +214,6 @@ export class EpubCFI {
 
     type = this.checkType(cfiFrom);
 
-
     if (type === "string") {
       this.str = cfiFrom;
       return extend(this, EpubCFI.parse(cfiFrom));
@@ -220,7 +228,6 @@ export class EpubCFI {
     } else {
       throw new TypeError("not a valid argument for EpubCFI");
     }
-
   }
 
   /**
@@ -228,13 +235,21 @@ export class EpubCFI {
    * @private
    */
   checkType(cfi) {
-
     if (this.isCfiString(cfi)) {
       return "string";
       // Is a range object
-    } else if (cfi && typeof cfi === "object" && (type(cfi) === "Range" || typeof (cfi.startContainer) != "undefined")) {
+    } else if (
+      cfi &&
+      typeof cfi === "object" &&
+      (type(cfi) === "Range" || typeof cfi.startContainer != "undefined")
+    ) {
       return "range";
-    } else if (cfi && typeof cfi === "object" && typeof (cfi.nodeType) != "undefined") { // || typeof cfi === "function"
+    } else if (
+      cfi &&
+      typeof cfi === "object" &&
+      typeof cfi.nodeType != "undefined"
+    ) {
+      // || typeof cfi === "function"
       return "node";
     } else if (cfi && typeof cfi === "object" && cfi instanceof EpubCFI) {
       return "EpubCFI";
@@ -255,12 +270,12 @@ export class EpubCFI {
       base: {},
       path: {},
       start: null,
-      end: null
+      end: null,
     };
     let baseComponent, pathComponent, range;
 
     if (typeof cfiStr !== "string") {
-      return {spinePos: -1};
+      return { spinePos: -1 };
     }
 
     if (cfiStr.indexOf("epubcfi(") === 0 && cfiStr[cfiStr.length - 1] === ")") {
@@ -272,7 +287,7 @@ export class EpubCFI {
 
     // Make sure this is a valid cfi or return
     if (!baseComponent) {
-      return {spinePos: -1};
+      return { spinePos: -1 };
     }
 
     cfi.base = EpubCFI.parseComponent(baseComponent);
@@ -304,8 +319,8 @@ export class EpubCFI {
       steps: [],
       terminal: {
         offset: null,
-        assertion: null
-      }
+        assertion: null,
+      },
     };
     var parts = componentStr.split(":");
     var steps = parts[0].split("/");
@@ -340,7 +355,8 @@ export class EpubCFI {
       return;
     }
 
-    if (num % 2 === 0) { // Even = is an element
+    if (num % 2 === 0) {
+      // Even = is an element
       type = "element";
       index = num / 2 - 1;
     } else {
@@ -349,9 +365,9 @@ export class EpubCFI {
     }
 
     return {
-      "type": type,
-      "index": index,
-      "id": id || null
+      type: type,
+      index: index,
+      id: id || null,
     };
   }
 
@@ -372,67 +388,63 @@ export class EpubCFI {
 
     return {
       offset: characterOffset,
-      assertion: textLocationAssertion
+      assertion: textLocationAssertion,
     };
-
   }
 
   static getChapterComponent(cfiStr) {
-    const indirection = cfiStr.split('!');
+    const indirection = cfiStr.split("!");
     return indirection[0];
   }
 
   static getPathComponent(cfiStr) {
-    const indirection = cfiStr.split('!');
+    const indirection = cfiStr.split("!");
 
     if (indirection[1]) {
-      let ranges = indirection[1].split(',');
+      let ranges = indirection[1].split(",");
       return ranges[0];
     }
   }
 
   static getRange(cfiStr) {
-    const ranges = cfiStr.split(',');
+    const ranges = cfiStr.split(",");
 
     if (ranges.length === 3) {
-      return [
-        ranges[1],
-        ranges[2]
-      ];
+      return [ranges[1], ranges[2]];
     }
 
     return false;
   }
 
   static getCharacterOffsetComponent(cfiStr) {
-    const splitStr = cfiStr.split(':');
-    return splitStr[1] || '';
+    const splitStr = cfiStr.split(":");
+    return splitStr[1] || "";
   }
 
   joinSteps(steps) {
     if (!steps) {
-      return '';
+      return "";
     }
 
-    return steps.map(function (part) {
-      var segment = "";
+    return steps
+      .map(function (part) {
+        var segment = "";
 
-      if (part.type === "element") {
-        segment += (part.index + 1) * 2;
-      }
+        if (part.type === "element") {
+          segment += (part.index + 1) * 2;
+        }
 
-      if (part.type === "text") {
-        segment += 1 + (2 * part.index); // TODO: double check that this is odd
-      }
+        if (part.type === "text") {
+          segment += 1 + 2 * part.index; // TODO: double check that this is odd
+        }
 
-      if (part.id) {
-        segment += "[" + part.id + "]";
-      }
+        if (part.id) {
+          segment += "[" + part.id + "]";
+        }
 
-      return segment;
-
-    }).join("/");
-
+        return segment;
+      })
+      .join("/");
   }
 
   segmentString(segment) {
@@ -478,7 +490,6 @@ export class EpubCFI {
 
     return cfiString;
   }
-
 
   /**
    * Compare which of two CFIs is earlier in the text
@@ -553,13 +564,13 @@ export class EpubCFI {
   }
 
   step(node) {
-    var nodeType = (node.nodeType === TEXT_NODE) ? "text" : "element";
+    var nodeType = node.nodeType === TEXT_NODE ? "text" : "element";
 
     return {
-      "id": node.id,
-      "tagName": node.tagName,
-      "type": nodeType,
-      "index": this.position(node)
+      id: node.id,
+      tagName: node.tagName,
+      type: nodeType,
+      index: this.position(node),
     };
   }
 
@@ -573,13 +584,13 @@ export class EpubCFI {
     }
 
     // Otherwise add the filter node in
-    nodeType = (filteredNode.nodeType === TEXT_NODE) ? "text" : "element";
+    nodeType = filteredNode.nodeType === TEXT_NODE ? "text" : "element";
 
     return {
-      "id": filteredNode.id,
-      "tagName": filteredNode.tagName,
-      "type": nodeType,
-      "index": this.filteredPosition(filteredNode, ignoreClass)
+      id: filteredNode.id,
+      tagName: filteredNode.tagName,
+      type: nodeType,
+      index: this.filteredPosition(filteredNode, ignoreClass),
     };
   }
 
@@ -588,14 +599,17 @@ export class EpubCFI {
       steps: [],
       terminal: {
         offset: null,
-        assertion: null
-      }
+        assertion: null,
+      },
     };
     var currentNode = node;
     var step;
 
-    while (currentNode && currentNode.parentNode && currentNode.parentNode.nodeType != DOCUMENT_NODE) {
-
+    while (
+      currentNode &&
+      currentNode.parentNode &&
+      currentNode.parentNode.nodeType != DOCUMENT_NODE
+    ) {
       if (ignoreClass) {
         step = this.filteredStep(currentNode, ignoreClass);
       } else {
@@ -610,17 +624,15 @@ export class EpubCFI {
     }
 
     if (offset != null && offset >= 0) {
-
       segment.terminal.offset = offset;
 
       // Make sure we are getting to a textNode if there is an offset
       if (segment.steps[segment.steps.length - 1].type != "text") {
         segment.steps.push({
-          "type": "text",
-          "index": 0
+          type: "text",
+          index: 0,
         });
       }
-
     }
 
     return segment;
@@ -631,9 +643,11 @@ export class EpubCFI {
       return false;
     }
 
-    if (stepA.index === stepB.index &&
+    if (
+      stepA.index === stepB.index &&
       stepA.id === stepB.id &&
-      stepA.type === stepB.type) {
+      stepA.type === stepB.type
+    ) {
       return true;
     }
 
@@ -653,7 +667,7 @@ export class EpubCFI {
       base: {},
       path: {},
       start: null,
-      end: null
+      end: null,
     };
 
     var start = range.startContainer;
@@ -666,9 +680,9 @@ export class EpubCFI {
 
     if (ignoreClass) {
       // Tell pathTo if / what to ignore
-      needsIgnoring = (start.ownerDocument.querySelector("." + ignoreClass) != null);
+      needsIgnoring =
+        start.ownerDocument.querySelector("." + ignoreClass) != null;
     }
-
 
     if (typeof base === "string") {
       cfi.base = EpubCFI.parseComponent(base);
@@ -699,7 +713,7 @@ export class EpubCFI {
       // Create a new empty path
       cfi.path = {
         steps: [],
-        terminal: null
+        terminal: null,
       };
 
       // Push steps that are shared between start and end to the common path
@@ -719,7 +733,6 @@ export class EpubCFI {
           } else {
             cfi.path.steps.push(cfi.start.steps[i]);
           }
-
         } else {
           break;
         }
@@ -747,7 +760,7 @@ export class EpubCFI {
       base: {},
       path: {},
       start: null,
-      end: null
+      end: null,
     };
 
     if (typeof base === "string") {
@@ -794,7 +807,6 @@ export class EpubCFI {
         // Parent will be ignored on next step
         return anchor;
       }
-
     } else if (needsIgnoring && !isText) {
       // Otherwise just skip the element node
       return false;
@@ -802,7 +814,6 @@ export class EpubCFI {
       // No need to filter
       return anchor;
     }
-
   }
 
   patchOffset(anchor, offset, ignoreClass) {
@@ -835,29 +846,28 @@ export class EpubCFI {
     }
 
     return totalOffset;
-
   }
 
   normalizedMap(children, nodeType, ignoreClass) {
     var output = {};
     var prevIndex = -1;
-    var i, len = children.length;
+    var i,
+      len = children.length;
     var currNodeType;
     var prevNodeType;
 
     for (i = 0; i < len; i++) {
-
       currNodeType = children[i].nodeType;
 
       // Check if needs ignoring
-      if (currNodeType === ELEMENT_NODE &&
-        children[i].classList.contains(ignoreClass)) {
+      if (
+        currNodeType === ELEMENT_NODE &&
+        children[i].classList.contains(ignoreClass)
+      ) {
         currNodeType = TEXT_NODE;
       }
 
-      if (i > 0 &&
-        currNodeType === TEXT_NODE &&
-        prevNodeType === TEXT_NODE) {
+      if (i > 0 && currNodeType === TEXT_NODE && prevNodeType === TEXT_NODE) {
         // join text nodes
         output[i] = prevIndex;
       } else if (nodeType === currNodeType) {
@@ -866,7 +876,6 @@ export class EpubCFI {
       }
 
       prevNodeType = currNodeType;
-
     }
 
     return output;
@@ -904,7 +913,6 @@ export class EpubCFI {
       map = this.normalizedMap(children, TEXT_NODE, ignoreClass);
     }
 
-
     index = Array.prototype.indexOf.call(children, anchor);
 
     return map[index];
@@ -927,7 +935,6 @@ export class EpubCFI {
 
     return xpath.join("/");
   }
-
 
   /*
 
@@ -961,18 +968,19 @@ export class EpubCFI {
     });
 
     return query.join(">");
-
   }
 
   textNodes(container, ignoreClass) {
-    return Array.prototype.slice.call(container.childNodes).filter(function (node) {
-      if (node.nodeType === TEXT_NODE) {
-        return true;
-      } else if (ignoreClass && node.classList.contains(ignoreClass)) {
-        return true;
-      }
-      return false;
-    });
+    return Array.prototype.slice
+      .call(container.childNodes)
+      .filter(function (node) {
+        if (node.nodeType === TEXT_NODE) {
+          return true;
+        } else if (ignoreClass && node.classList.contains(ignoreClass)) {
+          return true;
+        }
+        return false;
+      });
   }
 
   walkToNode(steps, _doc, ignoreClass) {
@@ -1004,7 +1012,6 @@ export class EpubCFI {
         //like navigation
         break;
       }
-
     }
 
     return container;
@@ -1017,7 +1024,13 @@ export class EpubCFI {
 
     if (!ignoreClass && typeof doc.evaluate != "undefined") {
       xpath = this.stepsToXpath(steps);
-      container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      container = doc.evaluate(
+        xpath,
+        doc,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+      ).singleNodeValue;
     } else if (ignoreClass) {
       container = this.walkToNode(steps, doc, ignoreClass);
     } else {
@@ -1056,9 +1069,8 @@ export class EpubCFI {
 
     return {
       container: container,
-      offset: offset
+      offset: offset,
     };
-
   }
 
   /**
@@ -1073,10 +1085,12 @@ export class EpubCFI {
     var start, end, startContainer, endContainer;
     var cfi = this;
     var startSteps, endSteps;
-    var needsIgnoring = ignoreClass ? (doc.querySelector("." + ignoreClass) != null) : false;
+    var needsIgnoring = ignoreClass
+      ? doc.querySelector("." + ignoreClass) != null
+      : false;
     var missed;
 
-    if (typeof (doc.createRange) !== "undefined") {
+    if (typeof doc.createRange !== "undefined") {
       range = doc.createRange();
     } else {
       range = new RangeObject();
@@ -1085,27 +1099,42 @@ export class EpubCFI {
     if (cfi.range) {
       start = cfi.start;
       startSteps = cfi.path.steps.concat(start.steps);
-      startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
+      startContainer = this.findNode(
+        startSteps,
+        doc,
+        needsIgnoring ? ignoreClass : null
+      );
       end = cfi.end;
       endSteps = cfi.path.steps.concat(end.steps);
-      endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
+      endContainer = this.findNode(
+        endSteps,
+        doc,
+        needsIgnoring ? ignoreClass : null
+      );
     } else {
       start = cfi.path;
       startSteps = cfi.path.steps;
-      startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
+      startContainer = this.findNode(
+        cfi.path.steps,
+        doc,
+        needsIgnoring ? ignoreClass : null
+      );
     }
 
     if (startContainer) {
       try {
-
         if (start.terminal.offset != null) {
           range.setStart(startContainer, start.terminal.offset);
         } else {
           range.setStart(startContainer, 0);
         }
-
       } catch (e) {
-        missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
+        missed = this.fixMiss(
+          startSteps,
+          start.terminal.offset,
+          doc,
+          needsIgnoring ? ignoreClass : null
+        );
         range.setStart(missed.container, missed.offset);
       }
     } else {
@@ -1116,19 +1145,21 @@ export class EpubCFI {
 
     if (endContainer) {
       try {
-
         if (end.terminal.offset != null) {
           range.setEnd(endContainer, end.terminal.offset);
         } else {
           range.setEnd(endContainer, 0);
         }
-
       } catch (e) {
-        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
+        missed = this.fixMiss(
+          endSteps,
+          cfi.end.terminal.offset,
+          doc,
+          needsIgnoring ? ignoreClass : null
+        );
         range.setEnd(missed.container, missed.offset);
       }
     }
-
 
     // doc.defaultView.getSelection().addRange(range);
     return range;
@@ -1140,9 +1171,11 @@ export class EpubCFI {
    * @returns {boolean}
    */
   isCfiString(str) {
-    if (typeof str === "string" &&
+    if (
+      typeof str === "string" &&
       str.indexOf("epubcfi(") === 0 &&
-      str[str.length - 1] === ")") {
+      str[str.length - 1] === ")"
+    ) {
       return true;
     }
 
@@ -1182,24 +1215,24 @@ export class EpubCFI {
       this.path.terminal = this.end.terminal;
     }
   }
-    
+
   generateHtmlQuery() {
-      const query = ['html'];
+    const query = ["html"];
 
-      this.path.steps.forEach(function (step) {
-        const position = step.index + 1;
+    this.path.steps.forEach(function (step) {
+      const position = step.index + 1;
 
-        if (step.id) {
-          query.push("#" + step.id.replaceAll(/\W/g, '\\$&'));
-        } else if (step.type === 'text') {
-          // unsupported in querySelector
-          //query.push("text()[" + position + ']');
-        } else {
-          query.push("*:nth-child(" + position + ")");
-        }
-      });
+      if (step.id) {
+        query.push("#" + step.id.replaceAll(/\W/g, "\\$&"));
+      } else if (step.type === "text") {
+        // unsupported in querySelector
+        //query.push("text()[" + position + ']');
+      } else {
+        query.push("*:nth-child(" + position + ")");
+      }
+    });
 
-      return query.join('>');
+    return query.join(">");
   }
 }
 
@@ -1228,7 +1261,12 @@ function isRectVisible(rect, frameRect) {
     return false;
   }
   // Sometimes we get client rects that are "empty" and aren't supposed to be visible
-  if (rect.left === 0 && rect.right === 0 && rect.top === 0 && rect.bottom === 0) {
+  if (
+    rect.left === 0 &&
+    rect.right === 0 &&
+    rect.top === 0 &&
+    rect.bottom === 0
+  ) {
     return false;
   }
 
@@ -1238,7 +1276,8 @@ function isRectVisible(rect, frameRect) {
 function getTextVisibleRatio(textNode, frameRect) {
   const range = document.createRange();
   range.selectNode(textNode);
-  let textTotalSurface = 0, textVisibleSurface = 0;
+  let textTotalSurface = 0,
+    textVisibleSurface = 0;
   Array.from(range.getClientRects()).forEach((current) => {
     const surface = current.width * current.height;
     textTotalSurface += surface;
@@ -1255,7 +1294,9 @@ function isNodeElementVisible(node, frameRect) {
     const range = document.createRange();
     range.selectNode(node);
     const clientRectList = range.getClientRects();
-    return Array.from(clientRectList).some(rect => isRectVisible(rect, frameRect));
+    return Array.from(clientRectList).some((rect) =>
+      isRectVisible(rect, frameRect)
+    );
   } else {
     const elementRect = node.getBoundingClientRect();
     return isRectVisible(elementRect, frameRect);
@@ -1263,10 +1304,12 @@ function isNodeElementVisible(node, frameRect) {
 }
 
 function intersectRect(r1, r2) {
-  return !(r2.left >= r1.right ||
+  return !(
+    r2.left >= r1.right ||
     r2.right <= r1.left ||
     r2.top >= r1.bottom ||
-    r2.bottom <= r1.top);
+    r2.bottom <= r1.top
+  );
 }
 
 function findVisibleElements(viewport) {
@@ -1313,15 +1356,18 @@ export function processExtraLocationInfos(viewport) {
 
   const extraLocationInfos = {
     cfis: null,
-    visibleText: null
+    visibleText: null,
   };
 
   if (elements.length === 0) {
     return extraLocationInfos;
   }
 
-  extraLocationInfos.cfis = getFirstAndLastVisiblePartialCfis(viewport, elements);
-  extraLocationInfos.visibleText = getVisibleText(viewport, elements)
+  extraLocationInfos.cfis = getFirstAndLastVisiblePartialCfis(
+    viewport,
+    elements
+  );
+  extraLocationInfos.visibleText = getVisibleText(viewport, elements);
 
   return extraLocationInfos;
 }
@@ -1334,30 +1380,32 @@ export function processExtraLocationInfos(viewport) {
  * @returns {string}
  */
 function getVisibleText(viewport, elements) {
-  const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
+  const textNodes = elements.filter((el) => el.nodeType === Node.TEXT_NODE);
   let fullVisibleText;
 
-  if (textNodes.length === 0)
-    return "";
+  if (textNodes.length === 0) return "";
 
   const firstTextNode = textNodes[0];
 
   // Offset from which where text is visible on screen
-  const visibleTextOffset = Math.round(firstTextNode.wholeText.length * (1 - getTextVisibleRatio(firstTextNode, viewport)));
+  const visibleTextOffset = Math.round(
+    firstTextNode.wholeText.length *
+      (1 - getTextVisibleRatio(firstTextNode, viewport))
+  );
 
   // Retrieving visible text
   fullVisibleText = Array.from(textNodes)
-      .slice(0, 5)
-      .map(text => text.textContent)
-      .join(' ')
-      .substring(visibleTextOffset);
+    .slice(0, 5)
+    .map((text) => text.textContent)
+    .join(" ")
+    .substring(visibleTextOffset);
 
   // Offset to remove truncated words
-  const cleanStartOffset = fullVisibleText.indexOf(' ') + 1;
+  const cleanStartOffset = fullVisibleText.indexOf(" ") + 1;
   fullVisibleText = fullVisibleText.substring(cleanStartOffset, 250);
 
   // End offset to remove truncated words
-  const cleanEndOffset = fullVisibleText.lastIndexOf(' ');
+  const cleanEndOffset = fullVisibleText.lastIndexOf(" ");
 
   // Return cleaned visible text
   return fullVisibleText.substring(0, cleanEndOffset);
@@ -1372,10 +1420,13 @@ function getVisibleText(viewport, elements) {
  */
 function getFirstAndLastVisiblePartialCfis(viewport, elements) {
   let cfiElementFrom = null;
-  const textNodes = elements.filter(el => el.nodeType === Node.TEXT_NODE);
+  const textNodes = elements.filter((el) => el.nodeType === Node.TEXT_NODE);
   if (textNodes.length > 0) {
     const firstTextNode = textNodes[0];
-    const textOffset = Math.round(firstTextNode.wholeText.length * (1 - getTextVisibleRatio(firstTextNode, viewport)));
+    const textOffset = Math.round(
+      firstTextNode.wholeText.length *
+        (1 - getTextVisibleRatio(firstTextNode, viewport))
+    );
     cfiElementFrom = document.createRange();
     cfiElementFrom.setStart(firstTextNode, textOffset);
   } else {
@@ -1385,7 +1436,10 @@ function getFirstAndLastVisiblePartialCfis(viewport, elements) {
   let cfiElementTo = null;
   const lastTextNode = textNodes.pop();
   if (lastTextNode) {
-    const textOffset = Math.round(lastTextNode.wholeText.length * getTextVisibleRatio(lastTextNode, viewport));
+    const textOffset = Math.round(
+      lastTextNode.wholeText.length *
+        getTextVisibleRatio(lastTextNode, viewport)
+    );
     cfiElementTo = document.createRange();
     cfiElementTo.setStart(lastTextNode, textOffset);
   } else {
@@ -1394,15 +1448,15 @@ function getFirstAndLastVisiblePartialCfis(viewport, elements) {
 
   return {
     startCfi: getPartialCfiFromElement(cfiElementFrom),
-    endCfi: getPartialCfiFromElement(cfiElementTo)
-  }
+    endCfi: getPartialCfiFromElement(cfiElementTo),
+  };
 }
 
 function getPartialCfiFromElement(element) {
   try {
-    const epubCfi = new EpubCFI(element, '/6/2').toString();
+    const epubCfi = new EpubCFI(element, "/6/2").toString();
     return epubCfi.substring(13, epubCfi.length - 1);
-  } catch(error) {
+  } catch (error) {
     return null;
   }
 }

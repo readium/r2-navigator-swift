@@ -78,7 +78,7 @@ function getSiblingIndex(node) {
  */
 function getNodeTextLayer(node) {
   const el = 'closest' in node ? node : node.parentElement;
-  return el?.closest('.textLayer') ?? null;
+  return (el && el.closest('.textLayer')) ?? null;
 }
 
 /**
@@ -469,7 +469,7 @@ export function anchor(root, selectors) {
         return anchorByPosition(pageIndex, anchor.start, anchor.end);
       }
 
-      return prioritizePages(position?.start ?? 0).then(pageIndices => {
+      return prioritizePages((position && position.start) || 0).then(pageIndices => {
         return findInPages(pageIndices, quote, position);
       });
     });

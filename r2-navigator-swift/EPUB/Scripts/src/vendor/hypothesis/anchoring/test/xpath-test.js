@@ -178,7 +178,7 @@ describe('annotator/anchoring/xpath', () => {
       it('evaluates simple XPaths without using `document.evaluate`', () => {
         const result = nodeFromXPath(test.xpath, container);
         assert.notCalled(document.evaluate);
-        assert.equal(result?.nodeName, test.nodeName);
+        assert.equal(result && result.nodeName, test.nodeName);
       });
     });
 
@@ -197,7 +197,7 @@ describe('annotator/anchoring/xpath', () => {
       it('uses `document.evaluate` for non-simple XPaths', () => {
         const result = nodeFromXPath(xpath, container);
         assert.calledOnce(document.evaluate);
-        assert.strictEqual(result?.nodeName ?? result, expectedNodeName);
+        assert.strictEqual((result && result.nodeName) ?? result, expectedNodeName);
       });
     });
 

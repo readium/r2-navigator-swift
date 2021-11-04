@@ -51,7 +51,7 @@ export function anchor(root, selectors, options = {}) {
    * @param {Range} range
    */
   const maybeAssertQuote = range => {
-    if (quote?.exact && range.toString() !== quote.exact) {
+    if (quote && quote.exact && range.toString() !== quote.exact) {
       throw new Error('quote mismatch');
     } else {
       return range;

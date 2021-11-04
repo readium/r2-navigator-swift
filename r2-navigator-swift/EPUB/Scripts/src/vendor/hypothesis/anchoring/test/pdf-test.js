@@ -70,7 +70,9 @@ describe('annotator/anchoring/pdf', function () {
 
   /** Clean up any resources created by the fake PDF.js viewer. */
   function cleanupViewer() {
-    viewer?.dispose();
+      if (viewer) {
+      viewer.dispose();
+    }
     window.PDFViewerApplication = null;
   }
 
