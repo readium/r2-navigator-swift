@@ -88,6 +88,13 @@
 
   /* Dynamic leading based on typeface metrics + font-size setting */
   --RS__baseLineHeight: calc((1em + (2ex - 1ch) - ((1rem - 16px) * 0.1667)) * var(--RS__lineHeightCompensation));
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-touch-callout: none;
 }
 
 /* Set default font for the html doc, so that it can be overridden by the authors’s stylesheet */
@@ -278,7 +285,7 @@ math {
 
 :root {
   --RS__backgroundColor: #FFFFFF;
-  --RS__textColor: #121212;
+  --RS__textColor: #383838;
 
   /* This can be customized but initial will re-use default value of the browser */
   --RS__selectionBackgroundColor: #b4d8fe;

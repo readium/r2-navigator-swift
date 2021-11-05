@@ -256,8 +256,8 @@ body {
 /* [style*="--USER__appearance"] can be used to increase specificity but performance hit */
 
 :root[style*="readium-night-on"] {
-  --RS__backgroundColor: #000000;
-  --RS__textColor: #FEFEFE;
+  --RS__backgroundColor: #232323;
+  --RS__textColor: #C1C1C1;
 
   --RS__linkColor: #63caff;
   --RS__visitedColor: #0099E5;
@@ -530,6 +530,7 @@ body {
 
 :root[style*="--USER__fontSize"] {
   font-size: var(--USER__fontSize) !important;
+  -webkit-text-size-adjust: 100% !important;
 }
 
 /* Readium CSS
