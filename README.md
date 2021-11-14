@@ -1,3 +1,7 @@
+> **:warning: ᴛʜɪs ʀᴇᴘᴏsɪᴛᴏʀʏ ɪs ᴅᴇᴘʀᴇᴄᴀᴛᴇᴅ :warning:**
+>
+> We moved all the `r2-*-swift` modules to a single repository: [`swift-toolkit`](https://github.com/readium/swift-toolkit).
+
 [![BSD-3](https://img.shields.io/badge/License-BSD--3-brightgreen.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 # r2-navigator-swift
