@@ -313,9 +313,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         evaluateScript("readium.getExtraLocationInfos()") { result in
             switch result {
                 case .success(let data):
-                    let jsonData = (data as! String).data(using: .utf8)!
+                    let jsonData = (data as? String ?? "").data(using: .utf8)
+                    
                     do {
-                        let locationInfos: ExtraLocationInfos = try JSONDecoder().decode(ExtraLocationInfos.self, from: jsonData)
+                        let locationInfos: ExtraLocationInfos = try JSONDecoder().decode(ExtraLocationInfos.self, from: jsonData!)
                         self.partialCfis = (locationInfos.cfis.startCfi, locationInfos.cfis.endCfi)
                         self.currentVisibleText = locationInfos.visibleText
                     } catch {
